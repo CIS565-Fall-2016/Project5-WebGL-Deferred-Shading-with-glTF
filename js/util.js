@@ -111,26 +111,40 @@ window.readyModelForDraw = function(prog, m) {
         gl.uniform1i(prog.u_normap, 1);
     }
 
-    gl.enableVertexAttribArray(prog.a_position);
-    gl.bindBuffer(gl.ARRAY_BUFFER, m.position);
-    gl.vertexAttribPointer(prog.a_position, 3, gl.FLOAT, false, 0, 0);
+    // gl.enableVertexAttribArray(prog.a_position);
+    // gl.bindBuffer(gl.ARRAY_BUFFER, m.position);
+    // gl.vertexAttribPointer(prog.a_position, 3, gl.FLOAT, false, 0, 0);
 
-    if (prog.a_normal >= 0 && m.normal) {
-        gl.enableVertexAttribArray(prog.a_normal);
-        gl.bindBuffer(gl.ARRAY_BUFFER, m.normal);
-        gl.vertexAttribPointer(prog.a_normal, 3, gl.FLOAT, false, 0, 0);
-    }
-    if (prog.a_uv >= 0 && m.uv) {
-        gl.enableVertexAttribArray(prog.a_uv);
-        gl.bindBuffer(gl.ARRAY_BUFFER, m.uv);
-        gl.vertexAttribPointer(prog.a_uv, 2, gl.FLOAT, false, 0, 0);
-    }
+    // if (prog.a_normal >= 0 && m.normal) {
+    //     gl.enableVertexAttribArray(prog.a_normal);
+    //     gl.bindBuffer(gl.ARRAY_BUFFER, m.normal);
+    //     gl.vertexAttribPointer(prog.a_normal, 3, gl.FLOAT, false, 0, 0);
+    // }
+    // if (prog.a_uv >= 0 && m.uv) {
+    //     gl.enableVertexAttribArray(prog.a_uv);
+    //     gl.bindBuffer(gl.ARRAY_BUFFER, m.uv);
+    //     gl.vertexAttribPointer(prog.a_uv, 2, gl.FLOAT, false, 0, 0);
+    // }
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, m.attributes);
+    
+    gl.enableVertexAttribArray(prog.a_position);
+    gl.vertexAttribPointer(prog.a_position, m.posInfo.size, m.posInfo.type, false, m.posInfo.stride, m.posInfo.offset);
+
+    gl.enableVertexAttribArray(prog.a_normal);
+    gl.vertexAttribPointer(prog.a_normal, m.norInfo.size, m.norInfo.type, false, m.norInfo.stride, m.norInfo.offset);
+
+    gl.enableVertexAttribArray(prog.a_uv);
+    gl.vertexAttribPointer(prog.a_uv, m.uvInfo.size, m.uvInfo.type, false, m.uvInfo.stride, m.uvInfo.offset);
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, m.idx);
 };
 
 window.drawReadyModel = function(m) {
-    gl.drawElements(gl.TRIANGLES, m.elemCount, gl.UNSIGNED_INT, 0);
+    // TODO: matrix transform for multiple hierachy gltf models
+
+    //gl.drawElements(gl.TRIANGLES, m.elemCount, gl.UNSIGNED_INT, 0);
+    gl.drawElements(gl.TRIANGLES, m.elemCount, gl.UNSIGNED_SHORT, 0);
 };
 
 window.getScissorForLight = (function() {
