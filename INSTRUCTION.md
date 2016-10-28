@@ -404,8 +404,6 @@ renderer online from anywhere. Add this link to your README.
 
 ## Submit
 
-If you have modified any of the `CMakeLists.txt` files at all (aside from the
-list of `SOURCE_FILES`), mentions it explicity.
 Beware of any build issues discussed on the Google Group.
 
 Open a GitHub pull request so that we can see that you have finished.
