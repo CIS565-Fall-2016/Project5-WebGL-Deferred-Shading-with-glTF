@@ -1,7 +1,7 @@
 WebGL Deferred Shading
 ======================
 
-**University of Pennsylvania, CIS 565: GPU Programming and Architecture, Project 6**
+**University of Pennsylvania, CIS 565: GPU Programming and Architecture, Project 5B**
 
 * (TODO) YOUR NAME HERE
 * Tested on: (TODO) **Google Chrome 222.2** on
@@ -11,7 +11,7 @@ WebGL Deferred Shading
 
 [![](img/thumb.png)](http://TODO.github.io/Project5B-WebGL-Deferred-Shading)
 
-### Demo Video
+### Demo Video/GIF
 
 [![](img/video.png)](TODO)
 
