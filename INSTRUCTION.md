@@ -1,7 +1,7 @@
 Proj 5B WebGL Deferred Shader - Instructions 
 ========================
 
-This is due at midnight on the midnight of *TBD*.
+This is due at midnight on the midnight of **Sun Nov 6 2016**.
 
 **Summary:** In this project, you'll be introduced to the basics of deferred
 shading and WebGL. You'll use GLSL and WebGL to implement a deferred shading
@@ -25,9 +25,6 @@ This project requires a WebGL-capable web browser with support for
 Google Chrome seems to work best on all platforms. If you have problems running
 the starter code, use Chrome or Chromium, and make sure you have updated your
 browser and video drivers.
-
-In Moore 100C, both Chrome and Firefox work.
-See below for notes on profiling/debugging tools.
 
 Use the screenshot button to save a screenshot.
 
@@ -97,7 +94,7 @@ You will need to perform the following tasks:
 
 ### Extra Tasks
 
-You must do at least **10 points** worth of extra features (effects or
+You must do at least **4 points** worth of extra features (effects or
 optimizations/analysis).
 
 **Effects:**
@@ -120,14 +117,14 @@ optimizations/analysis).
 * (3pts) Two-pass **Gaussian** blur using separable convolution (using a second
   postprocess render pass) to improve bloom or other 2D blur performance
 
-* (4-6pts) Light proxies
+* (4pts) Light proxies
   * (4pts) Instead of rendering a scissored full-screen quad for every light,
     render some proxy geometry which covers the part of the screen affected by
     the light (e.g. a sphere, for an attenuated point light).
     * A model called `sphereModel` is provided which can be drawn in the same
       way as the code in `drawScene`. (Must be drawn with a vertex shader which
       scales it to the light radius and translates it to the light position.)
-  * (+2pts) To avoid lighting geometry far behind the light, render the proxy
+  * (+ extra 2pts) To avoid lighting geometry far behind the light, render the proxy
     geometry (e.g. sphere) using an inverted depth test
     (`gl.depthFunc(gl.GREATER)`) with depth writing disabled (`gl.depthMask`).
     This test will pass only for parts of the screen for which the backside of
@@ -137,7 +134,7 @@ optimizations/analysis).
   * Show a debug view for this (showing light proxies)
   * Compare performance of this, naive, and scissoring.
 
-* (8pts) Tile-based deferred shading with detailed performance comparison
+* (6pts) Tile-based deferred shading with detailed performance comparison
   * On the CPU, check which lights overlap which tiles. Then, render each tile
     just once for all lights (instead of once for each light), applying only
     the overlapping lights.
@@ -146,20 +143,13 @@ optimizations/analysis).
     * This feature requires allocating the global light list and tile light
       index lists as shown at this link. These can be implemented as textures.
   * Show a debug view for this (number of lights per tile)
+  * (+ extra 4pts) Do the light tile overlapping test on GPU (using shader). 
+    This might be a little hacky, the idea is similar to 
+    the light culling stage that you need to implemnt in [Project5A-Forward-Plus-Renderer](https://github.com/CIS565-Fall-2016/Project5A-WebGL-Forward-Plus-Shading-with-glTF).
+    Show performance comparison to deferred and tile-based deferred with light tile test on CPU.  
 
-* (6pts) Deferred shading without multiple render targets
-  (i.e. without WEBGL_draw_buffers).
-  * Render the scene once for each target g-buffer, each time into a different
-    framebuffer object.
-  * Include a detailed performance analysis, comparing with/without
-    WEBGL_draw_buffers (like in the
-    [Mozilla blog article](https://hacks.mozilla.org/2014/01/webgl-deferred-shading/)).
-
-* (2-6pts) Compare performance to equivalently-lit forward-rendering:
-  * (2pts) With no forward-rendering optimizations
-  * (+2pts) Coarse, per-object back-to-front sorting of geometry for early-z
-    * (Of course) must render many objects to test
-  * (+2pts) Z-prepass for early-z
+* (3pts) Compare performance to equivalently-lit forward-rendering and forward-plus-rendering:
+  * (+ extra 2pts) Z-prepass for early-z in forward and forward-plus rendering
 
 This extra feature list is not comprehensive. If you have a particular idea
 that you would like to implement, please **contact us first** (preferably on
@@ -204,11 +194,14 @@ For each *performance* feature (required or extra), please provide:
 
 ### Starter Code Tour
 
-You'll be working mainly in `deferredRender.js` using raw WebGL. Three.js is
-included in the project for various reasons. You won't use it for much, but its
-matrix/vector types may come in handy.
+You'll be working mainly in `deferredRender.js` and shaders in `glsl/` folder using raw WebGL. 
+Three.js is included in the project for various reasons. You won't use it for much, but its
+matrix/vector types may come in handy. You don't need to learn Three.js for this project. 
 
-It's highly recommended that you use the browser debugger to inspect variables
+For editing JavaScript, you can use a simple editor with syntax highlighting
+such as Atom, VS-Code, Sublime, Vim, Emacs, etc., or the editor built into Chrome.
+
+It's highly recommended that you use the browser debugger (F12 on Windows) to inspect variables
 to get familiar with the code. At any point, you can also
 `console.log(some_var);` to show it in the console and inspect it.
 
@@ -217,20 +210,38 @@ If you want to add uniforms (textures or values), you'll change them here.
 Therefore, it is recommended that you review the comments to understand the
 process, BEFORE starting work in `deferredRender`.
 
-In `deferredRender`, start at the **START HERE!** comment.
-Work through the appropriate `TODO`s as you go - most of them are very
-small. Test incrementally (after implementing each part, instead of testing
+Test incrementally (after implementing each part, instead of testing
 all at once).
-* (The first thing you should be doing is implementing the fullscreen quad!)
-* See the note in the Debugging section on how to test the first part of the
-  pipeline incrementally.
 
-Your _next_ first goal should be to get the debug views working.
+Here's a guide to get you started: 
+
+* Your first goal is to render a red fullscreen quad. 
+  - `js/deferredRender.js`: walk through the code and implment by uncommenting those labeled with `TODO: uncomment`
+    - implement function `renderFullScreenQuad`
+
+* Your _next_ first goal should be to get the debug views working.
 Add code in `debug.frag.glsl` to examine your g-buffers before trying to
 render them. (Set the debugView in the UI to show them.)
+  - `js/deferredRender.js`
+    - implement `R.deferredRender`
+    - implement `R.pass_copy.render`
+    - implement `R.pass_debug.render`
+  - `glsl/copy.frag.glsl`
+  - `glsl/deferred/debug.frag.glsl`
 
-For editing JavaScript, you can use a simple editor with syntax highlighting
-such as Sublime, Vim, Emacs, etc., or the editor built into Chrome.
+* At this point you should have some understanding of how WebGL works. 
+Those bind buffer, bind texture, vertex pointer is copying data from cpu to gpu and tell 
+the gpu how to access them. It is very similar to what you've done in your Proj4 rasterizer. 
+glsl Shaders are code running on gpu. You can treat them as cuda kernel functions in your Proj4.  
+
+* Now go ahead and implement the deferred shading
+  - `js/deferredRender.js`: finish implementing this file. This time you need to write some code. 
+  - `glsl/deferred/ambient.frag.glsl`
+  - `glsl/deferred/blinnphong-pointlight.frag.glsl`
+  - everything... you are on your own now.
+
+
+Full files guidance: 
 
 * `js/`: JavaScript files for this project.
   * `main.js`: Handles initialization of other parts of the program.
@@ -264,7 +275,7 @@ such as Sublime, Vim, Emacs, etc., or the editor built into Chrome.
     Reads from each of the `NUM_GBUFFERS` g-buffers.
   * `post1.frag.glsl`: First post-processing pass.
 * `lib/`: JavaScript libraries.
-* `models/`: glTF models for testing. Sponza is the default.
+* `models/`: glTF models for testing. Sponza is the default (And the only tested supported one for now. Due to time limitation T_T. )
 * `index.html`: Main HTML page.
 * `server.bat` (Windows) or `server.py` (OS X/Linux):
   Runs a web server at `localhost:10565`.
@@ -393,17 +404,21 @@ renderer online from anywhere. Add this link to your README.
 
 ## Submit
 
-1. Open a GitHub pull request so that we can see that you have finished.
-   The title should be "Submission: YOUR NAME".
-   * **ADDITIONALLY:**
-     In the body of the pull request, include a link to your repository.
-2. Send an email to the TA (gmail: kainino1+cis565@) with:
-   * **Subject**: in the form of `[CIS565] Project N: PENNKEY`.
-   * Direct link to your pull request on GitHub.
-   * Estimate the amount of time you spent on the project.
-   * If there were any outstanding problems, briefly explain.
-   * **List the extra features you did.**
-   * Feedback on the project itself, if any.
+If you have modified any of the `CMakeLists.txt` files at all (aside from the
+list of `SOURCE_FILES`), mentions it explicity.
+Beware of any build issues discussed on the Google Group.
+
+Open a GitHub pull request so that we can see that you have finished.
+The title should be "Project 5: YOUR NAME".
+The template of the comment section of your pull request is attached below, you can do some copy and paste:  
+
+* [Repo Link](https://link-to-your-repo)
+* `Your PENNKEY`
+* (Briefly) Mentions features that you've completed. Especially those bells and whistles you want to highlight
+    * Feature 0
+    * Feature 1
+    * ...
+* Feedback on the project itself, if any.
 
 ### Third-Party Code Policy
 

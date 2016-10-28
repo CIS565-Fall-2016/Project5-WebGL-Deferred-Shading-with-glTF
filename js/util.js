@@ -77,26 +77,6 @@ window.loadShaderProgram = (function() {
     };
 })();
 
-// window.loadModel = function(obj, callback) {
-//     'use strict';
-
-//     var onProgress = function(xhr) {
-//         if (xhr.lengthComputable) {
-//             var percentComplete = xhr.loaded / xhr.total * 100;
-//             var msg = obj + ': ' + Math.round(percentComplete, 2) + '% loaded';
-//             console.log(msg);
-//             $('#msgbox').text(msg);
-//         }
-//     };
-
-//     var onError = function(xhr) {
-//         console.log("Failed to load model");
-//     };
-
-//     var loader = new THREE.OBJLoader();
-//     loader.load(obj, callback, onProgress, onError);
-// };
-
 window.readyModelForDraw = function(prog, m) {
     gl.useProgram(prog.prog);
 
@@ -105,26 +85,12 @@ window.readyModelForDraw = function(prog, m) {
         gl.bindTexture(gl.TEXTURE_2D, m.colmap);
         gl.uniform1i(prog.u_colmap, 0);
     }
+
     if (m.normap) {
         gl.activeTexture(gl.TEXTURE1);
         gl.bindTexture(gl.TEXTURE_2D, m.normap);
         gl.uniform1i(prog.u_normap, 1);
     }
-
-    // gl.enableVertexAttribArray(prog.a_position);
-    // gl.bindBuffer(gl.ARRAY_BUFFER, m.position);
-    // gl.vertexAttribPointer(prog.a_position, 3, gl.FLOAT, false, 0, 0);
-
-    // if (prog.a_normal >= 0 && m.normal) {
-    //     gl.enableVertexAttribArray(prog.a_normal);
-    //     gl.bindBuffer(gl.ARRAY_BUFFER, m.normal);
-    //     gl.vertexAttribPointer(prog.a_normal, 3, gl.FLOAT, false, 0, 0);
-    // }
-    // if (prog.a_uv >= 0 && m.uv) {
-    //     gl.enableVertexAttribArray(prog.a_uv);
-    //     gl.bindBuffer(gl.ARRAY_BUFFER, m.uv);
-    //     gl.vertexAttribPointer(prog.a_uv, 2, gl.FLOAT, false, 0, 0);
-    // }
 
     gl.bindBuffer(gl.ARRAY_BUFFER, m.attributes);
     
@@ -141,7 +107,7 @@ window.readyModelForDraw = function(prog, m) {
 };
 
 window.drawReadyModel = function(m) {
-    // TODO: matrix transform for multiple hierachy gltf models
+    // TODO for TA in future: matrix transform for multiple hierachy gltf models
 
     gl.drawElements(m.gltf.mode, m.gltf.indices.length, m.gltf.indicesComponentType, 0);
 };

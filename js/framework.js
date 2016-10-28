@@ -169,13 +169,11 @@ var width, height;
                 gl.activeTexture(gl.TEXTURE0 + textureID);
                 gl.bindTexture(target, texture);
 
-                // TODO: use handler to store this kind of functions
-                // {TEXTURE_2D: gl.texImage2D}
                 switch(target) {
                     case 3553: // gl.TEXTURE_2D
                     gl.texImage2D(target, 0, internalFormat, format, type, image);
                     break;
-                    // TODO
+                    // TODO for TA
                 }
 
                 // !! Sampler
@@ -240,10 +238,7 @@ var width, height;
                         gltf: primitive,
 
                         idx: indicesBuffer,
-                        // elemCount: indices.length,
-                        // position: gposition,
-                        // normal: gnormal,
-                        // uv: guv
+
                         attributes: vertexBuffer,
                         posInfo: {size: posInfo.size, type: posInfo.type, stride: posInfo.stride, offset: posInfo.offset},
                         norInfo: {size: norInfo.size, type: norInfo.type, stride: norInfo.stride, offset: norInfo.offset},
@@ -263,10 +258,8 @@ var width, height;
         });
 
 
-
-        // Render once to get three.js to copy all of the model buffers
         resize();
-        renderer.render(scene, camera);
+        // renderer.render(scene, camera);
 
         gl.clearColor(0.5, 0.5, 0.5, 0.5);
         gl.clearDepth(1.0);
