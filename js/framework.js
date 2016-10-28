@@ -237,8 +237,10 @@ var width, height;
                     var uvInfo = primitive.attributes[primitive.technique.parameters['texcoord_0'].semantic];
 
                     models.push({
+                        gltf: primitive,
+
                         idx: indicesBuffer,
-                        elemCount: indices.length,
+                        // elemCount: indices.length,
                         // position: gposition,
                         // normal: gnormal,
                         // uv: guv

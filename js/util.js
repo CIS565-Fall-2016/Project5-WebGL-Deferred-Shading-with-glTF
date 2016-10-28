@@ -143,8 +143,7 @@ window.readyModelForDraw = function(prog, m) {
 window.drawReadyModel = function(m) {
     // TODO: matrix transform for multiple hierachy gltf models
 
-    gl.drawElements(gl.TRIANGLES, m.elemCount, gl.UNSIGNED_INT, 0);
-    // gl.drawElements(gl.TRIANGLES, m.elemCount, gl.UNSIGNED_SHORT, 0);
+    gl.drawElements(m.gltf.mode, m.gltf.indices.length, m.gltf.indicesComponentType, 0);
 };
 
 window.getScissorForLight = (function() {
