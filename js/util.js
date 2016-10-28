@@ -77,25 +77,25 @@ window.loadShaderProgram = (function() {
     };
 })();
 
-window.loadModel = function(obj, callback) {
-    'use strict';
+// window.loadModel = function(obj, callback) {
+//     'use strict';
 
-    var onProgress = function(xhr) {
-        if (xhr.lengthComputable) {
-            var percentComplete = xhr.loaded / xhr.total * 100;
-            var msg = obj + ': ' + Math.round(percentComplete, 2) + '% loaded';
-            console.log(msg);
-            $('#msgbox').text(msg);
-        }
-    };
+//     var onProgress = function(xhr) {
+//         if (xhr.lengthComputable) {
+//             var percentComplete = xhr.loaded / xhr.total * 100;
+//             var msg = obj + ': ' + Math.round(percentComplete, 2) + '% loaded';
+//             console.log(msg);
+//             $('#msgbox').text(msg);
+//         }
+//     };
 
-    var onError = function(xhr) {
-        console.log("Failed to load model");
-    };
+//     var onError = function(xhr) {
+//         console.log("Failed to load model");
+//     };
 
-    var loader = new THREE.OBJLoader();
-    loader.load(obj, callback, onProgress, onError);
-};
+//     var loader = new THREE.OBJLoader();
+//     loader.load(obj, callback, onProgress, onError);
+// };
 
 window.readyModelForDraw = function(prog, m) {
     gl.useProgram(prog.prog);
@@ -143,8 +143,8 @@ window.readyModelForDraw = function(prog, m) {
 window.drawReadyModel = function(m) {
     // TODO: matrix transform for multiple hierachy gltf models
 
-    //gl.drawElements(gl.TRIANGLES, m.elemCount, gl.UNSIGNED_INT, 0);
-    gl.drawElements(gl.TRIANGLES, m.elemCount, gl.UNSIGNED_SHORT, 0);
+    gl.drawElements(gl.TRIANGLES, m.elemCount, gl.UNSIGNED_INT, 0);
+    // gl.drawElements(gl.TRIANGLES, m.elemCount, gl.UNSIGNED_SHORT, 0);
 };
 
 window.getScissorForLight = (function() {

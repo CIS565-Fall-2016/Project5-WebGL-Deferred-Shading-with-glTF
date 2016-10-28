@@ -122,22 +122,8 @@ var width, height;
             R.sphereModel = m;
         });
 
-        // // CHECKITOUT: Load mesh and textures
-        // loadModel('models/sponza/sponza.obj', function(o) {
-        //     scene.add(o);
-        //     uploadModel(o, function(m) {
-        //         // CHECKITOUT: load textures
-        //         loadTexture('models/sponza/color.jpg').then(function(tex) {
-        //             m.colmap = tex;
-        //         });
-        //         loadTexture('models/sponza/normal.png').then(function(tex) {
-        //             m.normap = tex;
-        //         });
-        //         models.push(m);
-        //     });
-        // });
-
-        var glTFURL = 'models/glTF-duck/duck.gltf';
+        // var glTFURL = 'models/glTF-duck/duck.gltf';
+        var glTFURL = 'models/glTF-sponza-kai-fix/sponza.gltf';
         var glTFLoader = new MinimalGLTFLoader.glTFLoader(gl);
         glTFLoader.loadGLTF(glTFURL, function (glTF) {
             var curScene = glTF.scenes[glTF.defaultScene];
@@ -164,14 +150,12 @@ var width, height;
             var texture;
 
 
-            // temp
-            var colorTextureID;
+            // temp for sponza
+            var colorTextureName = 'texture_color';
+            var normalTextureName = 'texture_normal';
 
             // textures
             for (var tid in glTF.json.textures) {
-
-                //temp
-                colorTextureID = tid;
 
                 textureInfo = glTF.json.textures[tid];
                 target = textureInfo.target || gl.TEXTURE_2D;
@@ -250,7 +234,7 @@ var width, height;
 
                     var posInfo = primitive.attributes[primitive.technique.parameters['position'].semantic];
                     var norInfo = primitive.attributes[primitive.technique.parameters['normal'].semantic];
-                    var uvInfo = primitive.attributes[primitive.technique.parameters['texcoord0'].semantic];
+                    var uvInfo = primitive.attributes[primitive.technique.parameters['texcoord_0'].semantic];
 
                     models.push({
                         idx: indicesBuffer,
@@ -264,8 +248,8 @@ var width, height;
                         uvInfo: {size: uvInfo.size, type: uvInfo.type, stride: uvInfo.stride, offset: uvInfo.offset},
 
                         // specific textures temp test
-                        colmap: webGLTextures[colorTextureID].texture
-                        //,normap: tex2
+                        colmap: webGLTextures[colorTextureName].texture, 
+                        normap: webGLTextures[normalTextureName].texture
                     });
 
                 }
