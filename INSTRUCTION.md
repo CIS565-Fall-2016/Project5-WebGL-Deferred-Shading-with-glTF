@@ -24,7 +24,8 @@ This project requires a WebGL-capable web browser with support for
 
 Google Chrome seems to work best on all platforms. If you have problems running
 the starter code, use Chrome or Chromium, and make sure you have updated your
-browser and video drivers.
+browser and video drivers. Firefox's shader editor may require that you disable
+WebGL debugging in `framework.js` (see below).
 
 Use the screenshot button to save a screenshot.
 
