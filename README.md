@@ -1,7 +1,7 @@
 WebGL Deferred Shading
 ======================
 
-**University of Pennsylvania, CIS 565: GPU Programming and Architecture, Project 5B**
+**University of Pennsylvania, CIS 565: GPU Programming and Architecture, Project 5**
 
 * (TODO) YOUR NAME HERE
 * Tested on: (TODO) **Google Chrome 222.2** on

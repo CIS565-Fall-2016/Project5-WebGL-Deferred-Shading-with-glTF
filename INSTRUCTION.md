@@ -1,7 +1,7 @@
-Proj 5B WebGL Deferred Shader - Instructions 
+Proj 5 WebGL Deferred Shader - Instructions 
 ========================
 
-This is due at midnight on the midnight of **Sun Nov 6 2016**.
+This is due at midnight on the midnight of **Tue Nov 8 2016**.
 
 **Summary:** In this project, you'll be introduced to the basics of deferred
 shading and WebGL. You'll use GLSL and WebGL to implement a deferred shading
@@ -149,7 +149,7 @@ optimizations/analysis).
     Show performance comparison to deferred and tile-based deferred with light tile test on CPU.  
 
 * (3pts) Compare performance to equivalently-lit forward-rendering and forward-plus-rendering:
-  * (+ extra 2pts) Z-prepass for early-z in forward and forward-plus rendering
+  * You can pair with a classmate choosing to do forward-plus-renderer.
 
 This extra feature list is not comprehensive. If you have a particular idea
 that you would like to implement, please **contact us first** (preferably on
@@ -372,12 +372,11 @@ shader editor built in.
 
 ## README
 
-Replace the contents of this README.md in a clear manner with the following:
+Replace the contents of the README.md in a clear manner with the following:
 
 * A brief description of the project and the specific features you implemented.
 * At least one screenshot of your project running.
-* A 30+ second video of your project running showing all features.
-  [Open Broadcaster Software](http://obsproject.com) is recommended.
+* A 30+ second video/gif of your project running showing all features.
   (Even though your demo can be seen online, using multiple render targets
   means it won't run on many computers. A video will work everywhere.)
 * A performance analysis (described below).
