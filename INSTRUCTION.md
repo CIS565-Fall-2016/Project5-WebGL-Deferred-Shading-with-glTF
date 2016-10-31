@@ -342,7 +342,7 @@ changes in a number of places:
 * [1] Bloom:
   [GPU Gems, Ch. 21](http://http.developer.nvidia.com/GPUGems/gpugems_ch21.html) 
 * [2] Screen-Space Ambient Occlusion:
-  [Floored Article](http://floored.com/blog/2013/ssao-screen-space-ambient-occlusion.html)
+  [Floored Article](http://www.floored.com/blog/2015ssao-screen-space-ambient-occlusion/)
 * [3] Post-Process Motion Blur:
   [GPU Gems 3, Ch. 27](http://http.developer.nvidia.com/GPUGems3/gpugems3_ch27.html)
 
