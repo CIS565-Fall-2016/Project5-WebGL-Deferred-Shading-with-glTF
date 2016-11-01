@@ -1,4 +1,4 @@
-Proj 5 WebGL Deferred Shader - Instructions 
+Proj 5 WebGL Deferred Shader - Instructions
 ========================
 
 This is due at midnight on the midnight of **Tue Nov 8 2016**.
@@ -144,8 +144,8 @@ optimizations/analysis).
     * This feature requires allocating the global light list and tile light
       index lists as shown at this link. These can be implemented as textures.
   * Show a debug view for this (number of lights per tile)
-  * (+ extra 4pts) Do the light tile overlapping test on GPU (using shader). 
-    This might be a little hacky, the idea is similar to 
+  * (+ extra 4pts) Do the light tile overlapping test on GPU (using shader).
+    This might be a little hacky, the idea is similar to
     the light culling stage that you need to implemnt in [Project5A-Forward-Plus-Renderer](https://github.com/CIS565-Fall-2016/Project5A-WebGL-Forward-Plus-Shading-with-glTF).
     Show performance comparison to deferred and tile-based deferred with light tile test on CPU.  
 
@@ -195,9 +195,9 @@ For each *performance* feature (required or extra), please provide:
 
 ### Starter Code Tour
 
-You'll be working mainly in `deferredRender.js` and shaders in `glsl/` folder using raw WebGL. 
+You'll be working mainly in `deferredRender.js` and shaders in `glsl/` folder using raw WebGL.
 Three.js is included in the project for various reasons. You won't use it for much, but its
-matrix/vector types may come in handy. You don't need to learn Three.js for this project. 
+matrix/vector types may come in handy. You don't need to learn Three.js for this project.
 
 For editing JavaScript, you can use a simple editor with syntax highlighting
 such as Atom, VS-Code, Sublime, Vim, Emacs, etc., or the editor built into Chrome.
@@ -214,9 +214,9 @@ process, BEFORE starting work in `deferredRender`.
 Test incrementally (after implementing each part, instead of testing
 all at once).
 
-Here's a guide to get you started: 
+Here's a guide to get you started:
 
-* Your first goal is to render a red fullscreen quad. 
+* Your first goal is to render a red fullscreen quad.
   - `js/deferredRender.js`: walk through the code and implment by uncommenting those labeled with `TODO: uncomment`
     - implement function `renderFullScreenQuad`
 
@@ -224,25 +224,25 @@ Here's a guide to get you started:
 Add code in `debug.frag.glsl` to examine your g-buffers before trying to
 render them. (Set the debugView in the UI to show them.)
   - `js/deferredRender.js`
-    - implement `R.deferredRender`
+    - implement `R.pass_debug.render`
     - implement `R.pass_copy.render`
     - implement `R.pass_debug.render`
   - `glsl/copy.frag.glsl`
   - `glsl/deferred/debug.frag.glsl`
 
-* At this point you should have some understanding of how WebGL works. 
-Those bind buffer, bind texture, vertex pointer is copying data from cpu to gpu and tell 
-the gpu how to access them. It is very similar to what you've done in your Proj4 rasterizer. 
+* At this point you should have some understanding of how WebGL works.
+Those bind buffer, bind texture, vertex pointer is copying data from cpu to gpu and tell
+the gpu how to access them. It is very similar to what you've done in your Proj4 rasterizer.
 glsl Shaders are code running on gpu. You can treat them as cuda kernel functions in your Proj4.  
 
 * Now go ahead and implement the deferred shading
-  - `js/deferredRender.js`: finish implementing this file. This time you need to write some code. 
+  - `js/deferredRender.js`: finish implementing this file. This time you need to write some code.
   - `glsl/deferred/ambient.frag.glsl`
   - `glsl/deferred/blinnphong-pointlight.frag.glsl`
   - everything... you are on your own now.
 
 
-Full files guidance: 
+Full files guidance:
 
 * `js/`: JavaScript files for this project.
   * `main.js`: Handles initialization of other parts of the program.
@@ -341,7 +341,7 @@ changes in a number of places:
 ## Resources
 
 * [1] Bloom:
-  [GPU Gems, Ch. 21](http://http.developer.nvidia.com/GPUGems/gpugems_ch21.html) 
+  [GPU Gems, Ch. 21](http://http.developer.nvidia.com/GPUGems/gpugems_ch21.html)
 * [2] Screen-Space Ambient Occlusion:
   [Floored Article](http://www.floored.com/blog/2015ssao-screen-space-ambient-occlusion/)
 * [3] Post-Process Motion Blur:
@@ -388,7 +388,7 @@ See above.
 
 ### GitHub Pages
 
-Since this assignment is in WebGL, you can make your project easily viewable by 
+Since this assignment is in WebGL, you can make your project easily viewable by
 taking advantage of GitHub's project pages feature.
 
 Once you are done with the assignment, create a new branch:
