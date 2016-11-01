@@ -217,14 +217,14 @@ all at once).
 Here's a guide to get you started:
 
 * Your first goal is to render a red fullscreen quad.
-  - `js/deferredRender.js`: walk through the code and implement by uncommenting those labeled with `TODO: uncomment`
+  - `js/deferredRender.js`: walk through the code and implment by uncommenting those labeled with `TODO: uncomment`
     - implement function `renderFullScreenQuad`
 
 * Your _next_ first goal should be to get the debug views working.
 Add code in `debug.frag.glsl` to examine your g-buffers before trying to
 render them. (Set the debugView in the UI to show them.)
   - `js/deferredRender.js`
-    - implement `R.deferredRender`
+    - implement `R.pass_debug.render`
     - implement `R.pass_copy.render`
     - implement `R.pass_debug.render`
   - `glsl/copy.frag.glsl`
