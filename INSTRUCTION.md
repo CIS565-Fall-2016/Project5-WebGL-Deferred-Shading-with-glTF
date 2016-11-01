@@ -224,7 +224,6 @@ Here's a guide to get you started:
 Add code in `debug.frag.glsl` to examine your g-buffers before trying to
 render them. (Set the debugView in the UI to show them.)
   - `js/deferredRender.js`
-    - implement `R.pass_debug.render`
     - implement `R.pass_copy.render`
     - implement `R.pass_debug.render`
   - `glsl/copy.frag.glsl`
