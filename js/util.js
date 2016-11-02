@@ -108,6 +108,7 @@ window.readyModelForDraw = function(prog, m) {
 
 window.drawReadyModel = function(m) {
     // TODO for TA in future: matrix transform for multiple hierachy gltf models
+    // reference: https://github.com/CIS565-Fall-2016/Project5A-WebGL-Forward-Plus-Shading-with-glTF/blob/master/js/forwardPlusRenderer/forwardPlusRenderer.js#L201
 
     gl.drawElements(m.gltf.mode, m.gltf.indices.length, m.gltf.indicesComponentType, 0);
 };
