@@ -1,33 +1,34 @@
-WebGL Deferred Shading
+Parallel Fast Fourier Transform
 ======================
+
+***PAGE UNDER CONSTRUCTION***
 
 **University of Pennsylvania, CIS 565: GPU Programming and Architecture, Project 5**
 
-* (TODO) YOUR NAME HERE
-* Tested on: (TODO) **Google Chrome 222.2** on
-  Windows 22, i7-2222 @ 2.22GHz 22GB, GTX 222 222MB (Moore 2222 Lab)
+* Gabriel Naghi
+* Tested on: GeForce GT 730 1024 MB
 
-### Live Online
+##Discrete Fourier Transforms
+Fourier Transforms define a process by which to trasnform a signal from the time domain to the frequency ("forward transform") and vice versa ("inverse transform"). Fourier Transforms rely on the principle that and signal in the time domain can be represented as sinusoids. Generally, working with sinusoidal signals is preferred over singals of different shapes due to **properties?**. 
 
-[![](img/thumb.png)](http://TODO.github.io/Project5B-WebGL-Deferred-Shading)
+![](img/Fourier_unit_pulse.png)
+Source: Wikipedia
 
-### Demo Video/GIF
+In practice, Discrete Fourier Transforms (DFT) are used. This means that samples are of finite quantity and are equally spaced over time. The transform occurs by correlating each sample with with analyzing functions in the form of sinusoids. Of course, this produces high coefficients when the sample is similar and low amplitudes when dissimilar. 
 
-[![](img/video.png)](TODO)
+In general the algorithm for computing a DFT is as follows: 
 
-### (TODO: Your README)
+1. Sample the input signal uniformly, measuring the amplitude at each point. Label these x0, ... xN-1.
+2. Calculate each frequency bin. Each frequency bin Xn is equal to the sum from 0 to N-1 of xn * e ^(-j2πkn / N)
+3. Calculate the magnitude of each frequency bin
+4. Calculate the frequency resolution. Frequency resolution can be calculated by dividing the sampleing frequency by the number of samples.
+5. Throw out the samples at frequencies above the nyquist limit and *double the others?*.
+6. ..
+7. ..
 
-*DO NOT* leave the README to the last minute! It is a crucial part of the
-project, and we will not be able to grade you without a good README.
-
-This assignment has a considerable amount of performance analysis compared
-to implementation work. Complete the implementation early to leave time!
 
 
-### Credits
 
-* [Three.js](https://github.com/mrdoob/three.js) by [@mrdoob](https://github.com/mrdoob) and contributors
-* [stats.js](https://github.com/mrdoob/stats.js) by [@mrdoob](https://github.com/mrdoob) and contributors
-* [webgl-debug](https://github.com/KhronosGroup/WebGLDeveloperTools) by Khronos Group Inc.
-* [glMatrix](https://github.com/toji/gl-matrix) by [@toji](https://github.com/toji) and contributors
-* [minimal-gltf-loader](https://github.com/shrekshao/minimal-gltf-loader) by [@shrekshao](https://github.com/shrekshao)
+##Fast Fourier Transforms
+
+
