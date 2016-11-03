@@ -52,7 +52,7 @@ void main() {
     float lambert = max(dot(L, nor), 0.0);
     vec3 V = normalize(u_cameraPos - pos);
     vec3 H = normalize(L + V);
-    float specular = pow(max(dot(H, nor), 0.0), 10.0);
+    float specular = float(lambert > 0.0) * pow(max(dot(H, nor), 0.0), 10.0);
 
     gl_FragColor = vec4(
         u_lightCol * pow(1.0 - distance / u_lightRad, 2.0) *
