@@ -1,18 +1,50 @@
-#include "common.h"
 #include "fft.h"
 
-
+thrust::complex<double> * dev_isamples;
+thrust::complex<double> * dev_osamples;
 
 void fft_init(int N)
 {
-
-
+	cudaMalloc((void **)&dev_isamples, N * sizeof(int));
+	checkCUDAError("cudaMalloc dev_isamples failed!");
+	cudaMalloc((void **)&dev_osamples, N * sizeof(int));
+	checkCUDAError("cudaMalloc dev_osamples failed!");
 }
 
 void fft_free()
 {
+	cudaFree(dev_isamples);
+	cudaFree(dev_osamples);
+}
 
+/*
+returns the reverse-bit value, normalized for original bit count
+based on http://aggregate.org/MAGIC/#Bit%20Reversal
+Assumes 32 bit int system
+*/
+__device__ int twiddle (unsigned int x)
+{
+    x = (((x & 0xaaaaaaaa) >> 1) | ((x & 0x55555555) << 1));
+    x = (((x & 0xcccccccc) >> 2) | ((x & 0x33333333) << 2));
+    x = (((x & 0xf0f0f0f0) >> 4) | ((x & 0x0f0f0f0f) << 4));
+    x = (((x & 0xff00ff00) >> 8) | ((x & 0x00ff00ff) << 8));
+    return ((x >> 16) | (x << 16)) >> (32 - ilog2ceil(x));
+}
 
+__global__ void inputScramble (int N, thrust::complex<double> * idata, thrust::complex<double> * odata)
+{
+	int index = (blockIdx.x * blockDim.x) + threadIdx.x;
+
+	if (index > N)
+		return;
+
+	//do global memory access
+	thrust::complex<double> myVal = idata[index];
+
+	//hide latency with computation
+	int out_index = twiddle(index);
+
+	odata[out_index] = myVal;
 }
 
 /*
@@ -24,19 +56,24 @@ float * samples    - pointer to array of sammples (of size N)
 float * transform  - pointer to array where transform should be stored. 
                      It is safe for this to be the same as samples (i.e. in place)
 
-output:
-pointer to output array. 
 */
 
-void parallel_fft (int N, Complex<float> * samples, Complex<float> * transform)
+void parallel_fft (int N, 
+	thrust::complex<double> * samples, 
+	thrust::complex<double> * transform)
 {
 	//allocate buffers
+	fft_init();
 
+	//compute numBlocks
+	dim3 numBlocks = (N + blockSize - 1) / blockSize;
 
-	//compute blocksize
-
+	cudaMemcpy(dev_isamples, samples, sizeof(thrust::complex<double>) * N, cudaMemcpyHostToDevice);
+	checkCUDAError("cudaMemcpy sample data to device failed!");
 
 	//scrable inputs to reverse-binary order
+	inputScramble << <numBlocks, blockSize>> >(N, dev_isamples, dev_osamples); 
+	checkCUDAError("kernel inputScramble failed!");
 
 	//Butterfly
 	for (int i = 0; i < ilog2ceil(N) + 1; ++i)
@@ -49,5 +86,6 @@ void parallel_fft (int N, Complex<float> * samples, Complex<float> * transform)
 
 
 	//free buffers 
+	fft_free();
 
 }
