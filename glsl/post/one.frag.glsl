@@ -15,6 +15,27 @@ void main() {
         gl_FragColor = SKY_COLOR;
         return;
     }
+    
+    // float count = 0.0;
+    // vec3 cumul = vec3(0,0,0);
+    // for (float x = -R; x < R; x += 0.001) {
+    //     for (float y = -R; y < R; y += 0.001) {
+    //         vec4 col = texture2D(u_color, v_uv + vec2(x, y));
+    //         if (length(col.rgb) > 0.8) {
+    //             cumul += col.rgb;
+    //             count += 1.0;
+    //         }
+    //     }
+    // }
+    // if (count > 0.0) {
+    //     color.rgb += cumul / count;
+    // }
 
-    gl_FragColor = color;
+    if (length(color.rgb) > 0.7) {
+        gl_FragColor = color;
+    } else {
+        gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
+    }
+    
+    // gl_FragColor = color;
 }

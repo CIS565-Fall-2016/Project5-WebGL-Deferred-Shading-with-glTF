@@ -5,7 +5,8 @@
     R.pass_copy = {};
     R.pass_debug = {};
     R.pass_deferred = {};
-    R.pass_post1 = {};
+    R.pass_bloom = {};
+    R.pass_final = {};
     R.lights = [];
 
     R.NUM_GBUFFERS = 4;
@@ -18,6 +19,7 @@
         loadAllShaderPrograms();
         R.pass_copy.setup();
         R.pass_deferred.setup();
+        R.pass_bloom.setup();
     };
 
     // TODO: Edit if you want to change the light initial positions
@@ -98,6 +100,30 @@
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     };
 
+    R.pass_bloom.setup = function() {
+
+        R.pass_bloom.fbos = [
+            gl.createFramebuffer(),
+            gl.createFramebuffer()
+        ];
+
+        // * Create, bind, and store "color" target textures for the FBO
+        R.pass_bloom.bufs = [
+            createAndBindColorTargetTexture(R.pass_bloom.fbos[0], gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL),
+            createAndBindColorTargetTexture(R.pass_bloom.fbos[1], gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL)
+        ];
+
+        // * Check for framebuffer errors
+        abortIfFramebufferIncomplete(R.pass_bloom.fbos[0]);
+        abortIfFramebufferIncomplete(R.pass_bloom.fbos[1]);
+
+        // * Tell the WEBGL_draw_buffers extension which FBO attachments are
+        //   being used. (This extension allows for multiple render targets.)
+        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+        
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    }
+
     /**
      * Loads all of the shader programs used in the pipeline.
      */
@@ -138,6 +164,7 @@
 
         loadDeferredProgram('blinnphong-pointlight', function(p) {
             // Save the object into this variable for access later
+            p.u_cameraPos = gl.getUniformLocation(p.prog, 'u_cameraPos');
             p.u_lightPos = gl.getUniformLocation(p.prog, 'u_lightPos');
             p.u_lightCol = gl.getUniformLocation(p.prog, 'u_lightCol');
             p.u_lightRad = gl.getUniformLocation(p.prog, 'u_lightRad');
@@ -150,11 +177,25 @@
             R.prog_Debug = p;
         });
 
-        loadPostProgram('one', function(p) {
+        loadPostProgram('highlights', function(p) {
             p.u_color    = gl.getUniformLocation(p.prog, 'u_color');
             // Save the object into this variable for access later
-            R.progPost1 = p;
+            R.progHighlights = p;
         });
+
+        loadPostProgram('blur', function(p) {
+            p.u_color = gl.getUniformLocation(p.prog, 'u_color');
+            p.u_resolution = gl.getUniformLocation(p.prog, 'u_resolution');
+            p.u_amount = gl.getUniformLocation(p.prog, 'u_amount');
+            p.u_dir = gl.getUniformLocation(p.prog, 'u_dir');
+
+            R.progBlur = p;
+        })
+
+        loadPostProgram('final', function(p) {
+            p.u_color = gl.getUniformLocation(p.prog, 'u_color');
+            R.progFinal = p;
+        })
 
         // TODO: If you add more passes, load and set up their shader programs.
     };
