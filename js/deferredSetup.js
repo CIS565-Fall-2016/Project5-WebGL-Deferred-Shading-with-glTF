@@ -150,6 +150,15 @@
                 // Create an object to hold info about this shader program
                 R.progRed = { prog: prog };
             });
+        
+        loadShaderProgram(gl, 'glsl/quad.vert.glsl', 'glsl/debug.frag.glsl',
+            function(prog) {
+                // Create an object to hold info about this shader program
+                R.progDebug = { 
+                    prog: prog,
+                    u_color: gl.getUniformLocation(prog, 'u_color')
+                };
+            });
 
         loadShaderProgram(gl, 'glsl/quad.vert.glsl', 'glsl/clear.frag.glsl',
             function(prog) {

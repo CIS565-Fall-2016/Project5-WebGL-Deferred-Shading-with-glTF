@@ -152,10 +152,19 @@
             gl.uniform1f(R.prog_BlinnPhong_PointLight.u_lightRad, R.lights[i].rad);
 
             if (cfg.scissorLights) {
+                // get bounding box of light in clip space and do scissor test
                 var sc = getScissorForLight(state.viewMat, state.projMat, R.lights[i]);
                 if (sc) {
                     gl.scissor(sc[0], sc[1], sc[2], sc[3]);
                     renderFullScreenQuad(R.prog_BlinnPhong_PointLight);
+                    if (cfg.debugScissor) {
+                        gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+                        gl.useProgram(R.progDebug.prog);
+                        gl.uniform4f(R.progDebug.u_color, 1, 1, 0, 0.1);
+                        renderFullScreenQuad(R.progDebug);
+                        gl.blendFunc(gl.ONE, gl.ONE);
+                        gl.useProgram(R.prog_BlinnPhong_PointLight.prog);
+                    }
                 }
             } else {
                 renderFullScreenQuad(R.prog_BlinnPhong_PointLight);
@@ -163,14 +172,6 @@
             
         }
         if (cfg.scissorLights) gl.disable(gl.SCISSOR_TEST);
-
-        // TODO: In the lighting loop, use the scissor test optimization
-        // Enable gl.SCISSOR_TEST, render all lights, then disable it.
-        //
-        // getScissorForLight returns null if the scissor is off the screen.
-        // Otherwise, it returns an array [xmin, ymin, width, height].
-        //
-        //   var sc = getScissorForLight(state.viewMat, state.projMat, light);
 
         // Disable blending so that it doesn't affect other code
         gl.disable(gl.BLEND);
