@@ -38,15 +38,15 @@ void main() {
     if (u_debug == 0) {
         gl_FragColor = vec4(vec3(depth), 1.0);
     } else if (u_debug == 1) {
-        // gl_FragColor = vec4(abs(pos) * 0.1, 1.0);
+         gl_FragColor = vec4(abs(pos) * 0.1, 1.0);
     } else if (u_debug == 2) {
-        // gl_FragColor = vec4(abs(geomnor), 1.0);
+        gl_FragColor = vec4(abs(geomnor), 1.0);
     } else if (u_debug == 3) {
-        // gl_FragColor = vec4(colmap, 1.0);
+        gl_FragColor = vec4(colmap, 1.0);
     } else if (u_debug == 4) {
-        // gl_FragColor = vec4(normap, 1.0);
+        gl_FragColor = vec4(normap, 1.0);
     } else if (u_debug == 5) {
-        // gl_FragColor = vec4(abs(nor), 1.0);
+        gl_FragColor = vec4(abs(nor), 1.0);
     } else {
         gl_FragColor = vec4(1, 0, 1, 1);
     }
