@@ -36,9 +36,9 @@
             R.pass_debug.render(state);
         } else {
             // * Deferred pass and postprocessing pass(es)
-            // TODO: uncomment these
+            // DONE: uncomment these
             R.pass_deferred.render(state);
-            // R.pass_post1.render(state);
+            R.pass_post1.render(state);
 
             // OPTIONAL TODO: call more postprocessing passes, if any
         }
@@ -125,10 +125,10 @@
         //   color = 1 * src_color + 1 * dst_color
         // Here is a wonderful demo of showing how blend function works:
         // http://mrdoob.github.io/webgl-blendfunctions/blendfunc.html
-        // TODO: uncomment
-        // gl.enable(gl.BLEND);
-        // gl.blendEquation( gl.FUNC_ADD );
-        // gl.blendFunc(gl.ONE,gl.ONE);
+        // DONE: uncomment
+        gl.enable(gl.BLEND);
+        gl.blendEquation( gl.FUNC_ADD );
+        gl.blendFunc(gl.ONE,gl.ONE);
 
         // * Bind/setup the ambient pass, and render using fullscreen quad
         bindTexturesForLightPass(R.prog_Ambient);
@@ -184,12 +184,12 @@
 
         // * Bind the deferred pass's color output as a texture input
         // Set gl.TEXTURE0 as the gl.activeTexture unit
-        // TODO: uncomment
-        // gl.activeTexture(gl.TEXTURE0);
+        // DONE: uncomment
+        gl.activeTexture(gl.TEXTURE0);
 
         // Bind the TEXTURE_2D, R.pass_deferred.colorTex to the active texture unit
-        // TODO: uncomment
-        // gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex);
+        // DONE: uncomment
+        gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex);
 
         // Configure the R.progPost1.u_color uniform to point at texture unit 0
         gl.uniform1i(R.progPost1.u_color, 0);
@@ -224,16 +224,16 @@
 
         var init = function() {
             // Create a new buffer with gl.createBuffer, and save it as vbo.
-            // TODO: uncomment
+            // DONE: uncomment
             vbo = gl.createBuffer();
 
             // Bind the VBO as the gl.ARRAY_BUFFER
-            // TODO: uncomment
+            // DONE: uncomment
             gl.bindBuffer(gl.ARRAY_BUFFER,vbo);
 
             // Upload the positions array to the currently-bound array buffer
             // using gl.bufferData in static draw mode.
-            // TODO: uncomment
+            // DONE: uncomment
             gl.bufferData(gl.ARRAY_BUFFER,positions,gl.STATIC_DRAW);
         };
 
@@ -247,21 +247,21 @@
             gl.useProgram(prog.prog);
 
             // Bind the VBO as the gl.ARRAY_BUFFER
-            // TODO: uncomment
+            // DONE: uncomment
             gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
 
             // Enable the bound buffer as the vertex attrib array for
             // prog.a_position, using gl.enableVertexAttribArray
-            // TODO: uncomment
+            // DONE: uncomment
             gl.enableVertexAttribArray(prog.a_position);
 
             // Use gl.vertexAttribPointer to tell WebGL the type/layout for
             // prog.a_position's access pattern.
-            // TODO: uncomment
+            // DONE: uncomment
             gl.vertexAttribPointer(prog.a_position, 3, gl.FLOAT, gl.FALSE, 0, 0);
 
             // Use gl.drawArrays (or gl.drawElements) to draw your quad.
-            // TODO: uncomment
+            // DONE: uncomment
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
             // Unbind the array buffer.
