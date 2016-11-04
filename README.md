@@ -11,9 +11,11 @@ WebGL Deferred Shading
 
 [![](img/thumb.png)](https://windydarian.github.io/Project5-WebGL-Deferred-Shading-with-glTF/)
 
+FIXME: Shader files returns 404
+
 ### Demo Video/GIF
 
-[comment]: <> [![](img/video.png)](TODO)
+[![](img/video.png)](TODO)
 
 ### Work Done
 
