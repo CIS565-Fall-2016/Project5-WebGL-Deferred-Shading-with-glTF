@@ -9,11 +9,11 @@ WebGL Deferred Shading
 
 ### Live Online
 
-[![](img/thumb.png)](http://TODO.github.io/Project5B-WebGL-Deferred-Shading)
+[![](img/thumb.png)](https://windydarian.github.io/Project5-WebGL-Deferred-Shading-with-glTF/)
 
 ### Demo Video/GIF
 
-[![](img/video.png)](TODO)
+[comment]: <> [![](img/video.png)](TODO)
 
 ### Work Done
 
