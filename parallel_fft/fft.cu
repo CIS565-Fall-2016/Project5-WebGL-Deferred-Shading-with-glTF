@@ -54,7 +54,8 @@ __global__ void inputScramble (int N, thrust::complex<double> * idata, thrust::c
 	odata[out_index] = myVal;
 }
 
-__global__ void doButterfly (int N, int stage, thrust::complex * idata, thrust::complex * odata)
+__global__ void doButterfly (int N, int stage, thrust::complex W, 
+							thrust::complex * idata, thrust::complex * odata)
 {
 	int index = (blockIdx.x * blockDim.x) + threadIdx.x;
 
@@ -63,24 +64,28 @@ __global__ void doButterfly (int N, int stage, thrust::complex * idata, thrust::
 
 	thrust::complex point = idata[index];
 
+	// # points in this DFT computation
 	float dft_points = powf(2, stage + 1); //logical shift instead?
 
-	int offset = (int) dft_points / 2; //also shift?
+	// N/2
+	int half_points = (int) dft_points / 2; //also shift?
 
+	// Relative index in this fourier transform
 	int relativeIndex = index % dft_points;
 
 	//GABE: What about multiiplicative factors??
-	if (relativeIndex < offset)
+	if (relativeIndex < half_points)
 	{
 		//subtract index
-		thrust::complex point2 = idata[index+offset];
+		thrust::complex point2 = idata[index+half_points];
 		point = point + point2;
 	}
 	else
 	{
-		//subtract index
-		thrust::complex point2 = idata[index-offset];
-		point = point2 - point;
+		//subtract W^exp * index
+		thrust::complex point2 = idata[index-half_points];
+		float exponent = (relativeIndex % half_points) * (ilog2ceil(N) - stage);
+		point = point2 - pow(W,exponent) * point;
 	}
 
 	odata[index] = point;
@@ -117,11 +122,13 @@ void parallel_fft (int N,
 	//ping pong buffers
 	ping_pong(&dev_isamples, &dev_osamples);
 
+	thrust::complex<double> W (thrust::cos(TWOPI / N), thrust::sin(TWOPI / N));
+
 	//Butterfly
-	for (int i = 0; i < ilog2ceil(N) + 1; ++i)
+	for (int i = 0; i < ilog2ceil(N); ++i)
 	{
-
-
+		doButterfly(N, i, W, dev_isamples, dev_osamples);
+		ping_pong(&dev_isamples, &dev_osamples);
 	}
 
 	//copy result to output
