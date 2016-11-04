@@ -127,7 +127,7 @@ void parallel_fft (int N,
 	//Butterfly
 	for (int i = 0; i < ilog2ceil(N); ++i)
 	{
-		doButterfly(N, i, W, dev_isamples, dev_osamples);
+		doButterfly << <numBlocks, blockSize>> >(N, i, W, dev_isamples, dev_osamples);
 		ping_pong(&dev_isamples, &dev_osamples);
 	}
 
