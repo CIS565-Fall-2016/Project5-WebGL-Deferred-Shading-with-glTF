@@ -6,6 +6,7 @@ precision highp int;
 
 uniform vec3 u_lightCol;
 uniform vec3 u_lightPos;
+uniform vec3 u_camPos;
 uniform float u_lightRad;
 uniform sampler2D u_gbufs[NUM_GBUFFERS];
 uniform sampler2D u_depth;
@@ -26,14 +27,31 @@ void main() {
     vec4 gb2 = texture2D(u_gbufs[2], v_uv);
     vec4 gb3 = texture2D(u_gbufs[3], v_uv);
     float depth = texture2D(u_depth, v_uv).x;
+
     // TODO: Extract needed properties from the g-buffers into local variables
+    // These definitions are suggested for starting out, but you will probably want to change them.
+    vec3 pos = gb0.xyz;     // World-space position
+    // HELP: how do I get view pos?
+    vec3 geomnor = gb1.xyz;  // Normals of the geometry as defined, without normal mapping
+    vec3 colmap = gb2.rgb;  // The color map - unlit "albedo" (surface color)
+    vec3 normap = gb3.xyz;  // The raw normal map (normals relative to the surface they're on)
+    vec3 nor = applyNormalMap (geomnor, normap);     // The true normals as we want to light them - with the normal map applied to the geometry normals (applyNormalMap above)
 
     // If nothing was rendered to this pixel, set alpha to 0 so that the
     // postprocessing step can render the sky color.
     if (depth == 1.0) {
-        gl_FragColor = vec4(0, 0, 0, 0);
+        gl_FragColor = vec4(1, 0, 1, 0);
         return;
     }
 
-    gl_FragColor = vec4(0, 0, 1, 1);  // TODO: perform lighting calculations
+    vec3 viewPos = pos - u_camPos;
+    vec3 posRelLight = u_lightPos - viewPos;
+    vec3 V = normalize(viewPos);
+    vec3 L = normalize(posRelLight);
+    vec3 H = normalize(L + V);
+    float intensity = dot(nor, H);
+    float attenuation = max(0.0, u_lightRad / length(posRelLight));
+
+    gl_FragColor = attenuation * intensity * vec4(colmap * u_lightCol, 1.0);
+    // HELP: not doing anything
 }

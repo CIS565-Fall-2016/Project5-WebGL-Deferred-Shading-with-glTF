@@ -28,13 +28,6 @@
         // CHECKITOUT: START HERE! You can even uncomment this:
         //debugger;
 
-        // { // TODO: this block should be removed after testing renderFullScreenQuad
-        //     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-        //     // TODO: Implement/test renderFullScreenQuad first
-        //     renderFullScreenQuad(R.progRed);
-        //     return;
-        // }
-
         R.pass_copy.render(state);
 
         if (cfg && cfg.debugView >= 0) {
@@ -44,8 +37,8 @@
         } else {
             // * Deferred pass and postprocessing pass(es)
             // TODO: uncomment these
-            // R.pass_deferred.render(state);
-            // R.pass_post1.render(state);
+            R.pass_deferred.render(state);
+            R.pass_post1.render(state);
 
             // OPTIONAL TODO: call more postprocessing passes, if any
         }
@@ -57,21 +50,21 @@
     R.pass_copy.render = function(state) {
         // * Bind the framebuffer R.pass_copy.fbo
         // TODO: uncomment
-        // gl.bindFramebuffer(gl.FRAMEBUFFER,R.pass_copy.fbo);
+        gl.bindFramebuffer(gl.FRAMEBUFFER,R.pass_copy.fbo);
 
 
         // * Clear screen using R.progClear
         // TODO: uncomment
-        // renderFullScreenQuad(R.progClear);
+        renderFullScreenQuad(R.progClear);
 
         // * Clear depth buffer to value 1.0 using gl.clearDepth and gl.clear
         // TODO: uncomment
-        // gl.clearDepth(1.0);
-        // gl.clear(gl.DEPTH_BUFFER_BIT);
+        gl.clearDepth(1.0);
+        gl.clear(gl.DEPTH_BUFFER_BIT);
 
         // * "Use" the program R.progCopy.prog
         // TODO: uncomment
-        // gl.useProgram(R.progCopy.prog);
+        gl.useProgram(R.progCopy.prog);
 
         // TODO: Go write code in glsl/copy.frag.glsl
 
@@ -79,11 +72,11 @@
         // * Upload the camera matrix m to the uniform R.progCopy.u_cameraMat
         //   using gl.uniformMatrix4fv
         // TODO: uncomment
-        // gl.uniformMatrix4fv(R.progCopy.u_cameraMat, false, m);
+        gl.uniformMatrix4fv(R.progCopy.u_cameraMat, false, m);
 
         // * Draw the scene
         // TODO: uncomment
-        // drawScene(state);
+        drawScene(state);
     };
 
     var drawScene = function(state) {
@@ -133,9 +126,9 @@
         // Here is a wonderful demo of showing how blend function works:
         // http://mrdoob.github.io/webgl-blendfunctions/blendfunc.html
         // TODO: uncomment
-        // gl.enable(gl.BLEND);
-        // gl.blendEquation( gl.FUNC_ADD );
-        // gl.blendFunc(gl.ONE,gl.ONE);
+        gl.enable(gl.BLEND);
+        gl.blendEquation( gl.FUNC_ADD );
+        gl.blendFunc(gl.ONE,gl.ONE);
 
         // * Bind/setup the ambient pass, and render using fullscreen quad
         bindTexturesForLightPass(R.prog_Ambient);
@@ -147,6 +140,16 @@
         // TODO: add a loop here, over the values in R.lights, which sets the
         //   uniforms R.prog_BlinnPhong_PointLight.u_lightPos/Col/Rad etc.,
         //   then does renderFullScreenQuad(R.prog_BlinnPhong_PointLight).
+        for (var i in R.lights) {
+            var prog = R.prog_BlinnPhong_PointLight;
+            var light = R.lights[i];
+            gl.uniform3fv(prog.u_camPos, state.cameraPos.toArray());
+            gl.uniform3fv(prog.u_lightPos, light.pos);
+            gl.uniform3fv(prog.u_lightCol, light.col);
+            gl.uniform1f(prog.u_lightRad, light.rad);
+
+            renderFullScreenQuad(R.prog_BlinnPhong_PointLight);
+        }
 
         // TODO: In the lighting loop, use the scissor test optimization
         // Enable gl.SCISSOR_TEST, render all lights, then disable it.
@@ -154,7 +157,9 @@
         // getScissorForLight returns null if the scissor is off the screen.
         // Otherwise, it returns an array [xmin, ymin, width, height].
         //
-        //   var sc = getScissorForLight(state.viewMat, state.projMat, light);
+        // gl.enable(gl.SCISSOR_TEST);
+        // var sc = getScissorForLight(state.viewMat, state.projMat, light);
+        // gl.disable(gl.SCISSOR_TEST);
 
         // Disable blending so that it doesn't affect other code
         gl.disable(gl.BLEND);
@@ -192,11 +197,11 @@
         // * Bind the deferred pass's color output as a texture input
         // Set gl.TEXTURE0 as the gl.activeTexture unit
         // TODO: uncomment
-        // gl.activeTexture(gl.TEXTURE0);
+        gl.activeTexture(gl.TEXTURE0);
 
         // Bind the TEXTURE_2D, R.pass_deferred.colorTex to the active texture unit
         // TODO: uncomment
-        // gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex);
+        gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex);
 
         // Configure the R.progPost1.u_color uniform to point at texture unit 0
         gl.uniform1i(R.progPost1.u_color, 0);
