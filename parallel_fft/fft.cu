@@ -17,6 +17,13 @@ void fft_free()
 	cudaFree(dev_osamples);
 }
 
+void ping_pong(thrust::complex ** a, thrust::complex ** b )
+{
+	thrust::complex * temp = * a;
+	*a = *b;
+	*b = temp;
+}
+
 /*
 returns the reverse-bit value, normalized for original bit count
 based on http://aggregate.org/MAGIC/#Bit%20Reversal
@@ -47,6 +54,38 @@ __global__ void inputScramble (int N, thrust::complex<double> * idata, thrust::c
 	odata[out_index] = myVal;
 }
 
+__global__ void doButterfly (int N, int stage, thrust::complex * idata, thrust::complex * odata)
+{
+	int index = (blockIdx.x * blockDim.x) + threadIdx.x;
+
+	if (index > N)
+		return;
+
+	thrust::complex point = idata[index];
+
+	float dft_points = powf(2, stage + 1); //logical shift instead?
+
+	int offset = (int) dft_points / 2; //also shift?
+
+	int relativeIndex = index % dft_points;
+
+	//GABE: What about multiiplicative factors??
+	if (relativeIndex < offset)
+	{
+		//subtract index
+		thrust::complex point2 = idata[index+offset];
+		point = point + point2;
+	}
+	else
+	{
+		//subtract index
+		thrust::complex point2 = idata[index-offset];
+		point = point2 - point;
+	}
+
+	odata[index] = point;
+}
+
 /*
 parallel FFT implementation
 
@@ -75,6 +114,9 @@ void parallel_fft (int N,
 	inputScramble << <numBlocks, blockSize>> >(N, dev_isamples, dev_osamples); 
 	checkCUDAError("kernel inputScramble failed!");
 
+	//ping pong buffers
+	ping_pong(&dev_isamples, &dev_osamples);
+
 	//Butterfly
 	for (int i = 0; i < ilog2ceil(N) + 1; ++i)
 	{
@@ -83,7 +125,7 @@ void parallel_fft (int N,
 	}
 
 	//copy result to output
-
+	cudaMemcpy(transform, dev_isamples, N * sizeof(thrust::complex), cudaMemcpyDeviceToHost);
 
 	//free buffers 
 	fft_free();
