@@ -55,15 +55,14 @@ void main() {
     vec3 lightDir = normalize(u_lightPos - pos);
     float lambertian = max(dot(lightDir, nor), 0.0);
     vec3 viewDir = normalize(u_viewDir - pos);
+     // this is blinn phong
     vec3 halfDir = normalize(lightDir + viewDir);
-    float specular = float(lambertian > 0.0) * pow(max(dot(halfDir, nor), 0.0), 10.0);
+    float specAngle = max(dot(halfDir, nor), 0.0);
+    float specular = float(lambertian > 0.0) * pow(specAngle, 16.0);
 
     gl_FragColor = vec4(
         u_lightCol * pow(1.0 - distance / u_lightRad, 2.0) *
-        (
-            colmap * lambertian +
-            vec3(1,1,1) * specular
-        )
+        (colmap * lambertian + vec3(1,1,1) * specular)
         , 1);
 
     // gl_FragColor = vec4(0, 0, 1, 1);  // TODO: perform lighting calculations

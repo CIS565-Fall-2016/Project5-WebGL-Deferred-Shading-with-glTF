@@ -148,15 +148,32 @@
         // TODO: add a loop here, over the values in R.lights, which sets the
         //   uniforms R.prog_BlinnPhong_PointLight.u_lightPos/Col/Rad etc.,
         //   then does renderFullScreenQuad(R.prog_BlinnPhong_PointLight).
-        gl.enable(gl.SCISSOR_TEST);
+        if (cfg.debugScissor) gl.enable(gl.SCISSOR_TEST);
         for(var i = 0; i < R.NUM_LIGHTS; ++i){
           gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_lightPos, R.lights[i].pos);
           gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_lightCol, R.lights[i].col);
           gl.uniform1f(R.prog_BlinnPhong_PointLight.u_lightRad, R.lights[i].rad);
-          renderFullScreenQuad(R.prog_BlinnPhong_PointLight);
-          var sc = getScissorForLight(state.viewMat, state.projMat, R.lights[i]);
+
+          if (cfg.debugScissor) {
+                //scissor test
+                var sc = getScissorForLight(state.viewMat, state.projMat, R.lights[i]);
+                if (sc) {
+                    gl.scissor(sc[0], sc[1], sc[2], sc[3]);
+                    renderFullScreenQuad(R.prog_BlinnPhong_PointLight);
+                    if (cfg.debugScissor) {
+                        gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+                        gl.useProgram(R.progScissor.prog);
+                        gl.uniform4f(R.progScissor.u_color, 1, 0, 0, 0.1);
+                        renderFullScreenQuad(R.progScissor);
+                        gl.blendFunc(gl.ONE, gl.ONE);
+                        gl.useProgram(R.prog_BlinnPhong_PointLight.prog);
+                    }
+                }
+            } else {
+                renderFullScreenQuad(R.prog_BlinnPhong_PointLight);
+            }
         }
-        gl.disable(gl.SCISSOR_TEST);
+        if (cfg.debugScissor) gl.disable(gl.SCISSOR_TEST);
         // TODO: In the lighting loop, use the scissor test optimization
         // Enable gl.SCISSOR_TEST, render all lights, then disable it.
         //
