@@ -30,7 +30,7 @@ void main() {
 
     // TODO: Extract needed properties from the g-buffers into local variables
     // These definitions are suggested for starting out, but you will probably want to change them.
-    vec3 pos = gb0.xyz;     // World-space position
+    vec3 viewPos = gb0.xyz;     // World-space position
     // HELP: how do I get view pos?
     vec3 geomnor = gb1.xyz;  // Normals of the geometry as defined, without normal mapping
     vec3 colmap = gb2.rgb;  // The color map - unlit "albedo" (surface color)
@@ -44,13 +44,12 @@ void main() {
         return;
     }
 
-    vec3 viewPos = pos - u_camPos;
     vec3 posRelLight = u_lightPos - viewPos;
     vec3 V = normalize(viewPos);
     vec3 L = normalize(posRelLight);
-    vec3 H = normalize(L + V);
+    vec3 H = normalize(L + V); // mid angle beteen light and viewer
     float intensity = dot(nor, H);
-    float attenuation = max(0.0, u_lightRad / length(posRelLight));
+    float attenuation = max(0.0, 1.0 - (length(posRelLight) / u_lightRad));
 
     gl_FragColor = attenuation * intensity * vec4(colmap * u_lightCol, 1.0);
     // HELP: not doing anything

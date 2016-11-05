@@ -50,7 +50,7 @@
     R.pass_copy.render = function(state) {
         // * Bind the framebuffer R.pass_copy.fbo
         // TODO: uncomment
-        gl.bindFramebuffer(gl.FRAMEBUFFER,R.pass_copy.fbo);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_copy.fbo);
 
 
         // * Clear screen using R.progClear
@@ -128,7 +128,7 @@
         // TODO: uncomment
         gl.enable(gl.BLEND);
         gl.blendEquation( gl.FUNC_ADD );
-        gl.blendFunc(gl.ONE,gl.ONE);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
         // * Bind/setup the ambient pass, and render using fullscreen quad
         bindTexturesForLightPass(R.prog_Ambient);
@@ -140,16 +140,27 @@
         // TODO: add a loop here, over the values in R.lights, which sets the
         //   uniforms R.prog_BlinnPhong_PointLight.u_lightPos/Col/Rad etc.,
         //   then does renderFullScreenQuad(R.prog_BlinnPhong_PointLight).
+        gl.enable(gl.SCISSOR_TEST);
         for (var i in R.lights) {
             var prog = R.prog_BlinnPhong_PointLight;
             var light = R.lights[i];
+
+            var sc = getScissorForLight(state.viewMat, state.projMat, light);
+            if (sc) {
+                gl.scissor(sc[0], sc[1], sc[2], sc[3]);
+            }
+
             gl.uniform3fv(prog.u_camPos, state.cameraPos.toArray());
             gl.uniform3fv(prog.u_lightPos, light.pos);
             gl.uniform3fv(prog.u_lightCol, light.col);
             gl.uniform1f(prog.u_lightRad, light.rad);
 
+            if (cfg.debugScissor) {
+                renderFullScreenQuad(R.progRed);
+            }
             renderFullScreenQuad(R.prog_BlinnPhong_PointLight);
         }
+        gl.disable(gl.SCISSOR_TEST);
 
         // TODO: In the lighting loop, use the scissor test optimization
         // Enable gl.SCISSOR_TEST, render all lights, then disable it.
@@ -157,9 +168,6 @@
         // getScissorForLight returns null if the scissor is off the screen.
         // Otherwise, it returns an array [xmin, ymin, width, height].
         //
-        // gl.enable(gl.SCISSOR_TEST);
-        // var sc = getScissorForLight(state.viewMat, state.projMat, light);
-        // gl.disable(gl.SCISSOR_TEST);
 
         // Disable blending so that it doesn't affect other code
         gl.disable(gl.BLEND);
