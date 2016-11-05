@@ -11,7 +11,9 @@
             !R.prog_BlinnPhong_PointLight ||
             !R.prog_Debug ||
             !R.progPost1 ||
-            !R.prog_bloom)) {
+            !R.prog_bloom||
+            !R.prog_bloom_combine||
+            !R.prog_bloom_extract)) {
             console.log('waiting for programs to load...');
             return;
         }
@@ -187,35 +189,37 @@
      * 'bloom' pass: apply bloom to the scene
      */
     R.pass_bloom.render = function(state) {
+        // Step1: extract bright area
+        gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_bloom.fbos[0]);
+        //gl.clearDepth(1.0);
+        gl.useProgram(R.prog_bloom_extract.prog)
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, R.previous_pass_tex_output);
+        gl.uniform1i(R.prog_bloom_extract.u_color, 0);
+        renderFullScreenQuad(R.prog_bloom_extract);
+
+        // Step2: two-pass blur
         gl.useProgram(R.prog_bloom.prog);
-
         gl.uniform2fv(R.prog_bloom.u_tex_offset, [1.0 / width, 1.0/ height]);
-
-        for (let i = 0; i < 2; i++)
+        for (let i = 1; i < 3; i++)
         {
             gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_bloom.fbos[i]);
 
-            // gl.clearDepth(1.0);
+            //gl.clearDepth(1.0);
             // gl.clear(gl.DEPTH_BUFFER_BIT);
 
             gl.uniform1i(R.prog_bloom.u_horizontal, i);
-            if (i == 0)
-            {
-                gl.activeTexture(gl.TEXTURE0);
-                gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex);
-            }
-            else
-            {
-                gl.activeTexture(gl.TEXTURE0);
-                gl.bindTexture(gl.TEXTURE_2D, R.pass_bloom.colorTexs[0]);
-            }
+
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, R.pass_bloom.colorTexs[i-1]);
+
             gl.uniform1i(R.prog_bloom.u_color, 0);
 
 
             renderFullScreenQuad(R.prog_bloom);
         }
 
-        R.previous_pass_tex_output = R.pass_bloom.colorTexs[1];
+        R.previous_pass_tex_output = R.pass_bloom.colorTexs[2];
     };
 
     /**
