@@ -32,7 +32,6 @@ void main() {
     vec3 nor = gb(1);  // Normals of the geometry as defined, without normal mapping
     vec3 colmap = gb(2);  // The color map - unlit "albedo" (surface color)
     vec3 normap = gb(3);  // The raw normal map (normals relative to the surface they're on)
-//    vec3 nor = applyNormalMap (geomnor, normap);     // The true normals as we want to light them - with the normal map applied to the geometry normals (applyNormalMap above)
 
 
     // If nothing was rendered to this pixel, set alpha to 0 so that the
