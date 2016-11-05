@@ -5,6 +5,7 @@
     R.pass_copy = {};
     R.pass_debug = {};
     R.pass_deferred = {};
+    R.pass_bloom = {};
     R.pass_post1 = {};
     R.lights = [];
 
@@ -18,6 +19,7 @@
         loadAllShaderPrograms();
         R.pass_copy.setup();
         R.pass_deferred.setup();
+        R.pass_bloom.setup();
     };
 
     // TODO: Edit if you want to change the light initial positions
@@ -99,6 +101,29 @@
     };
 
     /**
+     * Create/configure framebuffers on "bloom" stage
+     */
+    R.pass_bloom.setup = function() {
+        // * Create the FBO
+        var fbos = []
+        var color_texs = []
+        for (var i = 0; i < 2; i++)
+        {
+            fbos.push(gl.createFramebuffer());
+            color_texs.push(createAndBindColorTargetTexture(
+            fbos[i], gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL));
+
+            // * Check for framebuffer errors
+            abortIfFramebufferIncomplete(fbos[i]);
+            
+            gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        }
+        R.pass_bloom.fbos = fbos;
+        R.pass_bloom.colorTexs = color_texs;
+    };
+
+    /**
      * Loads all of the shader programs used in the pipeline.
      */
     var loadAllShaderPrograms = function() {
@@ -158,6 +183,13 @@
         });
 
         // TODO: If you add more passes, load and set up their shader programs.
+        loadBloomProgram('bloom', function(p) {
+            p.u_color    = gl.getUniformLocation(p.prog, 'u_color');
+            p.u_horizontal = gl.getUniformLocation(p.prog, 'u_horizontal');
+            p.u_tex_offset = gl.getUniformLocation(p.prog, 'u_tex_offset');
+            // Save the object into this variable for access later
+            R.prog_bloom = p;
+        });
     };
 
     var loadDeferredProgram = function(name, callback) {
@@ -180,6 +212,20 @@
     };
 
     var loadPostProgram = function(name, callback) {
+        loadShaderProgram(gl, 'glsl/quad.vert.glsl',
+                          'glsl/post/' + name + '.frag.glsl',
+            function(prog) {
+                // Create an object to hold info about this shader program
+                var p = { prog: prog };
+
+                // Retrieve the uniform and attribute locations
+                p.a_position = gl.getAttribLocation(prog, 'a_position');
+
+                callback(p);
+            });
+    };
+
+    var loadBloomProgram = function(name, callback) {
         loadShaderProgram(gl, 'glsl/quad.vert.glsl',
                           'glsl/post/' + name + '.frag.glsl',
             function(prog) {

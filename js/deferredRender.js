@@ -10,7 +10,8 @@
             !R.prog_Ambient ||
             !R.prog_BlinnPhong_PointLight ||
             !R.prog_Debug ||
-            !R.progPost1)) {
+            !R.progPost1 ||
+            !R.prog_bloom)) {
             console.log('waiting for programs to load...');
             return;
         }
@@ -38,6 +39,9 @@
             // * Deferred pass and postprocessing pass(es)
             // DONE: uncomment these
             R.pass_deferred.render(state);
+
+            R.pass_bloom.render(state);
+
             R.pass_post1.render(state);
 
             // OPTIONAL TODO: call more postprocessing passes, if any
@@ -161,6 +165,7 @@
 
         // Disable blending so that it doesn't affect other code
         gl.disable(gl.BLEND);
+        R.previous_pass_tex_output = R.pass_deferred.colorTex;
     };
 
     var bindTexturesForLightPass = function(prog) {
@@ -176,6 +181,41 @@
         gl.activeTexture(gl['TEXTURE' + R.NUM_GBUFFERS]);
         gl.bindTexture(gl.TEXTURE_2D, R.pass_copy.depthTex);
         gl.uniform1i(prog.u_depth, R.NUM_GBUFFERS);
+    };
+
+    /**
+     * 'bloom' pass: apply bloom to the scene
+     */
+    R.pass_bloom.render = function(state) {
+        gl.useProgram(R.prog_bloom.prog);
+
+        gl.uniform2fv(R.prog_bloom.u_tex_offset, [1.0 / width, 1.0/ height]);
+
+        for (let i = 0; i < 2; i++)
+        {
+            gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_bloom.fbos[i]);
+
+            // gl.clearDepth(1.0);
+            // gl.clear(gl.DEPTH_BUFFER_BIT);
+
+            gl.uniform1i(R.prog_bloom.u_horizontal, i);
+            if (i == 0)
+            {
+                gl.activeTexture(gl.TEXTURE0);
+                gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex);
+            }
+            else
+            {
+                gl.activeTexture(gl.TEXTURE0);
+                gl.bindTexture(gl.TEXTURE_2D, R.pass_bloom.colorTexs[0]);
+            }
+            gl.uniform1i(R.prog_bloom.u_color, 0);
+
+
+            renderFullScreenQuad(R.prog_bloom);
+        }
+
+        R.previous_pass_tex_output = R.pass_bloom.colorTexs[1];
     };
 
     /**
@@ -199,7 +239,8 @@
 
         // Bind the TEXTURE_2D, R.pass_deferred.colorTex to the active texture unit
         // DONE: uncomment
-        gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex);
+        gl.bindTexture(gl.TEXTURE_2D, R.previous_pass_tex_output);
+        //gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex);
 
         // Configure the R.progPost1.u_color uniform to point at texture unit 0
         gl.uniform1i(R.progPost1.u_color, 0);
