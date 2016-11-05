@@ -67,7 +67,7 @@ var width, height;
 
     var init = function() {
         // TODO: For performance measurements, disable debug mode!
-        var debugMode = true;
+        var debugMode = false;
 
         canvas = document.getElementById('canvas');
         renderer = new THREE.WebGLRenderer({
@@ -187,8 +187,8 @@ var width, height;
                 gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, magFilter);
                 gl.texParameteri(target, gl.TEXTURE_WRAP_S, wrapS);
                 gl.texParameteri(target, gl.TEXTURE_WRAP_T, wrapT);
-                if (minFilter == gl.NEAREST_MIPMAP_NEAREST || 
-                    minFilter == gl.NEAREST_MIPMAP_LINEAR || 
+                if (minFilter == gl.NEAREST_MIPMAP_NEAREST ||
+                    minFilter == gl.NEAREST_MIPMAP_LINEAR ||
                     minFilter == gl.LINEAR_MIPMAP_NEAREST ||
                     minFilter == gl.LINEAR_MIPMAP_LINEAR ) {
                         gl.generateMipmap(target);
@@ -245,7 +245,7 @@ var width, height;
                         uvInfo: {size: uvInfo.size, type: uvInfo.type, stride: uvInfo.stride, offset: uvInfo.offset},
 
                         // specific textures temp test
-                        colmap: webGLTextures[colorTextureName].texture, 
+                        colmap: webGLTextures[colorTextureName].texture,
                         normap: webGLTextures[normalTextureName].texture
                     });
 
@@ -254,7 +254,7 @@ var width, height;
             }
 
 
-            
+
         });
 
 
