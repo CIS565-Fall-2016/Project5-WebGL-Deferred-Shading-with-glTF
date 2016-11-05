@@ -8,7 +8,10 @@ elif sys.version_info.major == 3:
     from http.server import SimpleHTTPRequestHandler
     from socketserver import TCPServer
 
-PORT = 10565
+if len(sys.argv) < 2:
+    PORT = 10565
+else:
+    PORT = int(sys.argv[1])
 
 Handler = SimpleHTTPRequestHandler
 
