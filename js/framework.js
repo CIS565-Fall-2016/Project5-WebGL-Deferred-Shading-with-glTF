@@ -151,7 +151,11 @@ var width, height;
 
 
             // temp for sponza
-            var colorTextureName = 'texture_color';
+            var colorTextureName = 'texture_color'; // for sponza
+            if (!glTF.json.textures[colorTextureName]) {
+                colorTextureName = (Object.keys(glTF.json.textures))[0];
+                console.log(colorTextureName);
+            }
             var normalTextureName = 'texture_normal';
 
             // textures
@@ -232,7 +236,13 @@ var width, height;
 
                     var posInfo = primitive.attributes[primitive.technique.parameters['position'].semantic];
                     var norInfo = primitive.attributes[primitive.technique.parameters['normal'].semantic];
-                    var uvInfo = primitive.attributes[primitive.technique.parameters['texcoord_0'].semantic];
+                    var uvInfo;
+                    if (primitive.technique.parameters['texcoord_0']) {
+                        uvInfo = primitive.attributes[primitive.technique.parameters['texcoord_0'].semantic];
+                    } else if (primitive.technique.parameters['texcoord0']) {
+                        uvInfo = primitive.attributes[primitive.technique.parameters['texcoord0'].semantic];
+                    }
+                    
 
                     models.push({
                         gltf: primitive,
@@ -246,7 +256,7 @@ var width, height;
 
                         // specific textures temp test
                         colmap: webGLTextures[colorTextureName].texture, 
-                        normap: webGLTextures[normalTextureName].texture
+                        normap: webGLTextures[normalTextureName] ? webGLTextures[normalTextureName].texture : null
                     });
 
                 }
