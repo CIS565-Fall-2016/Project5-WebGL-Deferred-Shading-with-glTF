@@ -41,9 +41,10 @@
             // * Deferred pass and postprocessing pass(es)
             // DONE: uncomment these
             R.pass_deferred.render(state);
-
-            R.pass_bloom.render(state);
-
+            if (cfg.enableBloom)
+            {
+                R.pass_bloom.render(state);
+            }
             R.pass_post1.render(state);
 
             // OPTIONAL TODO: call more postprocessing passes, if any
@@ -204,22 +205,34 @@
         for (let i = 1; i < 3; i++)
         {
             gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_bloom.fbos[i]);
-
             //gl.clearDepth(1.0);
             // gl.clear(gl.DEPTH_BUFFER_BIT);
-
-            gl.uniform1i(R.prog_bloom.u_horizontal, i);
-
+            gl.uniform1i(R.prog_bloom.u_horizontal, i - 1);
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, R.pass_bloom.colorTexs[i-1]);
-
             gl.uniform1i(R.prog_bloom.u_color, 0);
-
 
             renderFullScreenQuad(R.prog_bloom);
         }
 
-        R.previous_pass_tex_output = R.pass_bloom.colorTexs[2];
+        // Step3: combine
+        gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_bloom.fbos[3]);
+        //gl.clearDepth(1.0);
+        gl.useProgram(R.prog_bloom_combine.prog)
+
+        // output of deferred pass
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, R.previous_pass_tex_output);
+        gl.uniform1i(R.prog_bloom_combine.u_scene, 0);
+
+        // blur pass output
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, R.pass_bloom.colorTexs[2]);
+        gl.uniform1i(R.prog_bloom_combine.u_bloom, 1);
+
+        renderFullScreenQuad(R.prog_bloom_combine);
+
+        R.previous_pass_tex_output = R.pass_bloom.colorTexs[3];
     };
 
     /**

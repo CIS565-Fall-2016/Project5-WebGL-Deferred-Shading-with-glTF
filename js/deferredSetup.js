@@ -200,7 +200,8 @@
             R.prog_bloom_extract = p;
         });
         loadPostProgram('bloom_combine', function(p) {
-            p.u_color    = gl.getUniformLocation(p.prog, 'u_color');
+            p.u_scene    = gl.getUniformLocation(p.prog, 'u_scene');
+            p.u_bloom    = gl.getUniformLocation(p.prog, 'u_bloom');
             // Save the object into this variable for access later
             R.prog_bloom_combine = p;
         });

@@ -9,6 +9,10 @@ uniform sampler2D u_gbufs[NUM_GBUFFERS];
 uniform sampler2D u_depth;
 
 varying vec2 v_uv;
+const vec3 ambient_color = vec3(0.15,0.15,0.15);
+
+const vec4 SKY_COLOR = vec4(0.98, 0.98, 0.98, 1.0);
+//const vec4 SKY_COLOR = vec4(0.01, 0.14, 0.42, 1.0);
 
 void main() {
     vec4 gb0 = texture2D(u_gbufs[0], v_uv);
@@ -19,9 +23,11 @@ void main() {
     // TODO: Extract needed properties from the g-buffers into local variables
 
     if (depth == 1.0) {
-        gl_FragColor = vec4(0, 0, 0, 0); // set alpha to 0
+        //gl_FragColor = vec4(0, 0, 0, 0); // set alpha to 0
+        gl_FragColor = SKY_COLOR;
         return;
     }
 
-    gl_FragColor = vec4(0.1, 0.1, 0.1, 1);  // TODO: replace this
+    vec3 colmap = gb2.rgb;
+    gl_FragColor = vec4(colmap * ambient_color, 1);  // DONE: replace this
 }

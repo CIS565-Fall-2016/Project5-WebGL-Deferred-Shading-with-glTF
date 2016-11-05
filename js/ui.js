@@ -7,7 +7,7 @@ var cfg;
         // TODO: Define config fields and defaults here
         this.debugView = -1;
         this.debugScissor = false;
-        this.enableEffect0 = false;
+        this.enableBloom = true;
     };
 
     var init = function() {
@@ -28,7 +28,7 @@ var cfg;
 
         var eff0 = gui.addFolder('EFFECT NAME HERE');
         eff0.open();
-        eff0.add(cfg, 'enableEffect0');
+        eff0.add(cfg, 'enableBloom');
         // TODO: add more effects toggles and parameters here
     };
 

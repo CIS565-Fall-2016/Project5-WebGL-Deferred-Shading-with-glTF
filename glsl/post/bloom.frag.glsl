@@ -20,6 +20,7 @@ void main()
     weight[2] = 0.1216216;
     weight[3] = 0.054054;
     weight[4] = 0.016216;
+    // TODO: make bloom radius a uniform variable
 
     // ref: http://learnopengl.com/#!Advanced-Lighting/Bloom
 

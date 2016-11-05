@@ -6,7 +6,7 @@ varying vec2 v_uv;
 
 uniform sampler2D u_color;
 
-const float threshold = 1.0; // TODO: uniform
+const float threshold = 0.95; // TODO: uniform
 
 // Extract bright colors for bloom
 void main()
