@@ -150,6 +150,7 @@
                 gl.scissor(sc[0], sc[1], sc[2], sc[3]);
             }
 
+            gl.uniform1i(prog.u_toon, cfg.toon|0);
             gl.uniform3fv(prog.u_camPos, state.cameraPos.toArray());
             gl.uniform3fv(prog.u_lightPos, light.pos);
             gl.uniform3fv(prog.u_lightCol, light.col);
