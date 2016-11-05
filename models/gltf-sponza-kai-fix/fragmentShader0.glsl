@@ -8,7 +8,7 @@ uniform float u_shininess;
 uniform float u_transparency;
 varying vec3 v_positionEC;
 varying vec3 v_normal;
-varying vec2 v_texcoord_0;
+varying vec2 v_texcoord0;
 
 vec3 applyNormalMap(vec3 geomnor, vec3 normap) {
     normap = normap * 2.0 - 1.0;
@@ -19,8 +19,8 @@ vec3 applyNormalMap(vec3 geomnor, vec3 normap) {
 }
 
 void main(void) {
-  vec3 normal = applyNormalMap(normalize(v_normal), texture2D(u_normal, v_texcoord_0).rgb);
-  vec4 diffuse = texture2D(u_diffuse, v_texcoord_0);
+  vec3 normal = applyNormalMap(normalize(v_normal), texture2D(u_normal, v_texcoord0).rgb);
+  vec4 diffuse = texture2D(u_diffuse, v_texcoord0);
   vec3 diffuseLight = vec3(0.0, 0.0, 0.0);
   vec3 specular = u_specular.rgb;
   vec3 specularLight = vec3(0.0, 0.0, 0.0);

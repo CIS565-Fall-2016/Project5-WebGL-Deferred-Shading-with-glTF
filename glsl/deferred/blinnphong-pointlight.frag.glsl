@@ -43,10 +43,9 @@ void main() {
 
     if (u_toon == 1) {
     float cuts = float(NUM_CEL_CUTS);
-        shading = round(shading * cuts) / cuts;
+       shading = round(shading * cuts) / cuts;
     }
 
     gl_FragColor = shading * vec4(colmap * u_lightCol, 1.0);
-
     // HELP: not doing anything
 }

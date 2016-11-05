@@ -144,7 +144,7 @@
           "attributes": {
             "POSITION": "accessor_position",
             "NORMAL": "accessor_normal",
-            "TEXCOORD_0": "accessor_uv"
+            "TEXCOORD0": "accessor_uv"
           },
           "indices": "accessor_index_0",
           "material": "material_lambert2SG",
@@ -221,7 +221,7 @@
       "attributes": {
         "a_position": "position",
         "a_normal": "normal",
-        "a_texcoord_0": "texcoord_0"
+        "a_texcoord0": "texcoord0"
       },
       "parameters": {
         "modelViewMatrix": {
@@ -265,8 +265,8 @@
           "semantic": "NORMAL",
           "type": 35665
         },
-        "texcoord_0": {
-          "semantic": "TEXCOORD_0",
+        "texcoord0": {
+          "semantic": "TEXCOORD0",
           "type": 35664
         }
       },
@@ -296,7 +296,7 @@
       "attributes": [
         "a_position",
         "a_normal",
-        "a_texcoord_0"
+        "a_texcoord0"
       ],
       "fragmentShader": "fragmentShader0",
       "vertexShader": "vertexShader0"

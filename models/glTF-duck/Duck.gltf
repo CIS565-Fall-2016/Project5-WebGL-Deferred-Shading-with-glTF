@@ -146,7 +146,7 @@
                     "attributes": {
                         "NORMAL": "accessor_25",
                         "POSITION": "accessor_23",
-                        "TEXCOORD_0": "accessor_27"
+                        "TEXCOORD0": "accessor_27"
                     },
                     "indices": "accessor_21",
                     "material": "blinn3-fx",
@@ -324,7 +324,7 @@
                     "type": 35666
                 },
                 "texcoord0": {
-                    "semantic": "TEXCOORD_0",
+                    "semantic": "TEXCOORD0",
                     "type": 35664
                 }
             },

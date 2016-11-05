@@ -110,6 +110,7 @@
     /**
      * 'deferred' pass: Add lighting results for each individual light
      */
+
     R.pass_deferred.render = function(state) {
         // * Bind R.pass_deferred.fbo to write into for later postprocessing
         gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_deferred.fbo);
@@ -140,6 +141,7 @@
         // TODO: add a loop here, over the values in R.lights, which sets the
         //   uniforms R.prog_BlinnPhong_PointLight.u_lightPos/Col/Rad etc.,
         //   then does renderFullScreenQuad(R.prog_BlinnPhong_PointLight).
+
         gl.enable(gl.SCISSOR_TEST);
         for (var i in R.lights) {
             var prog = R.prog_BlinnPhong_PointLight;

@@ -122,8 +122,8 @@ var width, height;
             R.sphereModel = m;
         });
 
-        var glTFURL = 'models/glTF-duck/duck.gltf';
-        // var glTFURL = 'models/glTF-sponza-kai-fix/sponza.gltf';
+        // var glTFURL = 'models/glTF-duck/duck.gltf';
+        var glTFURL = 'models/glTF-sponza-kai-fix/sponza.gltf';
         var glTFLoader = new MinimalGLTFLoader.glTFLoader(gl);
         glTFLoader.loadGLTF(glTFURL, function (glTF) {
             var curScene = glTF.scenes[glTF.defaultScene];
@@ -232,9 +232,9 @@ var width, height;
 
                     var posInfo = primitive.attributes[primitive.technique.parameters['position'].semantic];
                     var norInfo = primitive.attributes[primitive.technique.parameters['normal'].semantic];
-                    var x = primitive.technique.parameters['texcoord_0'];
-                    var uvInfo = primitive.attributes[primitive.technique.parameters['texcoord_0'].semantic];
+                    var uvInfo = primitive.attributes[primitive.technique.parameters['texcoord0'].semantic];
 
+                    var x = webGLTextures[colorTextureName];
                     models.push({
                         gltf: primitive,
 
