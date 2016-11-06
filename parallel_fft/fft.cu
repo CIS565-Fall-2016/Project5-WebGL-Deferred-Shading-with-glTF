@@ -175,7 +175,7 @@ void parallel_fft (int N,
 	ping_pong(&dev_isamples, &dev_osamples);
 
 	// create the W vector
-	thrust::complex<double> W (cos((2.0 * M_PI) / N), sin((2.0 * M_PI) / N));
+	thrust::complex<double> W (cos((2.0 * M_PI) / N),  -1.0 * sin((2.0 * M_PI) / N));
 
 #if CHECKPOINT
 	printf("W = %f + i%f\n", W.real(), W.imag());
