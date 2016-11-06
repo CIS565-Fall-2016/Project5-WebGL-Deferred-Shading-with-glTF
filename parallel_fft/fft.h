@@ -10,11 +10,4 @@
 
 void parallel_fft (int N, thrust::complex<double> * samples, thrust::complex<double> * transform);
 
-void checkpoint(const char * print_me, int N, thrust::complex * buf)
-{
-	printf(print_me);
-
-	for(int i = 0; i < N; ++i)
-		printf("%f + i %f\n", buf[i].real, buf[i].imag );
-
-}
+void checkpoint(const char * print_me, int N, thrust::complex<double> * buf);

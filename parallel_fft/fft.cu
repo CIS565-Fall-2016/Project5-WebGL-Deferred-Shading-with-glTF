@@ -5,6 +5,17 @@
 thrust::complex<double> * dev_isamples;
 thrust::complex<double> * dev_osamples;
 
+#if CHECKPOINT
+void checkpoint(const char * print_me, int N, thrust::complex<double> * buf)
+{
+	printf(print_me);
+
+	for (int i = 0; i < N; ++i)
+		printf("%f\n", thrust::abs(buf[i]));
+
+}
+#endif
+
 __host__ __device__ int ilog2_2(int x) {
 	int lg = 0;
 	while (x >>= 1) {
