@@ -16,13 +16,15 @@ WebGL Deferred Shading
 [![](img/dummy.jpg)](TODO)
 
 ### Features
+
 * [ ] Basic Pipeline
   * [x] Render to G-Buffer
-  * [ ] Deferred Render
+  * [ ] Deferred Shading
 * [ ] Post Effect
 * [ ] Performance Analysis
 
 ### Basic Pipeline
+
 Depth | Position | Normal
 --- | --- | ---
 ![](img/depth.PNG) | ![](img/position.png) | ![](img/normal.png)
@@ -30,6 +32,10 @@ Depth | Position | Normal
 Color Map | Normal Map | Surface Normal
 --- | --- | ---
 ![](img/color.png) | ![](img/normal_map.png) | ![](img/surface_normal.png)
+
+Ambient Lighting | Blinn-Phong Lighting
+--- | ---
+![](img/ambient.png) | ![](img/dummy.jpg)
 
 ### Credits
 
