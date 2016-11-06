@@ -17,9 +17,10 @@ WebGL Deferred Shading
 
 ### Features
 
-* [ ] Basic Pipeline
+* [x] Basic Pipeline
   * [x] Render to G-Buffer
-  * [ ] Deferred Shading
+  * [x] Deferred Shading
+* [ ] Scissor Test
 * [ ] Post Effect
 * [ ] Performance Analysis
 
@@ -36,6 +37,30 @@ Color Map | Normal Map | Surface Normal
 Ambient Lighting | Blinn-Phong Lighting
 --- | ---
 ![](img/ambient.png) | ![](img/blinn_phong.gif)
+
+### Performance Analysis
+
+
+#### Lighting
+
+Ambient | Blinn-Phong | Ambient + Blinn-Phong
+:---:|:---:|:---:
+16 ms/frame | 60 ms/frame | 65 ms/frame
+
+![](img/perf_lighting.png)
+
+_*Note_ Ambient lighting is present due to infinite light bouncing in the space, which finally lights every object in the scene evenly (from all angle). Blinn-Phong light consists of, in the simpliest case, two types of lighting, lambert diffuse and specular. Diffuse reflectance is proportional to _dot product of surface normal and light direction_, while specular reflectance is proportional to _dot prodect of surface normal and halfway direction raised to power of shininess_, where halfway direction is the bisectional direction of light direction and view direction.
+
+#### Number of Lights
+
+#1 | #2 | #4 | #8 | #16
+:---:|:---:|:---:|:---:|:---:|
+
+#### Scissor Test
+
+Scissor Test OFF | Scissor Test ON
+:---:|:---:
+
 
 ### Credits
 
