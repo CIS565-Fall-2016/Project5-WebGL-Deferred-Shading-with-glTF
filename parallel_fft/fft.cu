@@ -1,5 +1,7 @@
 #include "fft.h"
 
+#define blockSize 128
+
 thrust::complex<double> * dev_isamples;
 thrust::complex<double> * dev_osamples;
 
@@ -114,8 +116,11 @@ void parallel_fft (int N,
 	thrust::complex<double> * samples, 
 	thrust::complex<double> * transform)
 {
+	// Radix 2 FFT operates on Powers of Two. Pad as needed.
+	//GABE pad here
+
 	//allocate buffers
-	fft_init();
+	fft_init(N);
 
 	//compute numBlocks
 	dim3 numBlocks = (N + blockSize - 1) / blockSize;
@@ -130,7 +135,7 @@ void parallel_fft (int N,
 	//ping pong buffers
 	ping_pong(&dev_isamples, &dev_osamples);
 
-	thrust::complex<double> W (thrust::cos(TWOPI / N), thrust::sin(TWOPI / N));
+	thrust::complex<double> W (cos((2.0 * M_PI) / N), sin((2.0 * M_PI) / N));
 
 	//Butterfly
 	for (int i = 0; i < ilog2ceil(N); ++i)
@@ -140,7 +145,7 @@ void parallel_fft (int N,
 	}
 
 	//copy result to output
-	cudaMemcpy(transform, dev_isamples, N * sizeof(thrust::complex), cudaMemcpyDeviceToHost);
+	cudaMemcpy(transform, dev_isamples, N * sizeof(thrust::complex<double>), cudaMemcpyDeviceToHost);
 
 	//free buffers 
 	fft_free();
