@@ -5,7 +5,7 @@
 #define REAL 0
 #define IMAG 1
 #define M_PI 3.14159265358979323846
-#define NUM_POINTS 64
+#define NUM_POINTS 8
 
 thrust::complex<double> signal[NUM_POINTS];
 thrust::complex<double> result[NUM_POINTS];
@@ -36,6 +36,6 @@ int main(int argc, char* argv[]) {
     for (int i = 0; i < NUM_POINTS; ++i) {
         double mag = thrust::abs(result[i]);
         
-        printf("%g\n", mag);
+        printf("%f\n", mag);
     }
 }

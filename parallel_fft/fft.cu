@@ -19,9 +19,9 @@ __host__ __device__ int ilog2ceil_2(int x) {
 
 void fft_init(int N)
 {
-	cudaMalloc((void **)&dev_isamples, N * sizeof(int));
+	cudaMalloc((void **)&dev_isamples, N * sizeof(thrust::complex<double>));
 	checkCUDAError("cudaMalloc dev_isamples failed!");
-	cudaMalloc((void **)&dev_osamples, N * sizeof(int));
+	cudaMalloc((void **)&dev_osamples, N * sizeof(thrust::complex<double>));
 	checkCUDAError("cudaMalloc dev_osamples failed!");
 }
 
