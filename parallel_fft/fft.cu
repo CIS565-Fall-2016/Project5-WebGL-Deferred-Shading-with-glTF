@@ -1,7 +1,7 @@
 #include "fft.h"
 
 #define blockSize 128
-
+#define CHECKPOINT 1
 thrust::complex<double> * dev_isamples;
 thrust::complex<double> * dev_osamples;
 
@@ -127,6 +127,11 @@ void parallel_fft (int N,
 
 	cudaMemcpy(dev_isamples, samples, sizeof(thrust::complex<double>) * N, cudaMemcpyHostToDevice);
 	checkCUDAError("cudaMemcpy sample data to device failed!");
+
+#if CHECKPOINT
+	checkpoint("initial samples\n", N, samples);
+#endif
+
 
 	//scrable inputs to reverse-binary order
 	inputScramble << <numBlocks, blockSize>> >(N, dev_isamples, dev_osamples); 
