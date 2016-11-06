@@ -28,9 +28,9 @@ void main() {
     float depth = texture2D(u_depth, v_uv).x;
     // These definitions are suggested for starting out, but you will probably want to change them.
     vec3 pos = gb0.xyz;     // World-space position
-    vec3 geomnor = gb1.xyz; // Normals of the geometry as defined, without normal mapping
+    vec3 geomnor = vec3(gb1.x, gb1.y, sqrt(1.0 - gb1.x * gb1.x - gb1.y * gb1.y)); // Normals of the geometry as defined, without normal mapping
     vec3 colmap = gb2.rgb;  // The color map - unlit "albedo" (surface color)
-    vec3 normap = gb3.xyz; // The raw normal map (normals relative to the surface they're on)
+    vec3 normap = vec3(gb1.z, gb1.a, sqrt(1.0 - gb1.z * gb1.z - gb1.a * gb1.a));  // The raw normal map (normals relative to the surface they're on)
     vec3 nor = applyNormalMap (geomnor, normap);     // The true normals as we want to light them - with the normal map applied to the geometry normals (applyNormalMap above)
 
     if (u_debug == 0) {

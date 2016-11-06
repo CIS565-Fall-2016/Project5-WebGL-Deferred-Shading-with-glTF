@@ -11,6 +11,7 @@
     R.lights = [];
 
     R.NUM_GBUFFERS = 4;
+    R.USE_PACKED_GBUFFERS = true;
 
     /**
      * Set up the deferred pipeline framebuffer objects and textures.
@@ -124,7 +125,7 @@
      * Loads all of the shader programs used in the pipeline.
      */
     var loadAllShaderPrograms = function() {
-        loadShaderProgram(gl, 'glsl/copy.vert.glsl', 'glsl/copy.frag.glsl',
+        loadShaderProgram(gl, 'glsl/copy.vert.glsl', (R.USE_PACKED_GBUFFERS) ? 'glsl/copy-pack.frag.glsl' : 'glsl/copy.frag.glsl',
             function(prog) {
                 // Create an object to hold info about this shader program
                 var p = { prog: prog };
@@ -193,8 +194,9 @@
     };
 
     var loadDeferredProgram = function(name, callback) {
+        var deferredFolder = (R.USE_PACKED_GBUFFERS) ? 'deferred-pack' : 'deferred';
         loadShaderProgram(gl, 'glsl/quad.vert.glsl',
-                          'glsl/deferred/' + name + '.frag.glsl',
+                          'glsl/' + deferredFolder + '/' + name + '.frag.glsl',
             function(prog) {
                 // Create an object to hold info about this shader program
                 var p = { prog: prog };
