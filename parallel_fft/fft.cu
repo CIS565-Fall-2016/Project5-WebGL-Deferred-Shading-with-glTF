@@ -50,27 +50,31 @@ void ping_pong(thrust::complex<double> ** a, thrust::complex<double> ** b)
 }
 
 
-__device__ int twiddle(unsigned int x)
+__device__ unsigned int twiddle(unsigned int x)
 {
+	//strictly reverses bits. must shift shift in calling context
 	x = (((x & 0xaaaaaaaa) >> 1) | ((x & 0x55555555) << 1));
 	x = (((x & 0xcccccccc) >> 2) | ((x & 0x33333333) << 2));
 	x = (((x & 0xf0f0f0f0) >> 4) | ((x & 0x0f0f0f0f) << 4));
 	x = (((x & 0xff00ff00) >> 8) | ((x & 0x00ff00ff) << 8));
-	return ((x >> 16) | (x << 16)) >> (32 - ilog2ceil_2(x));
+	return ((x >> 16) | (x << 16));
 }
 
 __global__ void inputScramble(int N, thrust::complex<double> * idata, thrust::complex<double> * odata)
 {
+	
 	int index = (blockIdx.x * blockDim.x) + threadIdx.x;
-
-	if (index > N)
+	
+	if (index >= N)
 		return;
 
 	//do global memory access
 	thrust::complex<double> myVal = idata[index];
 
 	//hide latency with computation
-	int out_index = twiddle(index);
+	int out_index = twiddle(index) >> (32 - ilog2ceil_2(N));
+	printf("N is %d my index is %d\n", N, index);
+	printf("iindex is %d oindex is %d val is %f\n", index, out_index, thrust::abs(myVal));
 
 	odata[out_index] = myVal;
 }
@@ -129,9 +133,16 @@ void parallel_fft (int N,
 {
 	// Radix 2 FFT operates on Powers of Two. Pad as needed.
 	//GABE pad here
+#if CHECKPOINT
+	checkpoint("initial samples\n", N, samples);
+#endif
 
 	//allocate buffers
 	fft_init(N);
+
+#if CHECKPOINT
+	thrust::complex<double> * checkpoint_buf = (thrust::complex<double> *) calloc(N,sizeof(thrust::complex<double>));
+#endif
 
 	//compute numBlocks
 	dim3 numBlocks = (N + blockSize - 1) / blockSize;
@@ -140,7 +151,8 @@ void parallel_fft (int N,
 	checkCUDAError("cudaMemcpy sample data to device failed!");
 
 #if CHECKPOINT
-	checkpoint("initial samples\n", N, samples);
+	cudaMemcpy(checkpoint_buf, dev_isamples, N*sizeof(thrust::complex<double>), cudaMemcpyDeviceToHost);
+	checkpoint("initial samples on device\n", N, checkpoint_buf);
 #endif
 
 
@@ -148,10 +160,24 @@ void parallel_fft (int N,
 	inputScramble << <numBlocks, blockSize>> >(N, dev_isamples, dev_osamples); 
 	checkCUDAError("kernel inputScramble failed!");
 
+#if CHECKPOINT
+	cudaMemcpy(checkpoint_buf, dev_osamples, N*sizeof(thrust::complex<double>), cudaMemcpyDeviceToHost);
+	checkpoint("after scramble\n", N, checkpoint_buf);
+#endif
+
 	//ping pong buffers
 	ping_pong(&dev_isamples, &dev_osamples);
 
+#if CHECKPOINT
+	cudaMemcpy(checkpoint_buf, dev_isamples, N*sizeof(thrust::complex<double>), cudaMemcpyDeviceToHost);
+	checkpoint("after scramble again, make sure ping pong works\n", N, checkpoint_buf);
+#endif
+
 	thrust::complex<double> W (cos((2.0 * M_PI) / N), sin((2.0 * M_PI) / N));
+
+#if CHECKPOINT
+	printf("W = %f\n", thrust::abs(W));
+#endif
 
 	//Butterfly
 	for (int i = 0; i < ilog2ceil(N); ++i)
@@ -166,4 +192,7 @@ void parallel_fft (int N,
 	//free buffers 
 	fft_free();
 
+#if CHECKPOINT
+	free(checkpoint_buf);
+#endif
 }
