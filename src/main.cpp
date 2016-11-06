@@ -1,5 +1,6 @@
 #include <cstdio>
 #include "testing_helpers.hpp"
+#include <thrust\complex.h>
 
 int main(int argc, char* argv[]) {
     const int SIZE = 1 << 8;

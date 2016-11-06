@@ -1,7 +1,8 @@
+#pragma once
+
 #include "common.h"
-#include <cstdio>
-#include <cstring>
-#include <cmath>
+#include <cuda.h>
+#include <cuda_runtime.h>
 #include <thrust/complex.h>
 
-void parallel_fft (int N, Complex<double> * samples, Complex<double> * transform);
+void parallel_fft (int N, thrust::complex<double> * samples, thrust::complex<double> * transform);

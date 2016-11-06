@@ -1,6 +1,6 @@
 #pragma once
 
-#include <complex.h>
+#include <thrust\complex.h>
 #include <cstdio>
 #include <cstring>
 #include <cmath>
@@ -25,14 +25,4 @@ inline int ilog2(int x) {
 
 inline int ilog2ceil(int x) {
     return ilog2(x - 1) + 1;
-}
-
-
-namespace StreamCompaction {
-namespace Common {
-    __global__ void kernMapToBoolean(int n, int *bools, const int *idata);
-
-    __global__ void kernScatter(int n, int *odata,
-            const int *idata, const int *bools, const int *indices);
-}
 }

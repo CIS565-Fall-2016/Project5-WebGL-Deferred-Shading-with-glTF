@@ -22,7 +22,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif()
 
 include_directories(.)
-add_subdirectory(stream_compaction)
+add_subdirectory(parallel_fft)
 
 cuda_add_executable(${CMAKE_PROJECT_NAME}
     "src/main.cpp"
