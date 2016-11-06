@@ -33,11 +33,21 @@
 
         R.pass_copy.render(state);
 
-        if (cfg && cfg.debugView >= 0) {
+        if (cfg && cfg.debugView >= 0)
+        {
             // Do a debug render instead of a regular render
             // Don't do any post-processing in debug mode
-            R.pass_debug.render(state);
-        } else {
+            if (cfg.debugView <= 5)
+            {
+                R.pass_debug.render(state);
+            }
+            else if (cfg.debugView == 6) // TODO: maybe use dicts instead of numbers
+            {
+                R.pass_debug.render_scissor(state);
+            }
+        }
+        else
+        {
             // * Deferred pass and postprocessing pass(es)
             // DONE: uncomment these
             R.pass_deferred.render(state);
@@ -114,6 +124,37 @@
         renderFullScreenQuad(R.prog_Debug);
     };
 
+    R.pass_debug.render_scissor = function(state)
+    {
+        // * Bind R.pass_deferred.fbo to write into for later postprocessing
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+        gl.clearColor(0.0, 0.0, 0.0, 0.0);
+        gl.clearDepth(1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+        gl.enable(gl.BLEND);
+        gl.blendEquation( gl.FUNC_ADD );
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+
+        // * Bind/setup the Blinn-Phong pass, and render using fullscreen quad
+        //bindTexturesForLightPass(R.prog_BlinnPhong_PointLight);
+
+        gl.enable(gl.SCISSOR_TEST);
+
+        for (let light of R.lights)
+        {
+            var sc = getScissorForLight(state.viewMat, state.projMat, light);
+            if (!sc){continue;}
+            gl.scissor(sc[0], sc[1], sc[2], sc[3]);
+
+            renderFullScreenQuad(R.progRed);
+        }
+
+        gl.disable(gl.SCISSOR_TEST);
+        gl.disable(gl.BLEND);
+    }
+
     /**
      * 'deferred' pass: Add lighting results for each individual light
      */
@@ -162,6 +203,20 @@
             gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_lightPos, light.pos);
             gl.uniform1f(R.prog_BlinnPhong_PointLight.u_lightRad, light.rad);
             renderFullScreenQuad(R.prog_BlinnPhong_PointLight);
+        }
+
+        if (cfg.debugScissor)
+        {
+            gl.blendEquation( gl.FUNC_ADD );
+            gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+            for (let light of R.lights)
+            {
+                var sc = getScissorForLight(state.viewMat, state.projMat, light);
+                if (!sc){continue;}
+                gl.scissor(sc[0], sc[1], sc[2], sc[3]);
+
+                renderFullScreenQuad(R.progRed);
+            }
         }
 
         gl.disable(gl.SCISSOR_TEST);

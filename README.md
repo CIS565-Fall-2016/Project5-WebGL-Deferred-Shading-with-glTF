@@ -24,6 +24,7 @@ FIXME: glTF files returns 404 on GitHub Pages
 * __Bloom__ post-processing effect
   * Using three steps: first extract bright areas with a threshold; then do a two-pass Gaussian blur (vertical then horizontal); finally combine the blurred image to the original output.
 * __Scissor test optimization__: when accumulating shading from each point light source, only render in a rectangle around the light.
+  * Use `debugScissor` option to toggle scissor visual, or select `6 Light scissors` to show scissor only.
 
 *DO NOT* leave the README to the last minute! It is a crucial part of the
 project, and we will not be able to grade you without a good README.

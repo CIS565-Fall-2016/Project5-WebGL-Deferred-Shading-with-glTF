@@ -22,7 +22,8 @@ var cfg;
             '2 Geometry normal': 2,
             '3 Color map':       3,
             '4 Normal map':      4,
-            '5 Surface normal':  5
+            '5 Surface normal':  5,
+            '6 Light scissors':  6,
         });
         gui.add(cfg, 'debugScissor');
 
