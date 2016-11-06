@@ -98,3 +98,51 @@ __global__ void doButterfly(int N, int stage, thrust::complex<double> W,
 
 	odata[index] = point;
 }
+
+/*
+parallel FFT implementation
+
+inputs:
+int N              - number of samples
+float * samples    - pointer to array of sammples (of size N)
+float * transform  - pointer to array where transform should be stored. 
+                     It is safe for this to be the same as samples (i.e. in place)
+
+*/
+
+void parallel_fft (int N, 
+	thrust::complex<double> * samples, 
+	thrust::complex<double> * transform)
+{
+	//allocate buffers
+	fft_init();
+
+	//compute numBlocks
+	dim3 numBlocks = (N + blockSize - 1) / blockSize;
+
+	cudaMemcpy(dev_isamples, samples, sizeof(thrust::complex<double>) * N, cudaMemcpyHostToDevice);
+	checkCUDAError("cudaMemcpy sample data to device failed!");
+
+	//scrable inputs to reverse-binary order
+	inputScramble << <numBlocks, blockSize>> >(N, dev_isamples, dev_osamples); 
+	checkCUDAError("kernel inputScramble failed!");
+
+	//ping pong buffers
+	ping_pong(&dev_isamples, &dev_osamples);
+
+	thrust::complex<double> W (thrust::cos(TWOPI / N), thrust::sin(TWOPI / N));
+
+	//Butterfly
+	for (int i = 0; i < ilog2ceil(N); ++i)
+	{
+		doButterfly << <numBlocks, blockSize>> >(N, i, W, dev_isamples, dev_osamples);
+		ping_pong(&dev_isamples, &dev_osamples);
+	}
+
+	//copy result to output
+	cudaMemcpy(transform, dev_isamples, N * sizeof(thrust::complex), cudaMemcpyDeviceToHost);
+
+	//free buffers 
+	fft_free();
+
+}
