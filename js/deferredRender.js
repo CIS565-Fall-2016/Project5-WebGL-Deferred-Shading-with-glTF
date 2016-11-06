@@ -140,22 +140,35 @@
         // TODO: add a loop here, over the values in R.lights, which sets the
         //   uniforms R.prog_BlinnPhong_PointLight.u_lightPos/Col/Rad etc.,
         //   then does renderFullScreenQuad(R.prog_BlinnPhong_PointLight).
-        for (var i = 0; i < R.lights.length; i++) {
-            gl.uniform1i(R.prog_BlinnPhong_PointLight.prog.u_lightPos, cfg.debugView);
-
-            // * Render a fullscreen quad to perform shading on
-            // TODO: uncomment
-            renderFullScreenQuad(R.prog_BlinnPhong_PointLight);
+        if (cfg.debugScissor) {
+            gl.enable(gl.SCISSOR_TEST);            
         }
+        for (var i = 0; i < R.lights.length; i++) {
+            gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_lightPos, R.lights[i].pos);
+            gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_lightCol, R.lights[i].col);
+            gl.uniform1f(R.prog_BlinnPhong_PointLight.u_lightRad, R.lights[i].rad);
 
-        // TODO: In the lighting loop, use the scissor test optimization
-        // Enable gl.SCISSOR_TEST, render all lights, then disable it.
-        //
-        // getScissorForLight returns null if the scissor is off the screen.
-        // Otherwise, it returns an array [xmin, ymin, width, height].
-        //
-        //   var sc = getScissorForLight(state.viewMat, state.projMat, light);
+            // TODO: In the lighting loop, use the scissor test optimization
+            // Enable gl.SCISSOR_TEST, render all lights, then disable it.
+            //
+            // getScissorForLight returns null if the scissor is off the screen.
+            // Otherwise, it returns an array [xmin, ymin, width, height].
+            //
+            var sc = getScissorForLight(state.viewMat, state.projMat, R.lights[i]);
+            if (sc !== null) {
 
+                if (cfg.debugScissor) {
+                   gl.scissor(sc[0], sc[1], sc[2], sc[3]);
+                }
+                // * Render a fullscreen quad to perform shading on
+                // TODO: uncomment
+            
+            }
+            renderFullScreenQuad(R.prog_BlinnPhong_PointLight);    
+        }
+        if (cfg.debugScissor) {
+            gl.disable(gl.SCISSOR_TEST);
+        }
         // Disable blending so that it doesn't affect other code
         gl.disable(gl.BLEND);
     };

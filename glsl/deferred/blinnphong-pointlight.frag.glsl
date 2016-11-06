@@ -22,27 +22,22 @@ vec3 applyNormalMap(vec3 geomnor, vec3 normap) {
 
 // Blinn-Phong adapted from http://sunandblackcat.com/tipFullView.php?l=eng&topicid=30&topic=Phong-Lighting
 
-vec3 ambientLighting() {
-    return vec3(0.1, 0.1, 0.1);
-}
-
-vec3 diffuseLighting(vec3 nor, vec3 col) {
-    float diffuseTerm = clamp(dot(nor, u_lightPos), 0.0, 1.0);
-    return col * diffuseTerm;
+vec3 diffuseLighting(vec3 nor, vec3 col, vec3 lightDir) {
+    float diffuseTerm = clamp(dot(nor, lightDir), 0.0, 1.0);
+    return u_lightCol * col * diffuseTerm;    
 }
 
 
-vec3 specularLighting(vec3 pos, vec3 nor) {
+vec3 specularLighting(vec3 col, vec3 pos, vec3 nor, vec3 lightDir) {
     float specularTerm = 0.0;
 
     // Compute specular term if light facing the surface
-    vec3 lightDir = u_lightPos - pos;
     if (dot(nor, lightDir) > 0.0) {
 
         vec3 viewDir = normalize(-pos);
         // Half vector
         vec3 halfVec = normalize(lightDir + viewDir);
-        specularTerm = pow(dot(nor, halfVec), 2.0);
+        specularTerm = pow(dot(nor, halfVec), 10.0);
     }
 
     return vec3(1,1,1) * specularTerm;
@@ -60,7 +55,7 @@ void main() {
     // If nothing was rendered to this pixel, set alpha to 0 so that the
     // postprocessing step can render the sky color.
     if (depth == 1.0) {
-        gl_FragColor = vec4(0, 0, 0, 0);
+        gl_FragColor = vec4(1, 0, 0, 0);
         return;
     }
 
@@ -69,6 +64,10 @@ void main() {
     vec3 colmap = gb2.rgb;  // The color map - unlit "albedo" (surface color)
     vec3 normap = gb3.xyz;  // The raw normal map (normals relative to the surface they're on)
     vec3 nor = applyNormalMap (geomnor, normap);     // The true normals as we want to light them - with the normal map applied to the geometry normals (applyNormalMap above)
+    vec3 lightDir = normalize(u_lightPos - pos);
 
-    gl_FragColor = vec4(diffuseLighting(colmap, nor) + specularLighting(pos, normap) + ambientLighting(), 1);
+    float dis = distance(u_lightPos, pos);
+    if (dis < u_lightRad) {
+        gl_FragColor = vec4(diffuseLighting(nor, colmap, lightDir) * (1.0 - dis / u_lightRad) + specularLighting(colmap, pos, nor, lightDir) * 0.0, 1.0);
+    }
 }
