@@ -147,18 +147,26 @@
         // Bind camera position
         gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_camPos, state.cameraPos.toArray());
 
+        gl.enable(gl.SCISSOR_TEST);
+
         // DONE: add a loop here, over the values in R.lights, which sets the
         //   uniforms R.prog_BlinnPhong_PointLight.u_lightPos/Col/Rad etc.,
         //   then does renderFullScreenQuad(R.prog_BlinnPhong_PointLight).
         for (let light of R.lights)
         {
+            var sc = getScissorForLight(state.viewMat, state.projMat, light);
+            if (!sc){continue;}
+            gl.scissor(sc[0], sc[1], sc[2], sc[3]);
+
             gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_lightCol, light.col);
             gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_lightPos, light.pos);
             gl.uniform1f(R.prog_BlinnPhong_PointLight.u_lightRad, light.rad);
             renderFullScreenQuad(R.prog_BlinnPhong_PointLight);
         }
 
-        // TODO: In the lighting loop, use the scissor test optimization
+        gl.disable(gl.SCISSOR_TEST);
+
+        // DONE: In the lighting loop, use the scissor test optimization
         // Enable gl.SCISSOR_TEST, render all lights, then disable it.
         //
         // getScissorForLight returns null if the scissor is off the screen.
