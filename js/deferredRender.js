@@ -44,8 +44,8 @@
         } else {
             // * Deferred pass and postprocessing pass(es)
             // TODO: uncomment these
-            // R.pass_deferred.render(state);
-            // R.pass_post1.render(state);
+            R.pass_deferred.render(state);
+            R.pass_post1.render(state);
 
             // OPTIONAL TODO: call more postprocessing passes, if any
         }
@@ -133,16 +133,16 @@
         // Here is a wonderful demo of showing how blend function works:
         // http://mrdoob.github.io/webgl-blendfunctions/blendfunc.html
         // TODO: uncomment
-        // gl.enable(gl.BLEND);
-        // gl.blendEquation( gl.FUNC_ADD );
-        // gl.blendFunc(gl.ONE,gl.ONE);
+        gl.enable(gl.BLEND);
+        gl.blendEquation( gl.FUNC_ADD );
+        gl.blendFunc(gl.ONE,gl.ONE);
 
         // * Bind/setup the ambient pass, and render using fullscreen quad
         bindTexturesForLightPass(R.prog_Ambient);
         renderFullScreenQuad(R.prog_Ambient);
 
         // * Bind/setup the Blinn-Phong pass, and render using fullscreen quad
-        bindTexturesForLightPass(R.prog_BlinnPhong_PointLight);
+        // bindTexturesForLightPass(R.prog_BlinnPhong_PointLight);
 
         // TODO: add a loop here, over the values in R.lights, which sets the
         //   uniforms R.prog_BlinnPhong_PointLight.u_lightPos/Col/Rad etc.,
@@ -192,11 +192,11 @@
         // * Bind the deferred pass's color output as a texture input
         // Set gl.TEXTURE0 as the gl.activeTexture unit
         // TODO: uncomment
-        // gl.activeTexture(gl.TEXTURE0);
+        gl.activeTexture(gl.TEXTURE0);
 
         // Bind the TEXTURE_2D, R.pass_deferred.colorTex to the active texture unit
         // TODO: uncomment
-        // gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex);
+        gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex);
 
         // Configure the R.progPost1.u_color uniform to point at texture unit 0
         gl.uniform1i(R.progPost1.u_color, 0);
