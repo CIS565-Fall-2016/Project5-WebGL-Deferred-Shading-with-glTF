@@ -32,21 +32,21 @@ void main() {
     vec3 geomnor = gb1.xyz;  // Normals of the geometry as defined, without normal mapping
     vec3 colmap = gb2.rgb;  // The color map - unlit "albedo" (surface color)
     vec3 normap = gb3.xyz;  // The raw normal map (normals relative to the surface they're on)
-    vec3 nor = applyNormalMap (geomnor, normap);     // The true normals as we want to light them - with the normal map applied to the geometry normals (applyNormalMap above)
+    vec3 nor = applyNormalMap(geomnor, normap);     // The true normals as we want to light them - with the normal map applied to the geometry normals (applyNormalMap above)
 
     // TODO: uncomment
     if (u_debug == 0) {
         gl_FragColor = vec4(vec3(depth), 1.0);
     } else if (u_debug == 1) {
-        // gl_FragColor = vec4(abs(pos) * 0.1, 1.0);
+        gl_FragColor = vec4(abs(pos) * 0.1, 1.0);
     } else if (u_debug == 2) {
-        // gl_FragColor = vec4(abs(geomnor), 1.0);
+        gl_FragColor = vec4(abs(geomnor), 1.0);
     } else if (u_debug == 3) {
-        // gl_FragColor = vec4(colmap, 1.0);
+        gl_FragColor = vec4(colmap, 1.0);
     } else if (u_debug == 4) {
-        // gl_FragColor = vec4(normap, 1.0);
+        gl_FragColor = vec4(normap, 1.0);
     } else if (u_debug == 5) {
-        // gl_FragColor = vec4(abs(nor), 1.0);
+        gl_FragColor = vec4(abs(nor), 1.0);
     } else {
         gl_FragColor = vec4(1, 0, 1, 1);
     }
