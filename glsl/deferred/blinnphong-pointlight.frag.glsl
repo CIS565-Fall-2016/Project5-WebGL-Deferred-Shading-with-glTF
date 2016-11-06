@@ -2,7 +2,7 @@
 precision highp float;
 precision highp int;
 
-#define NUM_GBUFFERS 4
+#define NUM_GBUFFERS 3
 #define NUM_CEL_CUTS 7
 #define gb(i) (texture2D(u_gbufs[i], v_uv).xyz)
 #define round(n) (floor((n) + 0.5))

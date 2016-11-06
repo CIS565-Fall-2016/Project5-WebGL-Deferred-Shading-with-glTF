@@ -116,33 +116,44 @@ window.getScissorForLight = (function() {
     // Pre-allocate for performance - avoids additional allocation
     var a = new THREE.Vector4(0, 0, 0, 0);
     var b = new THREE.Vector4(0, 0, 0, 0);
-    var minpt = new THREE.Vector2(0, 0);
-    var maxpt = new THREE.Vector2(0, 0);
+    const neg_one = new THREE.Vector2(-1, -1);
+    const pos_one = new THREE.Vector2(1, 1);
     var ret = [0, 0, 0, 0];
 
-    return function(view, proj, l) {
-        // front bottom-left corner of sphere's bounding cube
-        a.fromArray(l.pos);
-        a.w = 1;
-        a.applyMatrix4(view);
-        a.x -= l.rad;
-        a.y -= l.rad;
-        a.z += l.rad;
-        a.applyMatrix4(proj);
-        a.divideScalar(a.w);
+    const n_cube_vertices = 8;
+    var offsets = Array(n_cube_vertices);
+    var pos = new THREE.Vector4(0, 0, 0, 0);
 
+    return function(view, proj, light) {
         // front bottom-left corner of sphere's bounding cube
-        b.fromArray(l.pos);
-        b.w = 1;
-        b.applyMatrix4(view);
-        b.x += l.rad;
-        b.y += l.rad;
-        b.z += l.rad;
-        b.applyMatrix4(proj);
-        b.divideScalar(b.w);
 
-        minpt.set(Math.max(-1, a.x), Math.max(-1, a.y));
-        maxpt.set(Math.min( 1, b.x), Math.min( 1, b.y));
+        // The following results in:
+        //     [ -1, -1, -1,  0 ] <== back upper left corner of cube
+        //     [ -1, -1,  1,  0 ] <== front upper left corner ...
+        //     [ -1,  1, -1,  0 ]
+        //     ...
+        var index = 0;
+        for (var i = -1; i <= 1;  i += 2) {
+            for (var j = -1; j <= 1;  j += 2) {
+                for (var k = -1; k <= 1;  k += 2) {
+                    offsets[index] = new THREE.Vector4(i, j, k, 0);
+                    index += 1;
+                }
+            }
+        }
+
+        var minpt = new THREE.Vector2(1, 1);
+        var maxpt = new THREE.Vector2(-1, -1);
+        for (var i in offsets) {
+            pos.fromArray(light.pos);
+            pos.w = 1;
+            pos.applyMatrix4(view); // project light into view space
+            pos.addScaledVector(offsets[i], light.rad); // offset from light
+            pos.applyMatrix4(proj); // project onto screen
+            pos.divideScalar(pos.w);
+            minpt.clamp(neg_one, pos); // update min point with pos
+            maxpt.clamp(pos, pos_one); // update max point with pos
+        }
 
         if (maxpt.x < -1 || 1 < minpt.x ||
             maxpt.y < -1 || 1 < minpt.y) {

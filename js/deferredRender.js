@@ -141,7 +141,8 @@
         //   uniforms R.prog_BlinnPhong_PointLight.u_lightPos/Col/Rad etc.,
         //   then does renderFullScreenQuad(R.prog_BlinnPhong_PointLight).
         gl.enable(gl.SCISSOR_TEST);
-        for (var i in R.lights) {
+        // for (var i in R.lights) {
+        for (var i in [0, 1, 2, 3, 4]) {
             var prog = R.prog_BlinnPhong_PointLight;
             var light = R.lights[i];
 
@@ -172,6 +173,7 @@
 
         // Disable blending so that it doesn't affect other code
         gl.disable(gl.BLEND);
+
     };
 
     var bindTexturesForLightPass = function(prog) {
