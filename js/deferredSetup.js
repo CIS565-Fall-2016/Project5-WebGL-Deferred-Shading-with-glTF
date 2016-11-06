@@ -189,9 +189,10 @@
         });
 
         loadPostProgram('gaussian_blur', function(p) {
-            p.u_color    = gl.getUniformLocation(p.prog, 'u_color');
-            p.u_horizontal    = gl.getUniformLocation(p.prog, 'u_horizontal');
-            p.u_weight    = gl.getUniformLocation(p.prog, 'u_weight');
+            p.u_color      = gl.getUniformLocation(p.prog, 'u_color');
+            p.u_horizontal = gl.getUniformLocation(p.prog, 'u_horizontal');
+            p.u_texWidth = gl.getUniformLocation(p.prog, 'u_texWidth');
+            p.u_texHeight = gl.getUniformLocation(p.prog, 'u_texHeight');
             // Save the object into this variable for access later
             R.progGaussianBlur = p;
         });

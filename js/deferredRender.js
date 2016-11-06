@@ -233,13 +233,16 @@
         // * Clear the framebuffer depth to 1.0
         gl.clearDepth(1.0);
         gl.clear(gl.DEPTH_BUFFER_BIT);
+        gl.enable(gl.BLEND);
+        gl.blendEquation( gl.FUNC_ADD );
+        gl.blendFunc(gl.ONE,gl.ONE);
 
         // * Bind the postprocessing shader program
         gl.useProgram(R.progGaussianBlur.prog);
 
         var horizontal = true;
         var first = true;
-        for (var i = 0; i < 1; i++) {
+        for (var i = 0; i < 10; i++) {
             // Pingpong buffer
             gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_gaussian_blur.ping_pong_buffers[horizontal]);
 
@@ -250,11 +253,13 @@
 
             // Bind the TEXTURE_2D, R.pass_deferred.colorTex to the active texture unit
             // TODO: uncomment
-            gl.bindTexture(gl.TEXTURE_2D, first ? R.pass_deferred.colorTex : R.pass_gaussian_blur.blurTex[i]);
+            gl.bindTexture(gl.TEXTURE_2D, first ? R.pass_deferred.hdrTex: R.pass_gaussian_blur.blurTex[i % 2]);
 
             // Configure the R.progPost1.u_color uniform to point at texture unit 0
             gl.uniform1i(R.progGaussianBlur.u_color, 0);
             gl.uniform1i(R.progGaussianBlur.u_horizontal, horizontal);
+            gl.uniform1i(R.progGaussianBlur.u_texWidth, state.width);
+            gl.uniform1i(R.progGaussianBlur.u_texHeight, state.height);
 
             // * Render a fullscreen quad to perform shading on
             renderFullScreenQuad(R.progGaussianBlur);
@@ -264,6 +269,9 @@
                 first = false;
             }
         }
+
+        // Disable blending so that it doesn't affect other code
+        gl.disable(gl.BLEND);
     }
 
     var renderFullScreenQuad = (function() {
