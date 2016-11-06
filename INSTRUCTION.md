@@ -303,7 +303,7 @@ UI is accessible anywhere as `cfg.enableEffect0`, etc.
 
 **Pass 3:** Performs post-processing.
 * `quad.vert.glsl`, `post/one.frag.glsl`
-* Takes `pass_BlinnPhong_PointLight.colorTex` as a texture input `u_color`.
+* Takes `pass_deferred.colorTex` as a texture input `u_color`.
 * Renders directly to the screen if there are no additional passes.
 
 More passes may be added for additional effects (e.g. combining bloom with
