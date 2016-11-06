@@ -13,7 +13,7 @@ WebGL Deferred Shading
 
 ### Demo Video/GIF
 
-[![](img/dummy.jpg)](TODO)
+![](img/blinn_phong.gif)
 
 ### Features
 
