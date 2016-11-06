@@ -73,9 +73,9 @@ __global__ void inputScramble(int N, thrust::complex<double> * idata, thrust::co
 
 	//hide latency with computation
 	int out_index = twiddle(index) >> (32 - ilog2ceil_2(N));
-	printf("N is %d my index is %d\n", N, index);
-	printf("iindex is %d oindex is %d val is %f\n", index, out_index, thrust::abs(myVal));
-
+#if CHECKPOINT
+	printf("iindex is %d oindex is %d\n", index, out_index, thrust::abs(myVal));
+#endif
 	odata[out_index] = myVal;
 }
 
@@ -84,7 +84,7 @@ __global__ void doButterfly(int N, int stage, thrust::complex<double> W,
 {
 	int index = (blockIdx.x * blockDim.x) + threadIdx.x;
 
-	if (index > N)
+	if (index >= N)
 		return;
 
 	thrust::complex<double> point = idata[index];
@@ -98,20 +98,26 @@ __global__ void doButterfly(int N, int stage, thrust::complex<double> W,
 	// Relative index in this fourier transform
 	int relativeIndex = index % dft_points;
 
-	//GABE: What about multiiplicative factors??
+	thrust::complex<double> point2;
+
 	if (relativeIndex < half_points)
 	{
 		//subtract index
-		thrust::complex<double> point2 = idata[index + half_points];
+		point2 = idata[index + half_points];
 		point = point + point2;
 	}
 	else
 	{
 		//subtract W^exp * index
-		thrust::complex<double> point2 = idata[index - half_points];
+		point2 = idata[index - half_points];
 		thrust::complex<double> exponent = (relativeIndex % half_points) * (ilog2ceil_2(N) - stage);
 		point = point2 - thrust::pow(W, exponent) * point;
 	}
+
+#if CHECKPOINT
+	printf("i am %d, combining with %d\n", index, relativeIndex < half_points ? index + half_points : index - half_points);
+	printf("half_points is %d, relativeIndex is %d\n", half_points, relativeIndex);
+#endif
 
 	odata[index] = point;
 }
@@ -168,21 +174,23 @@ void parallel_fft (int N,
 	//ping pong buffers
 	ping_pong(&dev_isamples, &dev_osamples);
 
-#if CHECKPOINT
-	cudaMemcpy(checkpoint_buf, dev_isamples, N*sizeof(thrust::complex<double>), cudaMemcpyDeviceToHost);
-	checkpoint("after scramble again, make sure ping pong works\n", N, checkpoint_buf);
-#endif
-
+	// create the W vector
 	thrust::complex<double> W (cos((2.0 * M_PI) / N), sin((2.0 * M_PI) / N));
 
 #if CHECKPOINT
-	printf("W = %f\n", thrust::abs(W));
+	printf("W = %f + i%f\n", W.real(), W.imag());
 #endif
 
 	//Butterfly
 	for (int i = 0; i < ilog2ceil(N); ++i)
 	{
 		doButterfly << <numBlocks, blockSize>> >(N, i, W, dev_isamples, dev_osamples);
+		
+#if CHECKPOINT
+		cudaMemcpy(checkpoint_buf, dev_osamples, N*sizeof(thrust::complex<double>), cudaMemcpyDeviceToHost);
+		checkpoint("after butterfly\n", N, checkpoint_buf);
+#endif
+
 		ping_pong(&dev_isamples, &dev_osamples);
 	}
 
