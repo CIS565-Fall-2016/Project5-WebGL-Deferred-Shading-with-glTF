@@ -6,6 +6,7 @@
     R.pass_debug = {};
     R.pass_deferred = {};
     R.pass_post1 = {};
+    R.pass_gaussian_blur = {};
     R.lights = [];
 
     R.NUM_GBUFFERS = 4;
@@ -18,14 +19,15 @@
         loadAllShaderPrograms();
         R.pass_copy.setup();
         R.pass_deferred.setup();
+        R.pass_gaussian_blur.setup();
     };
 
     // TODO: Edit if you want to change the light initial positions
     R.light_min = [-14, 0, -6];
     R.light_max = [14, 18, 6];
-    R.light_dt = -0.33;
+    R.light_dt = -0.03;
     R.LIGHT_RADIUS = 4.0;
-    R.NUM_LIGHTS = 200;
+    R.NUM_LIGHTS = 20;
     ; // TODO: test with MORE lights!
     var setupLights = function() {
         Math.seedrandom(0);
@@ -86,18 +88,47 @@
     R.pass_deferred.setup = function() {
         // * Create the FBO
         R.pass_deferred.fbo = gl.createFramebuffer();
-        // * Create, bind, and store a single color target texture for the FBO
+        // * Create, bind, and store a single color target texture and a HDR texture for the FBO
         R.pass_deferred.colorTex = createAndBindColorTargetTexture(
             R.pass_deferred.fbo, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+        R.pass_deferred.hdrTex = createAndBindColorTargetTexture(
+            R.pass_deferred.fbo, gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL);
 
         // * Check for framebuffer errors
         abortIfFramebufferIncomplete(R.pass_deferred.fbo);
         // * Tell the WEBGL_draw_buffers extension which FBO attachments are
         //   being used. (This extension allows for multiple render targets.)
-        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+        gl_draw_buffers.drawBuffersWEBGL([
+            gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL,  
+            gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL]
+            );
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     };
+
+
+    /**
+     * Create/configure framebuffer for bloom
+     */
+    R.pass_gaussian_blur.setup = function() {
+        // * Create the FBO
+        R.pass_gaussian_blur.ping_pong_buffers = [];
+        R.pass_gaussian_blur.blurTex = [];
+
+        for (var i = 0; i < 2; i++) {
+            R.pass_gaussian_blur.ping_pong_buffers.push(gl.createFramebuffer());
+            // * Create, bind, and store a single color target texture for the FBO
+            R.pass_gaussian_blur.blurTex.push(createAndBindColorTargetTexture(
+                R.pass_gaussian_blur.ping_pong_buffers[i], gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL));
+
+            // * Check for framebuffer errors
+            abortIfFramebufferIncomplete(R.pass_gaussian_blur.ping_pong_buffers[i]);
+            // * Tell the WEBGL_draw_buffers extension which FBO attachments are
+            //   being used. (This extension allows for multiple render targets.)
+            gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+        }
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    }
 
     /**
      * Loads all of the shader programs used in the pipeline.
@@ -155,6 +186,14 @@
             p.u_color    = gl.getUniformLocation(p.prog, 'u_color');
             // Save the object into this variable for access later
             R.progPost1 = p;
+        });
+
+        loadPostProgram('gaussian_blur', function(p) {
+            p.u_color    = gl.getUniformLocation(p.prog, 'u_color');
+            p.u_horizontal    = gl.getUniformLocation(p.prog, 'u_horizontal');
+            p.u_weight    = gl.getUniformLocation(p.prog, 'u_weight');
+            // Save the object into this variable for access later
+            R.progGaussianBlur = p;
         });
 
         // TODO: If you add more passes, load and set up their shader programs.

@@ -10,7 +10,8 @@
             !R.prog_Ambient ||
             !R.prog_BlinnPhong_PointLight ||
             !R.prog_Debug ||
-            !R.progPost1)) {
+            !R.progPost1 ||
+            !R.progGaussianBlur)) {
             console.log('waiting for programs to load...');
             return;
         }
@@ -41,6 +42,9 @@
             R.pass_post1.render(state);
 
             // OPTIONAL TODO: call more postprocessing passes, if any
+            if (cfg.enableBloomEffect) {
+                R.pass_gaussian_blur.render(state);
+            }
         }
     };
 
@@ -217,6 +221,50 @@
         // * Render a fullscreen quad to perform shading on
         renderFullScreenQuad(R.progPost1);
     };
+
+
+    /**
+     * 'pass_gaussian_blur' pass: Perform bloom pass of post-processing
+     */
+    R.pass_gaussian_blur.render = function(state) {
+        // * Unbind any existing framebuffer (if there are no more passes)
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+        // * Clear the framebuffer depth to 1.0
+        gl.clearDepth(1.0);
+        gl.clear(gl.DEPTH_BUFFER_BIT);
+
+        // * Bind the postprocessing shader program
+        gl.useProgram(R.progGaussianBlur.prog);
+
+        var horizontal = true;
+        var first = true;
+        for (var i = 0; i < 1; i++) {
+            // Pingpong buffer
+            gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_gaussian_blur.ping_pong_buffers[horizontal]);
+
+            // * Bind the deferred pass's color output as a texture input
+            // Set gl.TEXTURE0 as the gl.activeTexture unit
+            // TODO: uncomment
+            gl.activeTexture(gl.TEXTURE0);
+
+            // Bind the TEXTURE_2D, R.pass_deferred.colorTex to the active texture unit
+            // TODO: uncomment
+            gl.bindTexture(gl.TEXTURE_2D, first ? R.pass_deferred.colorTex : R.pass_gaussian_blur.blurTex[i]);
+
+            // Configure the R.progPost1.u_color uniform to point at texture unit 0
+            gl.uniform1i(R.progGaussianBlur.u_color, 0);
+            gl.uniform1i(R.progGaussianBlur.u_horizontal, horizontal);
+
+            // * Render a fullscreen quad to perform shading on
+            renderFullScreenQuad(R.progGaussianBlur);
+
+            horizontal = !horizontal;
+            if (first) {
+                first = false;
+            }
+        }
+    }
 
     var renderFullScreenQuad = (function() {
         // The variables in this function are private to the implementation of

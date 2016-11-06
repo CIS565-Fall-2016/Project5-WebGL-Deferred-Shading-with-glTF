@@ -26,4 +26,5 @@ to implementation work. Complete the implementation early to leave time!
 
 ### Credit
 
-[Blinn-Phong](http://sunandblackcat.com/tipFullView.php?l=eng&topicid=30&topic=Phong-Lighting)
+- [Blinn-Phong](http://sunandblackcat.com/tipFullView.php?l=eng&topicid=30&topic=Phong-Lighting)
+- [Bloom](http://learnopengl.com/#!Advanced-Lighting/Bloom)

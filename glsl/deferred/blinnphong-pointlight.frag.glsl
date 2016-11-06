@@ -1,4 +1,6 @@
 #version 100
+#extension GL_EXT_draw_buffers: enable
+
 precision highp float;
 precision highp int;
 
@@ -55,7 +57,7 @@ void main() {
     // If nothing was rendered to this pixel, set alpha to 0 so that the
     // postprocessing step can render the sky color.
     if (depth == 1.0) {
-        gl_FragColor = vec4(1, 0, 0, 0);
+        gl_FragData[0] = vec4(1, 0, 0, 0);
         return;
     }
 
@@ -68,6 +70,16 @@ void main() {
 
     float dis = distance(u_lightPos, pos);
     if (dis < u_lightRad) {
-        gl_FragColor = vec4(diffuseLighting(nor, colmap, lightDir) * (1.0 - dis / u_lightRad) + specularLighting(colmap, pos, nor, lightDir) * 0.0, 1.0);
+
+        // Write out to colorTex
+        float attenuation = max(0.0, u_lightRad - dis);
+        vec4 color = vec4(diffuseLighting(nor, colmap, lightDir) * attenuation + specularLighting(colmap, pos, nor, lightDir) * 0.0, 1.0);
+        gl_FragData[0] = color;
+
+        // Write out to hdrTex
+        float brightness = dot(color.rgb, vec3(0.2126, 0.7152, 0.0722));
+        if (brightness > 1.0) {
+            gl_FragData[1] = vec4(color.rgb, 1.0);
+        }
     }
 }
