@@ -38,8 +38,11 @@
             // * Deferred pass and postprocessing pass(es)
             R.pass_deferred.render(state);
             R.pass_post1.render(state);
-
-            // OPTIONAL TODO: call more postprocessing passes, if any
+            if (cfg.enableBlur == 1) {
+              R.pass_postBlur2d.render(state);
+            } else if (cfg.enableBlur == 2) {
+              R.pass_postBlur1d.render(state);
+            }
         }
     };
 
@@ -168,7 +171,11 @@
      */
     R.pass_post1.render = function(state) {
         // * Unbind any existing framebuffer (if there are no more passes)
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        if (cfg.enableBlur == 0) {
+          gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        } else {
+          gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_post1.fbo);
+        }
 
         // * Clear the framebuffer depth to 1.0
         gl.clearDepth(1.0);
@@ -190,6 +197,44 @@
         // * Render a fullscreen quad to perform shading on
         renderFullScreenQuad(R.progPost1);
     };
+    /**
+     * 'postBlur' pass: Perform gaussian blur pass of post-processing
+     */
+    R.pass_postBlur2d.render = function(state) {
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      gl.useProgram(R.progBlur2d.prog);
+
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, R.pass_post1.colorTex);
+
+      gl.uniform1i(R.progBlur2d.u_color, 0);
+      gl.uniform2fv(R.progBlur2d.u_pixWidthHeight, [1.0 / width, 1.0 / height]);
+
+      renderFullScreenQuad(R.progBlur2d);
+    }
+
+    R.pass_postBlur1d.render = function(state) {
+      gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_postBlur1d.fbo);
+      gl.useProgram(R.progBlur1dconv.prog);
+
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, R.pass_post1.colorTex);
+
+      gl.uniform1i(R.progBlur1dconv.u_color, 0);
+      gl.uniform2fv(R.progBlur1dconv.u_pixWidthHeight, [1.0 / width, 1.0 / height]);
+      gl.uniform2fv(R.progBlur1dconv.u_direction, [1.0, 0.0]);
+
+      renderFullScreenQuad(R.progBlur1dconv);
+
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, R.pass_postBlur1d.colorTex);
+
+      gl.uniform2fv(R.progBlur1dconv.u_direction, [0.0, 1.0]);
+
+      renderFullScreenQuad(R.progBlur1dconv);
+    }
 
     var renderFullScreenQuad = (function() {
         // The variables in this function are private to the implementation of

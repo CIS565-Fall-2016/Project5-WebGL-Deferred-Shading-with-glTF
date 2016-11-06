@@ -7,7 +7,7 @@ var cfg;
         // TODO: Define config fields and defaults here
         this.debugView = -1;
         this.debugScissor = false;
-        this.enableEffect0 = false;
+        this.enableBlur = 0;
     };
 
     var init = function() {
@@ -26,10 +26,14 @@ var cfg;
         });
         gui.add(cfg, 'debugScissor');
 
-        var eff0 = gui.addFolder('EFFECT NAME HERE');
-        eff0.open();
-        eff0.add(cfg, 'enableEffect0');
-        // TODO: add more effects toggles and parameters here
+        var gaussBlur = gui.addFolder('Gaussian Blur');
+        console.log(gui);
+        gaussBlur.open();
+        gaussBlur.add(cfg, 'enableBlur', {
+          'None': 0,
+          '2d kernel Gaussian blur': 1,
+          '1d kernel Gaussian blur (x2, convolved)': 2,
+        });
     };
 
     window.handle_load.push(init);

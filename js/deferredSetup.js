@@ -6,6 +6,8 @@
     R.pass_debug = {};
     R.pass_deferred = {};
     R.pass_post1 = {};
+    R.pass_postBlur2d = {};
+    R.pass_postBlur1d = {};
     R.lights = [];
 
     R.NUM_GBUFFERS = 4;
@@ -18,6 +20,8 @@
         loadAllShaderPrograms();
         R.pass_copy.setup();
         R.pass_deferred.setup();
+        R.pass_post1.setup();
+        R.pass_postBlur1d.setup();
     };
 
     // TODO: Edit if you want to change the light initial positions
@@ -98,6 +102,24 @@
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     };
 
+    R.pass_post1.setup = function() {
+      R.pass_post1.fbo = gl.createFramebuffer();
+      R.pass_post1.colorTex = createAndBindColorTargetTexture(
+        R.pass_post1.fbo, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+      abortIfFramebufferIncomplete(R.pass_post1.fbo);
+      gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    }
+
+    R.pass_postBlur1d.setup = function() {
+        R.pass_postBlur1d.fbo = gl.createFramebuffer();
+        R.pass_postBlur1d.colorTex = createAndBindColorTargetTexture(
+          R.pass_postBlur1d.fbo, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+        abortIfFramebufferIncomplete(R.pass_postBlur1d.fbo);
+        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    }
+
     /**
      * Loads all of the shader programs used in the pipeline.
      */
@@ -156,7 +178,18 @@
             R.progPost1 = p;
         });
 
-        // TODO: If you add more passes, load and set up their shader programs.
+        loadPostProgram('gaussian2d', function(p) {
+          p.u_color = gl.getUniformLocation(p.prog, 'u_color');
+          p.u_pixWidthHeight = gl.getUniformLocation(p.prog, 'u_pixWidthHeight');
+          R.progBlur2d = p;
+        });
+
+        loadPostProgram('gaussian1dconv', function(p) {
+          p.u_color = gl.getUniformLocation(p.prog, 'u_color');
+          p.u_pixWidthHeight = gl.getUniformLocation(p.prog, 'u_pixWidthHeight');
+          p.u_direction = gl.getUniformLocation(p.prog, 'u_direction');
+          R.progBlur1dconv = p;
+        });
     };
 
     var loadDeferredProgram = function(name, callback) {
