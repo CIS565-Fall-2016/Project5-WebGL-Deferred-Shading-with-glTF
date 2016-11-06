@@ -7,9 +7,9 @@ WebGL Deferred Shading
 * Tested on: **54.0.2840.87 m (64-bit)** on
   Windows 10, i7-6700HQ @ 2.6GHz 8GB, GTX 960 (Personal Laptop)
 
-<!-- ### Live Online
+[//]: # "### Live Online"
 
-[![](img/dummy.jpg)](http://itoupeter.github.io/Project5-WebGL-Deferred-Shading-with-glTF/) -->
+[//]: # "[![](img/dummy.jpg)](http://itoupeter.github.io/Project5-WebGL-Deferred-Shading-with-glTF/)"
 
 ### Demo Video/GIF
 
@@ -53,8 +53,11 @@ _*Note_ Ambient lighting is present due to infinite light bouncing in the space,
 
 #### Number of Lights
 
-1 | 2 | 4 | 8 | 16
-:---:|:---:|:---:|:---:|:---:
+Num | 1 | 4 | 16 | 64 | 256 | 1024
+:---:|:---:|:---:|:---:|:---:|:---:|:---:
+ms/frame | 20 | 25 | 50 | 190 | 640 | -
+FPS | 55 | 40 | 20 | 6 | 2 | -
+_Note*_ Data above are measured __without scissor test__.
 
 #### Scissor Test
 
