@@ -150,6 +150,15 @@
         // TODO: add a loop here, over the values in R.lights, which sets the
         //   uniforms R.prog_BlinnPhong_PointLight.u_lightPos/Col/Rad etc.,
         //   then does renderFullScreenQuad(R.prog_BlinnPhong_PointLight).
+        for (var light of R.lights) {
+          	var l = light;
+          	var eye = [state.cameraPos.x,state.cameraPos.y,state.cameraPos.z];
+            gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_camPos,eye);
+          	gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_lightPos, l.pos);
+            gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_lightCol, l.col);
+          	gl.uniform1f(R.prog_BlinnPhong_PointLight.u_lightRad,l.rad);
+            renderFullScreenQuad(R.prog_BlinnPhong_PointLight);
+        }
 
         // TODO: In the lighting loop, use the scissor test optimization
         // Enable gl.SCISSOR_TEST, render all lights, then disable it.
