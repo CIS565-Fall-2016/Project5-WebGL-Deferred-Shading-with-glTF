@@ -177,7 +177,6 @@ var width, height;
                     case 3553: // gl.TEXTURE_2D
                     gl.texImage2D(target, 0, internalFormat, format, type, image);
                     break;
-                    // TODO for TA
                 }
 
                 // !! Sampler
@@ -191,8 +190,8 @@ var width, height;
                 gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, magFilter);
                 gl.texParameteri(target, gl.TEXTURE_WRAP_S, wrapS);
                 gl.texParameteri(target, gl.TEXTURE_WRAP_T, wrapT);
-                if (minFilter == gl.NEAREST_MIPMAP_NEAREST || 
-                    minFilter == gl.NEAREST_MIPMAP_LINEAR || 
+                if (minFilter == gl.NEAREST_MIPMAP_NEAREST ||
+                    minFilter == gl.NEAREST_MIPMAP_LINEAR ||
                     minFilter == gl.LINEAR_MIPMAP_NEAREST ||
                     minFilter == gl.LINEAR_MIPMAP_LINEAR ) {
                         gl.generateMipmap(target);
@@ -242,7 +241,7 @@ var width, height;
                     } else if (primitive.technique.parameters['texcoord0']) {
                         uvInfo = primitive.attributes[primitive.technique.parameters['texcoord0'].semantic];
                     }
-                    
+
 
                     models.push({
                         gltf: primitive,
@@ -255,7 +254,7 @@ var width, height;
                         uvInfo: {size: uvInfo.size, type: uvInfo.type, stride: uvInfo.stride, offset: uvInfo.offset},
 
                         // specific textures temp test
-                        colmap: webGLTextures[colorTextureName].texture, 
+                        colmap: webGLTextures[colorTextureName].texture,
                         normap: webGLTextures[normalTextureName] ? webGLTextures[normalTextureName].texture : null
                     });
 
@@ -264,7 +263,7 @@ var width, height;
             }
 
 
-            
+
         });
 
 
