@@ -35,7 +35,7 @@ Color Map | Normal Map | Surface Normal
 
 Ambient Lighting | Blinn-Phong Lighting
 --- | ---
-![](img/ambient.png) | ![](img/dummy.jpg)
+![](img/ambient.png) | ![](img/blinn_phong.gif)
 
 ### Credits
 
