@@ -149,7 +149,7 @@
 
             var sc = getScissorForLight(state.viewMat, state.projMat, light);
             if (sc) {
-                gl.scissor(sc[0], sc[1], sc[2], sc[3]);
+                // gl.scissor(sc[0], sc[1], sc[2], sc[3]);
             }
 
             gl.uniform1i(prog.u_toon, cfg.toon|0);
@@ -162,6 +162,7 @@
                 renderFullScreenQuad(R.progRed);
             }
             renderFullScreenQuad(R.prog_BlinnPhong_PointLight);
+            break;
         }
         gl.disable(gl.SCISSOR_TEST);
 
