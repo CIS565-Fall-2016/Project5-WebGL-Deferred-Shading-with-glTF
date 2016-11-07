@@ -8,6 +8,7 @@
     R.pass_post1 = {};
     R.pass_edge = {};
     R.pass_toon = {};
+    R.pass_scissor = {};
     R.lights = [];
 
     R.NUM_GBUFFERS = 4;
@@ -23,13 +24,14 @@
         R.pass_post1.setup();
         R.pass_edge.setup();
         R.pass_toon.setup();
+        R.pass_scissor.setup();
     };
 
     // TODO: Edit if you want to change the light initial positions
     R.light_min = [-14, 0, -6];
     R.light_max = [14, 18, 6];
     R.light_dt = -0.03;
-    R.LIGHT_RADIUS = 8.0;
+    R.LIGHT_RADIUS = 4.0;
     R.NUM_LIGHTS = 20; // TODO: test with MORE lights!
     var setupLights = function() {
         Math.seedrandom(0);
@@ -60,12 +62,8 @@
      * Create/configure framebuffer between "copy" and "deferred" stages
      */
     R.pass_copy.setup = function() {
-        // * Create the FBO
         R.pass_copy.fbo = gl.createFramebuffer();
-        // * Create, bind, and store a depth target texture for the FBO
         R.pass_copy.depthTex = createAndBindDepthTargetTexture(R.pass_copy.fbo);
-
-        // * Create, bind, and store "color" target textures for the FBO
         R.pass_copy.gbufs = [];
         var attachments = [];
         for (var i = 0; i < R.NUM_GBUFFERS; i++) {
@@ -74,32 +72,27 @@
             R.pass_copy.gbufs.push(tex);
             attachments.push(attachment);
         }
-
-        // * Check for framebuffer errors
         abortIfFramebufferIncomplete(R.pass_copy.fbo);
-        // * Tell the WEBGL_draw_buffers extension which FBO attachments are
-        //   being used. (This extension allows for multiple render targets.)
         gl_draw_buffers.drawBuffersWEBGL(attachments);
-
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     };
 
-    /**
-     * Create/configure framebuffer between "deferred" and "post1" stages
-     */
     R.pass_deferred.setup = function() {
         // * Create the FBO
         R.pass_deferred.fbo = gl.createFramebuffer();
-        // * Create, bind, and store a single color target texture for the FBO
         R.pass_deferred.colorTex = createAndBindColorTargetTexture(
             R.pass_deferred.fbo, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
-
-        // * Check for framebuffer errors
         abortIfFramebufferIncomplete(R.pass_deferred.fbo);
-        // * Tell the WEBGL_draw_buffers extension which FBO attachments are
-        //   being used. (This extension allows for multiple render targets.)
         gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
-
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    };
+    R.pass_scissor.setup = function() {
+        // * Create the FBO
+        R.pass_scissor.fbo = gl.createFramebuffer();
+        R.pass_scissor.colorTex = createAndBindColorTargetTexture(
+            R.pass_scissor.fbo, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+        abortIfFramebufferIncomplete(R.pass_scissor.fbo);
+        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     };
 
@@ -151,12 +144,6 @@
                 R.progCopy = p;
             });
 
-        loadShaderProgram(gl, 'glsl/quad.vert.glsl', 'glsl/red.frag.glsl',
-            function(prog) {
-                // Create an object to hold info about this shader program
-                R.progRed = { prog: prog };
-            });
-
         loadShaderProgram(gl, 'glsl/quad.vert.glsl', 'glsl/clear.frag.glsl',
             function(prog) {
                 // Create an object to hold info about this shader program
@@ -167,6 +154,11 @@
             // Save the object into this variable for access later
             R.prog_Ambient = p;
         });
+        loadDeferredProgram('red', function(p) {
+            p.u_bounds = gl.getUniformLocation(p.prog, 'u_bounds');
+            R.progRed = p;
+        });
+
         loadDeferredProgram('default', function(p) {
           p.u_lightPos = gl.getUniformLocation(p.prog, 'u_lightPos');
           p.u_lightCol = gl.getUniformLocation(p.prog, 'u_lightCol');

@@ -21,6 +21,9 @@
         // Move the R.lights
         if (cfg.movingLights) {
           for (var i = 0; i < R.lights.length; i++) {
+              if (R.LIGHT_RADIUS != cfg.lightRadius) {
+                  R.lights[i].rad = cfg.lightRadius;
+              };
               var mn = R.light_min[1];
               var mx = R.light_max[1];
               R.lights[i].pos[1] = (R.lights[i].pos[1] + R.light_dt - mn + mx) % mx + mn;
@@ -30,9 +33,10 @@
         R.pass_copy.render(state);
         if (cfg && cfg.debugView >= 0 && cfg.debugView < 6) {
             R.pass_debug.render(state);
-        } else if (cfg.debugView == 6) {
-            R.pass_scissor.render(state);
         } else {
+            if (cfg.debugScissor) {
+                // R.pass_scissor.render(state);
+            }
             R.pass_deferred.render(state);
             R.pass_post1.render(state);
             if (cfg.rampShading) {
@@ -75,6 +79,19 @@
         renderFullScreenQuad(R.prog_Debug);
     };
 
+    R.pass_scissor.render = function(state) {
+        gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_scissor.fbo);
+        gl.enable(gl.BLEND);
+        gl.blendEquation( gl.FUNC_ADD );
+        gl.blendFunc(gl.ONE,gl.ONE);
+
+        gl.useProgram(R.progRed.prog);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, R.lastShader.colorTex);
+        renderFullScreenQuad(R.progRed);
+        R.lastShader = R.pass_scissor;
+    }
+
     /**
      * 'deferred' pass: Add lighting results for each individual light
      */
@@ -100,27 +117,44 @@
           shadingProg = R.prog_Default;
         }
 
-        bindTexturesForLightPass(shadingProg);
 
-        if (cfg.debugScissor) {
+        bindTexturesForLightPass(shadingProg);
+        gl.uniform3fv(shadingProg.u_viewPos, [state.cameraPos.x,state.cameraPos.y,state.cameraPos.z]);
+        gl.uniform1f(shadingProg.u_bands, cfg.bands);
+        if (cfg.enableScissor) {
           gl.enable(gl.SCISSOR_TEST);
         }
         for (var i = 0; i < R.lights.length; i++) {
           var light = R.lights[i];
-          if (cfg.debugScissor) {
+          if (cfg.enableScissor) {
             var sc = getScissorForLight(state.viewMat, state.projMat, light);
             if (!sc) {
               continue;
             }
-            gl.scissor(sc[0], sc[1], sc[2], sc[3]);
+            gl.scissor(sc[0], sc[1], Math.max(sc[2], 0.0), Math.max(sc[3], 0.0));
           }
           gl.uniform3fv(shadingProg.u_lightPos, light.pos);
           gl.uniform3fv(shadingProg.u_lightCol, light.col);
           gl.uniform1f(shadingProg.u_lightRad, light.rad);
           renderFullScreenQuad(shadingProg);
         }
-        gl.uniform3fv(shadingProg.u_viewPos, [state.cameraPos.x,state.cameraPos.y,state.cameraPos.z]);
-        gl.uniform1f(shadingProg.u_bands, cfg.bands);
+
+        if (cfg.debugScissor) {
+          gl.enable(gl.SCISSOR_TEST);
+          bindTexturesForLightPass(R.progRed);
+          for (var i = 0; i < R.lights.length; i++) {
+            var light = R.lights[i];
+            if (cfg.debugScissor) {
+              var sc = getScissorForLight(state.viewMat, state.projMat, light);
+              if (!sc) {
+                continue;
+              }
+              gl.scissor(sc[0], sc[1], Math.max(sc[2], 0.0), Math.max(sc[3], 0.0));
+              renderFullScreenQuad(R.progRed);
+            }
+
+          }
+        }
 
         gl.disable(gl.SCISSOR_TEST);
         gl.disable(gl.BLEND);

@@ -7,6 +7,7 @@ var cfg;
         // TODO: Define config fields and defaults here
         this.debugView = -1;
         this.debugScissor = false;
+        this.enableScissor = false;
         this.enableBlinnPhong = false;
         this.enableRampShading = false;
         this.debugShaders = 1;
@@ -14,6 +15,7 @@ var cfg;
         this.bands = 5;
         this.edge = 0;
         this.rampShading = false;
+        this.lightRadius = 4.0;
     };
 
     var init = function() {
@@ -31,7 +33,9 @@ var cfg;
             '5 Surface normal':  5,
             '6 Scissor masks':   6,
         });
+        gui.add(cfg, 'lightRadius', 0.0, 10.0);
         gui.add(cfg, 'debugScissor');
+        gui.add(cfg, 'enableScissor');
         gui.add(cfg, 'movingLights');
         var eff0 = gui.addFolder('Shaders');
         eff0.open();
