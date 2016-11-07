@@ -3,9 +3,10 @@ WebGL Deferred Shading
 
 **University of Pennsylvania, CIS 565: GPU Programming and Architecture, Project 5**
 
-* (TODO) YOUR NAME HERE
-* Tested on: (TODO) **Google Chrome 222.2** on
-  Windows 22, i7-2222 @ 2.22GHz 22GB, GTX 222 222MB (Moore 2222 Lab)
+* Xueyin Wan
+* Platform: *FireFox 49.0.2* on
+
+  Windows 10 x64, i7-6700K @ 4.00GHz 16GB, GTX 970 4096MB (Personal Desktop)
 
 ### Live Online
 
