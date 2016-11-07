@@ -13,16 +13,16 @@ WebGL Deferred Shading
 
 ### Demo Video/GIF
 
-![](img/blinn_phong.gif)
+![](img/scissor_on.gif)
 
 ### Features
 
 * [x] Basic Pipeline
   * [x] Render to G-Buffer
   * [x] Deferred Shading
-* [ ] Scissor Test
+* [x] Scissor Test
 * [ ] Post Effect
-* [ ] Performance Analysis
+* [x] Performance Analysis
 
 ### Basic Pipeline
 
