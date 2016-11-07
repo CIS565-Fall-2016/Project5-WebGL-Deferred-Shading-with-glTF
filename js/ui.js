@@ -8,6 +8,7 @@ var cfg;
         this.debugView = -1;
         this.debugScissor = false;
         this.enableBloom = true;
+        this.bloomSize = 0.003;
     };
 
     var init = function() {
@@ -31,6 +32,13 @@ var cfg;
         eff0.open();
         eff0.add(cfg, 'enableBloom');
         // TODO: add more effects toggles and parameters here
+        eff0.add(cfg, 'bloomSize', {
+            '0.002':      0.002,
+            '0.003':      0.003,
+            '0.005':      0.005,
+            '0.01':       0.01,
+            '0.05':       0.05,
+        });
     };
 
     window.handle_load.push(init);

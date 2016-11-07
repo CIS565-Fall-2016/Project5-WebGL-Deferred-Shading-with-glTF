@@ -11,7 +11,7 @@ uniform sampler2D u_bloom;
 // Extract bright colors for bloom
 void main()
 {
-    const float exposure = 1.0;
+    const float exposure = 0.8;
     const float gamma = 1.1;
     // ref: http://learnopengl.com/#!Advanced-Lighting/Bloom
     vec3 color = texture2D(u_scene, v_uv).rgb;
