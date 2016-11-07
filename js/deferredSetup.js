@@ -124,23 +124,16 @@
 
     R.pass_hdr.setup = function() {
       var hdrFBO = gl.createFramebuffer();
-      var colorBuffers = [];
-      var attachments = [];
-      for (var i = 0; i < 2; ++i) {
-        var attachment = gl_draw_buffers['COLOR_ATTACHMENT' + i + '_WEBGL'];
-        colorBuffers.push(createAndBindColorTargetTexture(hdrFBO, attachment));
-        attachments.push(attachment);
-        // * Check for framebuffer errors
-        // * Tell the WEBGL_draw_buffers extension which FBO attachments are
-        //   being used. (This extension allows for multiple render targets.)
+      var colorBuffer = createAndBindColorTargetTexture(
+          hdrFBO, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
 
-      }
       abortIfFramebufferIncomplete(R.pass_deferred.fbo);
-      gl_draw_buffers.drawBuffersWEBGL(attachments);
+
+      gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
       R.pass_hdr.hdrFBO = hdrFBO;
-      R.pass_hdr.colorBuffers = colorBuffers;
+      R.pass_hdr.colorBuffers = colorBuffer;
     };
 
     /**

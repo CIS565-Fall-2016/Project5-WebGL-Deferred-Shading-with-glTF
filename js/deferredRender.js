@@ -208,7 +208,7 @@
 
       /*Reference: "http://learnopengl.com/#!Advanced-Lighting/Bloom" */
 
-      gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_hdr.hdrFBO);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_blur.pingpongFBOs[0]);
 
       gl.useProgram(R.prog_hdr.prog)
       gl.activeTexture(gl.TEXTURE0);
@@ -217,31 +217,33 @@
       renderFullScreenQuad(R.prog_hdr);
 
       var horizontal = true, first_iter = true;
-      var amount = 10;
+      var amount = 2;
       gl.useProgram(R.prog_blur.prog)
       gl.uniform2fv(R.prog_blur.u_tex_offset, [1.0 / width, 1.0/ height]);
 
-      gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_blur.pingpongFBOs[0]);
-      gl.uniform1i(R.prog_blur.u_horizontal, horizontal);
-      gl.activeTexture(gl.TEXTURE0);
-      gl.bindTexture(gl.TEXTURE_2D, R.pass_blur.pingpongBuffer[1]);
-      gl.uniform1i(R.prog_blur.u_color, 0);
-      renderFullScreenQuad(R.prog_blur);
+      //testing one pass gauss blur
+      // gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_blur.pingpongFBOs[1]);
+      // gl.uniform1i(R.prog_blur.u_horizontal, horizontal);
+      // gl.activeTexture(gl.TEXTURE0);
+      // gl.bindTexture(gl.TEXTURE_2D, R.pass_blur.pingpongBuffer[0]);
+      // gl.uniform1i(R.prog_blur.u_color, 0);
+      // renderFullScreenQuad(R.prog_blur);
 
-      // for(var i = 0; i < amount; ++i) {
-      //
-      //   gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_blur.pingpongFBOs[horizontal]);
-      //   gl.uniform1i(R.prog_blur.u_horizontal, horizontal);
-      //   gl.activeTexture(gl.TEXTURE0);
-      //   gl.bindTexture(gl.TEXTURE_2D, first_iter? R.pass_hdr.colorBuffers[0] : R.pass_blur.pingpongBuffer[!horizontal]);
-      //   gl.uniform1i(R.prog_blur.u_color, 0);
-      //   renderFullScreenQuad(R.prog_blur);
-      //   horizontal = !horizontal;
-      //   if (first_iter)
-      //     first_iter = false;
-      // }
+      for(var i = 0; i < amount; ++i) {
 
-      gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_blur.pingpongFBOs[1]);
+        //array of boolean doesnt seem to work. wtf! 
+        gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_blur.pingpongFBOs[(horizontal?1:0) + 1]);
+        gl.uniform1i(R.prog_blur.u_horizontal, horizontal);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, R.pass_blur.pingpongBuffer[(horizontal?1:0)]);
+        gl.uniform1i(R.prog_blur.u_color, 0);
+        renderFullScreenQuad(R.prog_blur);
+        horizontal = !horizontal;
+        if (first_iter)
+          first_iter = false;
+      }
+
+      gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_blur.pingpongFBOs[3]);
 
       gl.useProgram(R.prog_blend.prog)
 
@@ -257,7 +259,7 @@
 
       renderFullScreenQuad(R.prog_blend);
 
-      R.old_colorTex = R.pass_blur.pingpongBuffer[2];
+      R.old_colorTex = R.pass_blur.pingpongBuffer[3];
 
     };
 
