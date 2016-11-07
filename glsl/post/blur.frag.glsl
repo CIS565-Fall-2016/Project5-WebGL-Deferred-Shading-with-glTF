@@ -25,7 +25,7 @@ void main()
     vec3 result = texture2D(u_color, v_uv).rgb * weight[0]; // current fragment's contribution
     if(u_horizontal)
     {
-        for(int i = 1; i < 55; ++i)
+        for(int i = 1; i < 5; ++i)
         {
             result += texture2D(u_color, v_uv + vec2(u_tex_offset.x * float(i), 0.0)).rgb * weight[i];
             result += texture2D(u_color, v_uv - vec2(u_tex_offset.x * float(i), 0.0)).rgb * weight[i];
@@ -33,7 +33,7 @@ void main()
     }
     else
     {
-        for(int i = 1; i < 55; ++i)
+        for(int i = 1; i < 5; ++i)
         {
             result += texture2D(u_color, v_uv + vec2(0.0, u_tex_offset.y * float(i))).rgb * weight[i];
             result += texture2D(u_color, v_uv - vec2(0.0, u_tex_offset.y * float(i))).rgb * weight[i];

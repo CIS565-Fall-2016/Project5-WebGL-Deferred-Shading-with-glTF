@@ -24,7 +24,6 @@
         R.pass_copy.setup();
         R.pass_deferred.setup();
         R.pass_blur.setup();
-        R.pass_hdr.setup();
 
         // R.pass_blend.setup();
     };
@@ -120,20 +119,6 @@
       }
       R.pass_blur.pingpongFBOs   = pingpongFBOs;
       R.pass_blur.pingpongBuffer = pingpongBuffer;
-    };
-
-    R.pass_hdr.setup = function() {
-      var hdrFBO = gl.createFramebuffer();
-      var colorBuffer = createAndBindColorTargetTexture(
-          hdrFBO, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
-
-      abortIfFramebufferIncomplete(R.pass_deferred.fbo);
-
-      gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
-      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-
-      R.pass_hdr.hdrFBO = hdrFBO;
-      R.pass_hdr.colorBuffers = colorBuffer;
     };
 
     /**

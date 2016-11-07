@@ -231,7 +231,7 @@
 
       for(var i = 0; i < amount; ++i) {
 
-        //array of boolean doesnt seem to work. wtf! 
+        //array of boolean doesnt seem to work. wtf!
         gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_blur.pingpongFBOs[(horizontal?1:0) + 1]);
         gl.uniform1i(R.prog_blur.u_horizontal, horizontal);
         gl.activeTexture(gl.TEXTURE0);
