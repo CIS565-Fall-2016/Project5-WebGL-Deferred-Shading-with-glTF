@@ -50,6 +50,8 @@ void ping_pong(thrust::complex<double> ** a, thrust::complex<double> ** b)
 }
 
 
+
+
 __device__ unsigned int twiddle(unsigned int x)
 {
 	//strictly reverses bits. must shift shift in calling context
@@ -59,6 +61,9 @@ __device__ unsigned int twiddle(unsigned int x)
 	x = (((x & 0xff00ff00) >> 8) | ((x & 0x00ff00ff) << 8));
 	return ((x >> 16) | (x << 16));
 }
+
+
+
 
 __global__ void inputScramble(int N, thrust::complex<double> * idata, thrust::complex<double> * odata)
 {
@@ -79,7 +84,10 @@ __global__ void inputScramble(int N, thrust::complex<double> * idata, thrust::co
 	odata[out_index] = myVal;
 }
 
-__global__ void doButterfly(int N, int stage, thrust::complex<double> W,
+
+
+
+__global__ void doButterfly(int N, int stage, int numPoints,
 	thrust::complex<double> * idata, thrust::complex<double> * odata)
 {
 	int index = (blockIdx.x * blockDim.x) + threadIdx.x;
@@ -89,30 +97,29 @@ __global__ void doButterfly(int N, int stage, thrust::complex<double> W,
 
 	thrust::complex<double> point = idata[index];
 
-	// # points in this DFT computation
-	int dft_points = (int)powf(2, stage + 1); //logical shift instead?
-
 	// N/2
-	int half_points = (int)dft_points / 2; //also shift?
+	int half_points = numPoints / 2; //also shift?
 
 	// Relative index in this fourier transform
-	int relativeIndex = index % dft_points;
+	int relativeIndex = index % numPoints;
 
 	thrust::complex<double> point2;
 
 	if (relativeIndex < half_points)
 	{
-		//subtract index
+		// add point + N/2 to self
 		point2 = idata[index + half_points];
-		point = point + point2;
 	}
 	else
 	{
-		//subtract W^exp * index
+		// subtract self from - N/2
 		point2 = idata[index - half_points];
-		thrust::complex<double> exponent = (relativeIndex % half_points) * (ilog2ceil_2(N) - stage);
-		point = point2 - thrust::pow(W, exponent) * point;
+		point *= -1.0;
+		//thrust::complex<double> exponent = (relativeIndex % half_points) * (ilog2ceil_2(N) - stage);
+		//point = point2 - thrust::pow(W, exponent) * point;
 	}
+
+	point = point + point2;
 
 #if CHECKPOINT
 	printf("i am %d, combining with %d\n", index, relativeIndex < half_points ? index + half_points : index - half_points);
@@ -120,6 +127,34 @@ __global__ void doButterfly(int N, int stage, thrust::complex<double> W,
 #endif
 
 	odata[index] = point;
+}
+
+
+
+
+
+
+// in place multiplication of twiddle factors
+__global__ void doMultiply(int N, int numPoints, thrust::complex<double> W, thrust::complex<double> * idata)
+{
+	
+	int index = (blockIdx.x * blockDim.x) + threadIdx.x;
+	
+	if (index >= N)
+		return;
+
+	//do global memory access
+	thrust::complex<double> myVal = idata[index];
+
+	int relativeIndex = index % numPoints;
+
+	if (relativeIndex < numPoints / 2)
+		return;
+
+	thrust::complex<double> exponent = (relativeIndex - numPoints / 2, 0);
+	myVal *= thrust::pow(W, exponent);
+
+	idata[index] = myVal;
 }
 
 /*
@@ -174,9 +209,6 @@ void parallel_fft (int N,
 	//ping pong buffers
 	ping_pong(&dev_isamples, &dev_osamples);
 
-	// create the W vector
-	thrust::complex<double> W (cos((2.0 * M_PI) / N),  -1.0 * sin((2.0 * M_PI) / N));
-
 #if CHECKPOINT
 	printf("W = %f + i%f\n", W.real(), W.imag());
 #endif
@@ -184,7 +216,16 @@ void parallel_fft (int N,
 	//Butterfly
 	for (int i = 0; i < ilog2ceil(N); ++i)
 	{
-		doButterfly << <numBlocks, blockSize>> >(N, i, W, dev_isamples, dev_osamples);
+		int numPoints = pow(2, i+1);
+		// create the W vector for this N
+		thrust::complex<double> W (cos((2.0 * M_PI) / numPoints),  -1.0 * sin((2.0 * M_PI) / numPoints));
+		
+		//pre-multiply pionts by necessary twiddle factors
+		doMultiply << <numBlocks, blockSize>> >(N, numPoints, W, dev_isamples);
+		checkCUDAError("doMultiply failed!");
+
+		doButterfly << <numBlocks, blockSize>> >(N, i, numPoints, dev_isamples, dev_osamples);
+		checkCUDAError("doButterfly sample data to device failed!");
 		
 #if CHECKPOINT
 		cudaMemcpy(checkpoint_buf, dev_osamples, N*sizeof(thrust::complex<double>), cudaMemcpyDeviceToHost);
