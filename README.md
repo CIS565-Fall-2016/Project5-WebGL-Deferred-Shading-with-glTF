@@ -24,7 +24,7 @@ FIXME: glTF files returns 404 on GitHub Pages
 * __Bloom__ post-processing effect with __two-pass Gaussian blur__ using three steps:
   * First extract bright areas with a threshold
   * Then do a __two-pass Gaussian blur__ using separable convolution (vertical then horizontal)
-    * Using a uniform variable `u_scale` to control blur size (see `bloom.frag.glsl`)
+    * Use menu option to control blur size (which changes uniform variable `u_scale` passing to `bloom.frag.glsl`)
   * Finally combine the blurred image to the original output
 * __Scissor test optimization__: when accumulating shading from each point light source, only render in a rectangle around the light.
   * Use `debugScissor` option to toggle scissor visual, or select `6 Light scissors` to show scissor only.
