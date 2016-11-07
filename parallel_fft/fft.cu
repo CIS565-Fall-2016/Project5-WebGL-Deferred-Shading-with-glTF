@@ -152,7 +152,7 @@ __global__ void doMultiply(int N, int numPoints, thrust::complex<double> W, thru
 		return;
 
 #if CHECKPOINT
-	printf("my index is %d, myVal is %f + i%f, my exponent is %d\n", index, myVal.real(), myVal.imag() ,relativeIndex - numPoints / 2);
+	printf("my index is %d, myVal is %f + i%f, W is %f + i%f, my exponent is %d\n", index, W.real(), W.imag(), myVal.real(), myVal.imag() ,relativeIndex - numPoints / 2);
 #endif
 
 	thrust::complex<double> exponent = (relativeIndex - numPoints / 2, 0);
