@@ -216,10 +216,6 @@ void parallel_fft (int N,
 	//ping pong buffers
 	ping_pong(&dev_isamples, &dev_osamples);
 
-#if CHECKPOINT
-	printf("W = %f + i%f\n", W.real(), W.imag());
-#endif
-
 	//Butterfly
 	for (int i = 0; i < ilog2ceil(N); ++i)
 	{
