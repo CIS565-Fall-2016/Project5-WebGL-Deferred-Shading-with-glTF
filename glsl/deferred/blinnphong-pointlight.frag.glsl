@@ -48,7 +48,9 @@ void main() {
     //fill here
     //diffuse section:
     vec3 lightdir = normalize(u_lightPos-pos);
-    thiscolor *= max(0.0, dot(nor,lightdir))*0.25;
+    float dist_from_surface_to_light = length(u_lightPos-pos);
+    float attenuation = max(0.0, u_lightRad - dist_from_surface_to_light);
+    thiscolor *= max(0.0, attenuation)*dot(nor,lightdir)*0.25;
 
     gl_FragColor = vec4(thiscolor,1);
 
