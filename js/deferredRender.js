@@ -21,7 +21,6 @@
         // Move the R.lights
         if (cfg.movingLights) {
           for (var i = 0; i < R.lights.length; i++) {
-              // OPTIONAL TODO: Edit if you want to change how lights move
               var mn = R.light_min[1];
               var mx = R.light_max[1];
               R.lights[i].pos[1] = (R.lights[i].pos[1] + R.light_dt - mn + mx) % mx + mn;
@@ -34,8 +33,6 @@
         } else if (cfg.debugView == 6) {
             R.pass_scissor.render(state);
         } else {
-            // * Deferred pass and postprocessing pass(es)
-            // TODO: uncomment these
             R.pass_deferred.render(state);
             R.pass_post1.render(state);
             if (cfg.rampShading) {
@@ -70,31 +67,11 @@
         drawScene(state);
     };
 
-    var drawScene = function(state) {
-        for (var i = 0; i < state.models.length; i++) {
-            var m = state.models[i];
-
-            // If you want to render one model many times, note:
-            // readyModelForDraw only needs to be called once.
-            readyModelForDraw(R.progCopy, m);
-
-            drawReadyModel(m);
-        }
-    };
 
     R.pass_debug.render = function(state) {
-        // * Unbind any framebuffer, so we can write to the screen
-        // TODO: uncomment
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-
-        // * Bind/setup the debug "lighting" pass
-        // * Tell shader which debug view to use
-        // TODO: uncomment
         bindTexturesForLightPass(R.prog_Debug);
         gl.uniform1i(R.prog_Debug.u_debug, cfg.debugView);
-
-        // * Render a fullscreen quad to perform shading on
-        // TODO: uncomment
         renderFullScreenQuad(R.prog_Debug);
     };
 
@@ -102,10 +79,7 @@
      * 'deferred' pass: Add lighting results for each individual light
      */
     R.pass_deferred.render = function(state) {
-        // * Bind R.pass_deferred.fbo to write into for later postprocessing
         gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_deferred.fbo);
-
-        // * Clear depth to 1.0 and color to black
         gl.clearColor(0.0, 0.0, 0.0, 0.0);
         gl.clearDepth(1.0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -113,8 +87,6 @@
         gl.enable(gl.BLEND);
         gl.blendEquation( gl.FUNC_ADD );
         gl.blendFunc(gl.ONE,gl.ONE);
-
-        // * Bind/setup the ambient pass, and render using fullscreen quad
         bindTexturesForLightPass(R.prog_Ambient);
         renderFullScreenQuad(R.prog_Ambient);
 
@@ -218,6 +190,15 @@
         renderFullScreenQuad(R.prog_Edge);
       }
       R.lastShader = R.pass_edge;
+    };
+
+    var drawScene = function(state) {
+        for (var i = 0; i < state.models.length; i++) {
+            var m = state.models[i];
+            readyModelForDraw(R.progCopy, m);
+
+            drawReadyModel(m);
+        }
     };
 
     var bindTexturesForLightPass = function(prog) {
