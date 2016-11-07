@@ -151,8 +151,16 @@ __global__ void doMultiply(int N, int numPoints, thrust::complex<double> W, thru
 	if (relativeIndex < numPoints / 2)
 		return;
 
+#if CHECKPOINT
+	printf("my index is %d, myVal is %f + i%f, my exponent is %d\n", index, myVal.real(), myVal.imag() ,relativeIndex - numPoints / 2);
+#endif
+
 	thrust::complex<double> exponent = (relativeIndex - numPoints / 2, 0);
 	myVal *= thrust::pow(W, exponent);
+
+#if CHECKPOINT
+	printf("my index is %d, newVal is %f + i%f\n", index, myVal.real(), myVal.imag());
+#endif
 
 	idata[index] = myVal;
 }
@@ -172,8 +180,7 @@ void parallel_fft (int N,
 	thrust::complex<double> * samples, 
 	thrust::complex<double> * transform)
 {
-	// Radix 2 FFT operates on Powers of Two. Pad as needed.
-	//GABE pad here
+
 #if CHECKPOINT
 	checkpoint("initial samples\n", N, samples);
 #endif
