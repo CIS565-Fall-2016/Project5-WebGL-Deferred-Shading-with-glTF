@@ -1,7 +1,7 @@
 #include "fft.h"
 
 #define blockSize 128
-#define CHECKPOINT 1
+#define CHECKPOINT 0
 thrust::complex<double> * dev_isamples;
 thrust::complex<double> * dev_osamples;
 
@@ -152,14 +152,20 @@ __global__ void doMultiply(int N, int numPoints, thrust::complex<double> W, thru
 		return;
 
 #if CHECKPOINT
-	printf("my index is %d, myVal is %f + i%f, W is %f + i%f, my exponent is %d\n", index, W.real(), W.imag(), myVal.real(), myVal.imag() ,relativeIndex - numPoints / 2);
+	printf("my index is %d, myVal is %f + i%f, W is %f + i%f, my exponent is %d\n", index, myVal.real(), myVal.imag(), W.real(), W.imag(), relativeIndex - numPoints / 2);
 #endif
 
-	thrust::complex<double> exponent = (relativeIndex - numPoints / 2, 0);
+	thrust::complex<double> exponent = thrust::complex<double>((double)relativeIndex - (double)numPoints / 2.0f, 0.0f);
+
+#if CHECKPOINT
+	printf("my index is %d, relative index is %d, numPoints is %d, exponent is %f + i %f\n", index, relativeIndex, numPoints, exponent.real(), exponent.imag());
+#endif
+
 	myVal *= thrust::pow(W, exponent);
 
 #if CHECKPOINT
-	printf("my index is %d, newVal is %f + i%f\n", index, myVal.real(), myVal.imag());
+	thrust::complex<double> tempResult = thrust::pow(W, exponent);
+	printf("my index is %d, twiddleFactor is %f + i %f, newVal is %f + i%f\n", index, tempResult.real(), tempResult.imag(), myVal.real(), myVal.imag());
 #endif
 
 	idata[index] = myVal;
