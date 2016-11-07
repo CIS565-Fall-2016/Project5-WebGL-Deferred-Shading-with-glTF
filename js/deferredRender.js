@@ -28,12 +28,12 @@
         // CHECKITOUT: START HERE! You can even uncomment this:
         //debugger;
 
-        { // TODO: this block should be removed after testing renderFullScreenQuad
-            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-            // TODO: Implement/test renderFullScreenQuad first
-            renderFullScreenQuad(R.progRed);
-            return;
-        }
+        // { // TODO: this block should be removed after testing renderFullScreenQuad
+        //     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        //     // TODO: Implement/test renderFullScreenQuad first
+        //     renderFullScreenQuad(R.progRed);
+        //     return;
+        // }
 
         R.pass_copy.render(state);
 
@@ -57,21 +57,21 @@
     R.pass_copy.render = function(state) {
         // * Bind the framebuffer R.pass_copy.fbo
         // TODO: uncomment
-        // gl.bindFramebuffer(gl.FRAMEBUFFER,R.pass_copy.fbo);
+        gl.bindFramebuffer(gl.FRAMEBUFFER,R.pass_copy.fbo);
 
 
         // * Clear screen using R.progClear
         // TODO: uncomment
-        // renderFullScreenQuad(R.progClear);
+        renderFullScreenQuad(R.progClear);
 
         // * Clear depth buffer to value 1.0 using gl.clearDepth and gl.clear
         // TODO: uncomment
-        // gl.clearDepth(1.0);
-        // gl.clear(gl.DEPTH_BUFFER_BIT);
+        gl.clearDepth(1.0);
+        gl.clear(gl.DEPTH_BUFFER_BIT);
 
         // * "Use" the program R.progCopy.prog
         // TODO: uncomment
-        // gl.useProgram(R.progCopy.prog);
+        gl.useProgram(R.progCopy.prog);
 
         // TODO: Go write code in glsl/copy.frag.glsl
 
@@ -79,11 +79,11 @@
         // * Upload the camera matrix m to the uniform R.progCopy.u_cameraMat
         //   using gl.uniformMatrix4fv
         // TODO: uncomment
-        // gl.uniformMatrix4fv(R.progCopy.u_cameraMat, false, m);
+        gl.uniformMatrix4fv(R.progCopy.u_cameraMat, false, m);
 
         // * Draw the scene
         // TODO: uncomment
-        // drawScene(state);
+        drawScene(state);
     };
 
     var drawScene = function(state) {
@@ -101,17 +101,17 @@
     R.pass_debug.render = function(state) {
         // * Unbind any framebuffer, so we can write to the screen
         // TODO: uncomment
-        // gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
         // * Bind/setup the debug "lighting" pass
         // * Tell shader which debug view to use
         // TODO: uncomment
-        // bindTexturesForLightPass(R.prog_Debug);
-        // gl.uniform1i(R.prog_Debug.u_debug, cfg.debugView);
+        bindTexturesForLightPass(R.prog_Debug);
+        gl.uniform1i(R.prog_Debug.u_debug, cfg.debugView);
 
         // * Render a fullscreen quad to perform shading on
         // TODO: uncomment
-        // renderFullScreenQuad(R.prog_Debug);
+        renderFullScreenQuad(R.prog_Debug);
     };
 
     /**
@@ -219,7 +219,7 @@
              1.0, -1.0, 0.0,
             -1.0,  1.0, 0.0,
              1.0,  1.0, 0.0
-        ]);
+        ]); 
 
         var vbo = null;
 
@@ -230,12 +230,12 @@
 
             // Bind the VBO as the gl.ARRAY_BUFFER
             // TODO: uncomment
-            // gl.bindBuffer(gl.ARRAY_BUFFER,vbo);
+            gl.bindBuffer(gl.ARRAY_BUFFER,vbo);
 
             // Upload the positions array to the currently-bound array buffer
             // using gl.bufferData in static draw mode.
             // TODO: uncomment
-            // gl.bufferData(gl.ARRAY_BUFFER,positions,gl.STATIC_DRAW);
+            gl.bufferData(gl.ARRAY_BUFFER,positions,gl.STATIC_DRAW);
         };
 
         return function(prog) {
@@ -249,21 +249,21 @@
 
             // Bind the VBO as the gl.ARRAY_BUFFER
             // TODO: uncomment
-            // gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+            gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
 
             // Enable the bound buffer as the vertex attrib array for
             // prog.a_position, using gl.enableVertexAttribArray
             // TODO: uncomment
-            // gl.enableVertexAttribArray(prog.a_position);
+            gl.enableVertexAttribArray(prog.a_position);
 
             // Use gl.vertexAttribPointer to tell WebGL the type/layout for
             // prog.a_position's access pattern.
             // TODO: uncomment
-            // gl.vertexAttribPointer(prog.a_position, 3, gl.FLOAT, gl.FALSE, 0, 0);
+            gl.vertexAttribPointer(prog.a_position, 3, gl.FLOAT, gl.FALSE, 0, 0);
 
             // Use gl.drawArrays (or gl.drawElements) to draw your quad.
             // TODO: uncomment
-            // gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
             // Unbind the array buffer.
             gl.bindBuffer(gl.ARRAY_BUFFER, null);
