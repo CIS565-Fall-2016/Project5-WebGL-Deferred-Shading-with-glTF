@@ -67,7 +67,7 @@ var width, height;
 
     var init = function() {
         // TODO: For performance measurements, disable debug mode!
-        var debugMode = true;
+        var debugMode = false;
 
         canvas = document.getElementById('canvas');
         renderer = new THREE.WebGLRenderer({
@@ -122,7 +122,7 @@ var width, height;
             R.sphereModel = m;
         });
 
-        // var glTFURL = 'models/glTF-duck/duck.gltf';
+        // var glTFURL = 'models/glTF-duck/Duck.gltf';
         var glTFURL = 'models/glTF-sponza-kai-fix/sponza.gltf';
         var glTFLoader = new MinimalGLTFLoader.glTFLoader(gl);
         glTFLoader.loadGLTF(glTFURL, function (glTF) {
@@ -191,8 +191,8 @@ var width, height;
                 gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, magFilter);
                 gl.texParameteri(target, gl.TEXTURE_WRAP_S, wrapS);
                 gl.texParameteri(target, gl.TEXTURE_WRAP_T, wrapT);
-                if (minFilter == gl.NEAREST_MIPMAP_NEAREST || 
-                    minFilter == gl.NEAREST_MIPMAP_LINEAR || 
+                if (minFilter == gl.NEAREST_MIPMAP_NEAREST ||
+                    minFilter == gl.NEAREST_MIPMAP_LINEAR ||
                     minFilter == gl.LINEAR_MIPMAP_NEAREST ||
                     minFilter == gl.LINEAR_MIPMAP_LINEAR ) {
                         gl.generateMipmap(target);
@@ -242,7 +242,7 @@ var width, height;
                     } else if (primitive.technique.parameters['texcoord0']) {
                         uvInfo = primitive.attributes[primitive.technique.parameters['texcoord0'].semantic];
                     }
-                    
+
 
                     models.push({
                         gltf: primitive,
@@ -255,7 +255,7 @@ var width, height;
                         uvInfo: {size: uvInfo.size, type: uvInfo.type, stride: uvInfo.stride, offset: uvInfo.offset},
 
                         // specific textures temp test
-                        colmap: webGLTextures[colorTextureName].texture, 
+                        colmap: webGLTextures[colorTextureName].texture,
                         normap: webGLTextures[normalTextureName] ? webGLTextures[normalTextureName].texture : null
                     });
 
@@ -264,7 +264,7 @@ var width, height;
             }
 
 
-            
+
         });
 
 

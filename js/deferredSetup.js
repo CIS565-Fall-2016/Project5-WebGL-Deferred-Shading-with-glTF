@@ -6,9 +6,10 @@
     R.pass_debug = {};
     R.pass_deferred = {};
     R.pass_post1 = {};
+    R.pass_bloom = {};
     R.lights = [];
 
-    R.NUM_GBUFFERS = 4;
+    R.NUM_GBUFFERS = 3;
 
     /**
      * Set up the deferred pipeline framebuffer objects and textures.
@@ -18,6 +19,7 @@
         loadAllShaderPrograms();
         R.pass_copy.setup();
         R.pass_deferred.setup();
+        R.pass_bloom.setup();
     };
 
     // TODO: Edit if you want to change the light initial positions
@@ -95,8 +97,45 @@
         //   being used. (This extension allows for multiple render targets.)
         gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
 
+        // * Generate ramp texture for cel shading
+        var data = new Float32Array(64);
+        for (var i = 0; i < 16; i++) {
+          data[4*i] = i/15.0;
+          data[4*i+1] = i/15.0;
+          data[4*i+2] = i/15.0;
+          data[4*i+3] = 1.0;
+        }
+        R.pass_deferred.rampTex = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.rampTex);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 16, 1, 0, gl.RGBA, gl.FLOAT, data);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     };
+
+    R.pass_bloom.setup = function() {
+        // * Create the FBO
+        R.pass_bloom.extractFbo = gl.createFramebuffer();
+        // * Create, bind, and store a single color target texture for the FBO
+        R.pass_bloom.extractTex = createAndBindColorTargetTexture(
+            R.pass_bloom.extractFbo, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+        abortIfFramebufferIncomplete(R.pass_bloom.extractFbo);
+
+        // blur fbo
+        R.pass_bloom.blurFbo = gl.createFramebuffer();
+        R.pass_bloom.blurTex = createAndBindColorTargetTexture(
+            R.pass_bloom.blurFbo, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+        abortIfFramebufferIncomplete(R.pass_bloom.blurFbo);
+
+        // * Tell the WEBGL_draw_buffers extension which FBO attachments are
+        //   being used. (This extension allows for multiple render targets.)
+        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    }
 
     /**
      * Loads all of the shader programs used in the pipeline.
@@ -133,6 +172,8 @@
 
         loadDeferredProgram('ambient', function(p) {
             // Save the object into this variable for access later
+            p.u_celShade = gl.getUniformLocation(p.prog, 'u_celShade');
+            p.u_celRamp = gl.getUniformLocation(p.prog, 'u_celRamp');
             R.prog_Ambient = p;
         });
 
@@ -141,7 +182,15 @@
             p.u_lightPos = gl.getUniformLocation(p.prog, 'u_lightPos');
             p.u_lightCol = gl.getUniformLocation(p.prog, 'u_lightCol');
             p.u_lightRad = gl.getUniformLocation(p.prog, 'u_lightRad');
+            p.u_celShade = gl.getUniformLocation(p.prog, 'u_celShade');
+            p.u_celRamp = gl.getUniformLocation(p.prog, 'u_celRamp');
             R.prog_BlinnPhong_PointLight = p;
+        });
+
+        loadDeferredProgram('cel-contour', function(p) {
+            // Save the object into this variable for access later
+            p.u_texSize = gl.getUniformLocation(p.prog, 'u_texSize');
+            R.prog_CelContour = p;
         });
 
         loadDeferredProgram('debug', function(p) {
@@ -154,6 +203,14 @@
             p.u_color    = gl.getUniformLocation(p.prog, 'u_color');
             // Save the object into this variable for access later
             R.progPost1 = p;
+        });
+
+        loadPostProgram('bloom', function(p) {
+            p.u_radius = gl.getUniformLocation(p.prog, 'u_radius');
+            p.u_kernel = gl.getUniformLocation(p.prog, 'u_kernel');
+            p.u_texSize = gl.getUniformLocation(p.prog, 'u_texSize');
+            p.u_pass = gl.getUniformLocation(p.prog, 'u_pass');
+            R.prog_bloom = p;
         });
 
         // TODO: If you add more passes, load and set up their shader programs.
