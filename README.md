@@ -59,10 +59,18 @@ ms/frame | 20 | 25 | 50 | 190 | 640 | -
 FPS | 55 | 40 | 20 | 6 | 2 | -
 _Note*_ Data above are measured __without scissor test__.
 
+Num | 1 | 4 | 16 | 64 | 256 | 1024
+:---:|:---:|:---:|:---:|:---:|:---:|:---:
+ms/frame | 19 | 24 | 28 | 60 | 200 | 800
+FPS | 60 | 57 | 40 | 16 | 5 | 11
+_Note*_ Data above are measured __with scissor test__.
+
 #### Scissor Test
 
 Scissor Test OFF | Scissor Test ON
 :---:|:---:
+![](img/scissor_off.gif) | ![](img/scissor_on.gif)
+
 
 ### Credits
 
