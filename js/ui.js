@@ -8,6 +8,7 @@ var cfg;
         this.debugView = -1;
         this.debugScissor = false;
         this.enableEffect0 = false;
+        this.bloom = false;
     };
 
     var init = function() {
@@ -26,9 +27,10 @@ var cfg;
         });
         gui.add(cfg, 'debugScissor');
 
-        var eff0 = gui.addFolder('EFFECT NAME HERE');
+      //  var eff0 = gui.addFolder('EFFECT NAME HERE');
+        var eff0 = gui.addFolder('EFFECT');
         eff0.open();
-        eff0.add(cfg, 'enableEffect0');
+        eff0.add(cfg, 'bloom');
         // TODO: add more effects toggles and parameters here
     };
 

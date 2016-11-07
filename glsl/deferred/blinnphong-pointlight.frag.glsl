@@ -13,7 +13,7 @@ uniform sampler2D u_depth;
 
 varying vec2 v_uv;
 
-vec3 applyNormalMap(vec3 geomnor, vec3 normap) {
+vec3 applyNormalMap(vec3 geomnor, vec3 normap) { //normal map -> geometry normal, each geometry get its normal through this way
     normap = normap * 2.0 - 1.0;
     vec3 up = normalize(vec3(0.001, 1, 0.001));
     vec3 surftan = normalize(cross(geomnor, up));
@@ -49,7 +49,8 @@ void main() {
         return;
     }
 
-    float attenuation = max(0.0, u_lightRad - length(pos-u_lightPos));
+    float attenuation = max(0.0, u_lightRad - length(pos - u_lightPos));
+//    float attenuation = 1.0 / (1.0 + u_lightRad * distToLight * distToLight);
     float lambert = max(dot(lightDir, nor),0.0);
   	float specular = 0.0;
   	if(lambert > 0.0)
