@@ -1,8 +1,9 @@
 /* Start reading here */
 
 #include <fftw3.h>
-
-#define NUM_POINTS 4
+#include <stdio.h>
+#include <time.h>
+#include <windows.h>
 
 
 /* Never mind this bit */
@@ -12,6 +13,8 @@
 
 #define REAL 0
 #define IMAG 1
+
+int NUM_POINTS = 0x1;
 
 void acquire_from_somewhere(fftw_complex* signal) {
     /* Generate two sine waves of different frequencies and
@@ -52,20 +55,54 @@ void do_something_with(fftw_complex* result) {
 /* Resume reading here */
 
 int main() {
-    fftw_complex signal[NUM_POINTS];
-    fftw_complex result[NUM_POINTS];
 
-    fftw_plan plan = fftw_plan_dft_1d(NUM_POINTS,
-                                      signal,
-                                      result,
-                                      FFTW_FORWARD,
-                                      FFTW_ESTIMATE);
+  LARGE_INTEGER StartingTime, EndingTime, ElapsedMicroseconds;
+  LARGE_INTEGER Frequency;
 
-    acquire_from_somewhere(signal);
-    fftw_execute(plan);
-    do_something_with(result);
+//
+// We now have the elapsed number of ticks, along with the
+// number of ticks-per-second. We use these values
+// to convert to the number of elapsed microseconds.
+// To guard against loss-of-precision, we convert
+// to microseconds *before* dividing by ticks-per-second.
+//
 
-    fftw_destroy_plan(plan);
+ElapsedMicroseconds.QuadPart *= 1000000;
+ElapsedMicroseconds.QuadPart /= Frequency.QuadPart;
+
+    while (NUM_POINTS < (0x1 << 12))
+    {
+
+      char a = getc(stdin);
+     
+      NUM_POINTS = NUM_POINTS << 1;
+      fftw_complex signal[NUM_POINTS];
+      fftw_complex result[NUM_POINTS];
+
+      fftw_plan plan = fftw_plan_dft_1d(NUM_POINTS,
+                                        signal,
+                                        result,
+                                        FFTW_FORWARD,
+                                        FFTW_ESTIMATE);
+
+      acquire_from_somewhere(signal);
+     
+      QueryPerformanceFrequency(&Frequency); 
+      QueryPerformanceCounter(&StartingTime);
+
+      fftw_execute(plan);
+
+      QueryPerformanceCounter(&EndingTime);
+      ElapsedMicroseconds.QuadPart = EndingTime.QuadPart - StartingTime.QuadPart;
+      ElapsedMicroseconds.QuadPart *= 1000000;
+      ElapsedMicroseconds.QuadPart /= Frequency.QuadPart;
+
+      do_something_with(result);
+
+      printf("Elapsed microseconds: %lu \n", ElapsedMicroseconds.QuadPart);
+
+      fftw_destroy_plan(plan);
+    }
 
     return 0;
 }
