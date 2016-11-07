@@ -7,13 +7,12 @@ WebGL Deferred Shading
 * Tested on: (TODO) **Google Chrome 222.2** on
   Windows 22, i7-2222 @ 2.22GHz 22GB, GTX 222 222MB (Moore 2222 Lab)
 
-With toon
+With toon |  No toon | Edge Highlint
 
-[![](img/toon.JPG)]
+![](img/toon.JPG) | ![](img/notoon.JPG) |![](img/edge.JPG)
 
-No toon
 
-[![](img/notoon.JPG)]
+
 
 
 ### Live Online

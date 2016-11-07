@@ -55,7 +55,7 @@ void main() {
                     +abs(texture2D(u_depth, v_uv + dy).r - depth)
                     +abs(texture2D(u_depth, v_uv - dx).r - depth)
                     +abs(texture2D(u_depth, v_uv - dy).r - depth);
-        if (diff > 0.001){
+        if (diff > 0.01){
             gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
             return;
         }
