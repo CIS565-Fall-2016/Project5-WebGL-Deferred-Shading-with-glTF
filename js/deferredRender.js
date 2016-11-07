@@ -165,6 +165,8 @@
                         gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_lightCol,curlight.col);
                         gl.uniform1f(R.prog_BlinnPhong_PointLight.u_lightRad,curlight.rad);
                         gl.uniform1f(R.prog_BlinnPhong_PointLight.u_lightRad,curlight.rad);
+                        gl.uniform1f(R.prog_BlinnPhong_PointLight.u_width,width);
+                        gl.uniform1f(R.prog_BlinnPhong_PointLight.u_height,height);
                         var campos = [state.cameraPos.x,state.cameraPos.y,state.cameraPos.z];
                         gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_camPos,campos );
                          

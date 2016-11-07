@@ -12,6 +12,8 @@ uniform sampler2D u_depth;
 
 uniform vec3 u_camPos;
 uniform vec3 u_effects;
+uniform float u_width;
+uniform float u_height;
 
 varying vec2 v_uv;
 
@@ -45,6 +47,20 @@ void main() {
         return;
     }
 
+    float enableToon = u_effects.r;
+    if (enableToon == 1.0){
+        vec2 dx = vec2(1.0 / u_width,0.0);
+        vec2 dy = vec2(0.0, 1.0 / u_height);
+        float diff = abs(texture2D(u_depth, v_uv + dx).r - depth)
+                    +abs(texture2D(u_depth, v_uv + dy).r - depth)
+                    +abs(texture2D(u_depth, v_uv - dx).r - depth)
+                    +abs(texture2D(u_depth, v_uv - dy).r - depth);
+        if (diff > 0.001){
+            gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+            return;
+        }
+    }
+
     float dist_from_surface_to_light = length(u_lightPos-pos);
     float attenuation = max(0.0, u_lightRad - dist_from_surface_to_light);
     
@@ -55,7 +71,7 @@ void main() {
     float diffusefact=dot(nor,lightdir);
 
     
-    float enableToon = u_effects.r;
+    
     if ( enableToon==1.0){
         float diffusefact2=   abs(diffusefact) ;
         if (diffusefact2>0.75){
@@ -76,7 +92,7 @@ void main() {
         thiscolor *= attenuation*diffusefact*0.25;
     }
 
- 
+
     
 
     //fill here
