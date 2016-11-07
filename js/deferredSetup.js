@@ -22,6 +22,7 @@
         R.pass_deferred.setup();
         R.pass_post1.setup();
         R.pass_edge.setup();
+        R.pass_toon.setup();
     };
 
     // TODO: Edit if you want to change the light initial positions
@@ -110,15 +111,6 @@
         gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     };
-
-    R.pass_edge.setup = function() {
-        R.pass_edge.fbo = gl.createFramebuffer();
-        R.pass_edge.colorTex = createAndBindColorTargetTexture(
-            R.pass_edge.fbo, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
-        abortIfFramebufferIncomplete(R.pass_edge.fbo);
-        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    };
     R.pass_toon.setup = function() {
         R.pass_toon.fbo = gl.createFramebuffer();
         R.pass_toon.colorTex = createAndBindColorTargetTexture(
@@ -127,6 +119,15 @@
         gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     };
+    R.pass_edge.setup = function() {
+        R.pass_edge.fbo = gl.createFramebuffer();
+        R.pass_edge.colorTex = createAndBindColorTargetTexture(
+            R.pass_edge.fbo, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+        abortIfFramebufferIncomplete(R.pass_edge.fbo);
+        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    };
+
 
 
     /**

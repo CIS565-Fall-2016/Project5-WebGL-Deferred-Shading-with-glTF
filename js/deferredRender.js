@@ -2,7 +2,7 @@
     'use strict';
     // deferredSetup.js must be loaded first
     R.lastShader = null;
-
+    R.numShadersRemaining = 0;
     R.deferredRender = function(state) {
         if (!aborted && (
             !R.progCopy ||
@@ -40,6 +40,9 @@
               R.pass_toon.render(state);
             }
             if (cfg.edge) {
+              if (cfg.edgeTwoPass) {
+
+              }
               R.pass_edge.render(state);
             }
         }
@@ -50,30 +53,16 @@
      * 'copy' pass: Render into g-buffers
      */
     R.pass_copy.render = function(state) {
-        // * Bind the framebuffer R.pass_copy.fbo
-        // TODO: uncomment
+
         gl.bindFramebuffer(gl.FRAMEBUFFER,R.pass_copy.fbo);
-
-
-        // * Clear screen using R.progClear
-        // TODO: uncomment
         renderFullScreenQuad(R.progClear);
-
-        // * Clear depth buffer to value 1.0 using gl.clearDepth and gl.clear
-        // TODO: uncomment
         gl.clearDepth(1.0);
         gl.clear(gl.DEPTH_BUFFER_BIT);
 
-        // * "Use" the program R.progCopy.prog
-        // TODO: uncomment
         gl.useProgram(R.progCopy.prog);
 
-        // TODO: Go write code in glsl/copy.frag.glsl
-
         var m = state.cameraMat.elements;
-        // * Upload the camera matrix m to the uniform R.progCopy.u_cameraMat
-        //   using gl.uniformMatrix4fv
-        // TODO: uncomment
+
         gl.uniformMatrix4fv(R.progCopy.u_cameraMat, false, m);
 
         // * Draw the scene
@@ -163,44 +152,22 @@
 
         gl.disable(gl.SCISSOR_TEST);
         gl.disable(gl.BLEND);
+        R.lastShader = R.pass_deferred;
     };
-
-
-    var bindTexturesForLightPass = function(prog) {
-        gl.useProgram(prog.prog);
-
-        // * Bind all of the g-buffers and depth buffer as texture uniform
-        //   inputs to the shader
-        for (var i = 0; i < R.NUM_GBUFFERS; i++) {
-            gl.activeTexture(gl['TEXTURE' + i]);
-            gl.bindTexture(gl.TEXTURE_2D, R.pass_copy.gbufs[i]);
-            gl.uniform1i(prog.u_gbufs[i], i);
-        }
-        gl.activeTexture(gl['TEXTURE' + R.NUM_GBUFFERS]);
-        gl.bindTexture(gl.TEXTURE_2D, R.pass_copy.depthTex);
-        gl.uniform1i(prog.u_depth, R.NUM_GBUFFERS);
-    };
-
     /**
      * 'post1' pass: Perform (first) pass of post-processing
      */
     R.pass_post1.render = function(state) {
-        // * Unbind any existing framebuffer (if there are no more passes)
         if (cfg.edge || cfg.rampShading) {
           gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_post1.fbo);
-          R.lastShader = R.pass_post1;
         } else {
           gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         }
-
         gl.clearDepth(1.0);
         gl.clear(gl.DEPTH_BUFFER_BIT);
-
         gl.useProgram(R.progPost1.prog);
-
         gl.activeTexture(gl.TEXTURE0);
-
-        gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex);
+        gl.bindTexture(gl.TEXTURE_2D, R.lastShader.colorTex);
         gl.uniform1i(R.progPost1.u_color, 0);
         renderFullScreenQuad(R.progPost1);
         R.lastShader = R.pass_post1;
@@ -239,9 +206,8 @@
         gl.uniform1fv(R.prog_Edge.u_kernel, [0, -2, -2, 2, 0, -2, 2, 2, 0]);
       }
       // gl.uniform1fv(R.prog_Edge.u_kernel, [-1, -1, -1, -1, 8, -1, -1, -1, -1]);
-      // gl.uniform1fv(R.prog_Edge.u_kernel, [0, 0, 0, 0, 1, 0, 0, 0, 0]);
-      R.lastShader = R.pass_edge;
       renderFullScreenQuad(R.prog_Edge);
+      R.lastShader = R.pass_edge;
       if (cfg.edgeTwoPass) {
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         gl.activeTexture(gl.TEXTURE0);
@@ -254,15 +220,20 @@
       R.lastShader = R.pass_edge;
     };
 
-    var renderFullScreenQuad = (function() {
-        // The variables in this function are private to the implementation of
-        // renderFullScreenQuad. They work like static local variables in C++.
+    var bindTexturesForLightPass = function(prog) {
+        gl.useProgram(prog.prog);
 
-        // Create an array of floats, where each set of 3 is a vertex position.
-        // You can render in normalized device coordinates (NDC) so that the
-        // vertex shader doesn't have to do any transformation; draw two
-        // triangles which cover the screen over x = -1..1 and y = -1..1.
-        // This array is set up to use gl.drawArrays with gl.TRIANGLE_STRIP.
+        for (var i = 0; i < R.NUM_GBUFFERS; i++) {
+            gl.activeTexture(gl['TEXTURE' + i]);
+            gl.bindTexture(gl.TEXTURE_2D, R.pass_copy.gbufs[i]);
+            gl.uniform1i(prog.u_gbufs[i], i);
+        }
+        gl.activeTexture(gl['TEXTURE' + R.NUM_GBUFFERS]);
+        gl.bindTexture(gl.TEXTURE_2D, R.pass_copy.depthTex);
+        gl.uniform1i(prog.u_depth, R.NUM_GBUFFERS);
+    };
+    var renderFullScreenQuad = (function() {
+
         var positions = new Float32Array([
             -1.0, -1.0, 0.0,
              1.0, -1.0, 0.0,
@@ -273,48 +244,20 @@
         var vbo = null;
 
         var init = function() {
-            // Create a new buffer with gl.createBuffer, and save it as vbo.
-            // TODO: uncomment
             vbo = gl.createBuffer();
-
-            // Bind the VBO as the gl.ARRAY_BUFFER
-            // TODO: uncomment
             gl.bindBuffer(gl.ARRAY_BUFFER,vbo);
-
-            // Upload the positions array to the currently-bound array buffer
-            // using gl.bufferData in static draw mode.
-            // TODO: uncomment
             gl.bufferData(gl.ARRAY_BUFFER,positions,gl.STATIC_DRAW);
         };
 
         return function(prog) {
             if (!vbo) {
-                // If the vbo hasn't been initialized, initialize it.
                 init();
             }
-
-            // Bind the program to use to draw the quad
             gl.useProgram(prog.prog);
-
-            // Bind the VBO as the gl.ARRAY_BUFFER
-            // TODO: uncomment
             gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
-
-            // Enable the bound buffer as the vertex attrib array for
-            // prog.a_position, using gl.enableVertexAttribArray
-            // TODO: uncomment
             gl.enableVertexAttribArray(prog.a_position);
-
-            // Use gl.vertexAttribPointer to tell WebGL the type/layout for
-            // prog.a_position's access pattern.
-            // TODO: uncomment
             gl.vertexAttribPointer(prog.a_position, 3, gl.FLOAT, gl.FALSE, 0, 0);
-
-            // Use gl.drawArrays (or gl.drawElements) to draw your quad.
-            // TODO: uncomment
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-
-            // Unbind the array buffer.
             gl.bindBuffer(gl.ARRAY_BUFFER, null);
         };
     })();
