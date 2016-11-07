@@ -158,17 +158,15 @@
             // getScissorForLight returns null if the scissor is off the screen.
             // Otherwise, it returns an array [xmin, ymin, width, height].
             //
-            var sc = getScissorForLight(state.viewMat, state.projMat, R.lights[i]);
-            if (sc !== null) {
-
-                if (cfg.debugScissor) {
+            if (cfg.debugScissor) {
+                var sc = getScissorForLight(state.viewMat, state.projMat, R.lights[i]);
+                if (sc !== null) {
                    gl.scissor(sc[0], sc[1], sc[2], sc[3]);
                 }
-                // * Render a fullscreen quad to perform shading on
-                // TODO: uncomment
-            
             }
+            // * Render a fullscreen quad to perform shading on
             renderFullScreenQuad(R.prog_BlinnPhong_PointLight);    
+        
         }
         if (cfg.debugScissor) {
             gl.disable(gl.SCISSOR_TEST);
@@ -233,6 +231,7 @@
         // * Clear the framebuffer depth to 1.0
         gl.clearDepth(1.0);
         gl.clear(gl.DEPTH_BUFFER_BIT);
+        
         gl.enable(gl.BLEND);
         gl.blendEquation( gl.FUNC_ADD );
         gl.blendFunc(gl.ONE,gl.ONE);
@@ -240,20 +239,24 @@
         // * Bind the postprocessing shader program
         gl.useProgram(R.progGaussianBlur.prog);
 
+        // * Bind the deferred pass's color output as a texture input
+        // Set gl.TEXTURE0 as the gl.activeTexture unit
+        // TODO: uncomment
+        gl.activeTexture(gl.TEXTURE0);
+
         var horizontal = true;
         var first = true;
-        for (var i = 0; i < 10; i++) {
+        for (var i = 0; i < 5; i++) {
             // Pingpong buffer
-            gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_gaussian_blur.ping_pong_buffers[horizontal]);
+            gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_gaussian_blur.ping_pong_buffers[1 - i % 2]);
 
-            // * Bind the deferred pass's color output as a texture input
-            // Set gl.TEXTURE0 as the gl.activeTexture unit
-            // TODO: uncomment
-            gl.activeTexture(gl.TEXTURE0);
+            if (i == 4) {
+                gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+            }
 
             // Bind the TEXTURE_2D, R.pass_deferred.colorTex to the active texture unit
             // TODO: uncomment
-            gl.bindTexture(gl.TEXTURE_2D, first ? R.pass_deferred.hdrTex: R.pass_gaussian_blur.blurTex[i % 2]);
+            gl.bindTexture(gl.TEXTURE_2D, first ? R.pass_deferred.hdrTex : R.pass_gaussian_blur.blurTex[i % 2]);
 
             // Configure the R.progPost1.u_color uniform to point at texture unit 0
             gl.uniform1i(R.progGaussianBlur.u_color, 0);
@@ -268,6 +271,15 @@
             if (first) {
                 first = false;
             }
+        }
+
+        // Clear buffers
+        for (var i = 0; i < 2; ++i) {
+            gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_gaussian_blur.ping_pong_buffers[i]);
+            // * Clear depth to 1.0 and color to black
+            gl.clearColor(0.0, 0.0, 0.0, 0.0);
+            gl.clearDepth(1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         }
 
         // Disable blending so that it doesn't affect other code

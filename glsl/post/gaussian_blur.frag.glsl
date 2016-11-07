@@ -35,6 +35,5 @@ void main() {
     		color +=  texture2D(u_color, v_uv - vec2(0.0, texelSize.y * float(i))).rgb * weight[i];
     	}
     }
-
     gl_FragColor = vec4(color, 1.0);
 }

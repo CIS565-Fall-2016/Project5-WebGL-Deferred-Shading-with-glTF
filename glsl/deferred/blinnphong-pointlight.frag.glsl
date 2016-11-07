@@ -78,7 +78,7 @@ void main() {
 
         // Write out to hdrTex
         float brightness = dot(color.rgb, vec3(0.2126, 0.7152, 0.0722));
-        if (brightness > 0.5) {
+        if (brightness > 0.7) {
             gl_FragData[1] = vec4(color.rgb, 1.0);
         }
     }
