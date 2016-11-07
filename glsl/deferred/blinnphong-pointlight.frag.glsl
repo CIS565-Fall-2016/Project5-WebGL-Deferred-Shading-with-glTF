@@ -10,6 +10,7 @@ uniform float u_lightRad;
 uniform vec3 u_viewDir;
 uniform sampler2D u_gbufs[NUM_GBUFFERS];
 uniform sampler2D u_depth;
+uniform int u_toon;
 
 varying vec2 v_uv;
 
@@ -59,9 +60,17 @@ void main() {
     vec3 halfDir = normalize(lightDir + viewDir);
     float specAngle = max(dot(halfDir, nor), 0.0);
     float specular = float(lambertian > 0.0) * pow(specAngle, 16.0);
+    float falloff = 1.0 / pow(distance, 2.0);
+    if(u_toon == 1) {
+        /* Reference: http://prideout.net/blog/?p=22 */
+        float cutoff = 3.0;
+        lambertian = ceil(lambertian * cutoff) / cutoff;
+        specular = ceil(specular * cutoff) / cutoff;
+        falloff = ceil(falloff * cutoff) / cutoff;
+    }
 
     gl_FragColor = vec4(
-        u_lightCol * (1.0 - (distance * distance) / (u_lightRad * u_lightRad)) *
+        u_lightCol * /*(1.0 - (distance * distance) / (u_lightRad * u_lightRad))*/falloff *
         (colmap * lambertian + vec3(1,1,1) * specular)
         , 1);
 
