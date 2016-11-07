@@ -27,10 +27,12 @@
               R.lights[i].pos[1] = (R.lights[i].pos[1] + R.light_dt - mn + mx) % mx + mn;
           }
         }
-
+        R.lastShader = null;
         R.pass_copy.render(state);
-        if (cfg && cfg.debugView >= 0) {
+        if (cfg && cfg.debugView >= 0 && cfg.debugView < 6) {
             R.pass_debug.render(state);
+        } else if (cfg.debugView == 6) {
+            R.pass_scissor.render(state);
         } else {
             // * Deferred pass and postprocessing pass(es)
             // TODO: uncomment these
@@ -39,8 +41,8 @@
             if (cfg.rampShading) {
               R.pass_toon.render(state);
             }
-            if (cfg.edge) {
-              if (cfg.edgeTwoPass) {
+            if (cfg.edge > 0) {
+              if (cfg.edge == 2) {
 
               }
               R.pass_edge.render(state);
@@ -65,8 +67,6 @@
 
         gl.uniformMatrix4fv(R.progCopy.u_cameraMat, false, m);
 
-        // * Draw the scene
-        // TODO: uncomment
         drawScene(state);
     };
 
@@ -158,7 +158,7 @@
      * 'post1' pass: Perform (first) pass of post-processing
      */
     R.pass_post1.render = function(state) {
-        if (cfg.edge || cfg.rampShading) {
+        if (cfg.edge > 0 || cfg.rampShading) {
           gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_post1.fbo);
         } else {
           gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -174,7 +174,7 @@
     };
 
     R.pass_toon.render = function (state) {
-      if (cfg.edge) {
+      if (cfg.edge > 0) {
         gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_toon.fbo);
       } else {
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -190,7 +190,7 @@
     }
 
     R.pass_edge.render = function (state) {
-      if (cfg.edgeTwoPass) {
+      if (cfg.edge == 2) {
         gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_edge.fbo);
       } else {
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -200,7 +200,7 @@
       gl.bindTexture(gl.TEXTURE_2D, R.lastShader.colorTex);
       gl.uniform1i(R.prog_Edge.u_color, 0);
       gl.uniform2fv(R.prog_Edge.u_pixSize, [1.0 / width, 1.0 / height]);
-      if (cfg.edgeTwoPass) {
+      if (cfg.edge == 2) {
         gl.uniform1fv(R.prog_Edge.u_kernel, [-1, -2, -1, 0, 0, 0, 1, 2, 1]);
       } else {
         gl.uniform1fv(R.prog_Edge.u_kernel, [0, -2, -2, 2, 0, -2, 2, 2, 0]);
@@ -208,7 +208,7 @@
       // gl.uniform1fv(R.prog_Edge.u_kernel, [-1, -1, -1, -1, 8, -1, -1, -1, -1]);
       renderFullScreenQuad(R.prog_Edge);
       R.lastShader = R.pass_edge;
-      if (cfg.edgeTwoPass) {
+      if (cfg.edge == 2) {
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, R.lastShader.colorTex);

@@ -12,8 +12,7 @@ var cfg;
         this.debugShaders = 1;
         this.movingLights = true;
         this.bands = 5;
-        this.edge = false;
-        this.edgeTwoPass = false;
+        this.edge = 0;
         this.rampShading = false;
     };
 
@@ -30,7 +29,7 @@ var cfg;
             '3 Color map':       3,
             '4 Normal map':      4,
             '5 Surface normal':  5,
-            '6 Edge map':        6,
+            '6 Scissor masks':   6,
         });
         gui.add(cfg, 'debugScissor');
         gui.add(cfg, 'movingLights');
@@ -44,8 +43,11 @@ var cfg;
         var post = gui.addFolder('Post Effects');
         post.open();
         post.add(cfg, 'bands', 1, 10);
-        post.add(cfg, 'edge');
-        post.add(cfg, 'edgeTwoPass');
+        post.add(cfg, 'edge', {
+          'None': 0,
+          'One Pass': 1,
+          'Two Pass': 2
+        });
         post.add(cfg, 'rampShading');
 
         // TODO: add more effects toggles and parameters here
