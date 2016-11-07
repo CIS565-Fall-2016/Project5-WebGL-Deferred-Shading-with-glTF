@@ -128,12 +128,12 @@
         bindTexturesForLightPass(R.prog_BlinnPhong_PointLight);
 
         // Process color for each light
-        if (cfg.debugScissor) {
+        if (cfg && cfg.enableScissor > 0) {
           gl.enable(gl.SCISSOR_TEST);
         }
         for (var i = 0; i < R.lights.length; i++) {
           var light = R.lights[i];
-          if (cfg.debugScissor) {
+          if (cfg && cfg.enableScissor > 0) {
             var sc = getScissorForLight(state.viewMat, state.projMat, light);
             if (sc == null) {
               continue;
@@ -146,6 +146,21 @@
           renderFullScreenQuad(R.prog_BlinnPhong_PointLight);
         }
         gl.disable(gl.SCISSOR_TEST);
+
+        if (cfg && cfg.enableScissor == 2) {
+          gl.enable(gl.SCISSOR_TEST);
+          gl.blendFunc(gl.SRC_ALPHA,gl.ONE);
+          for (var i = 0; i < R.lights.length; i++) {
+            var light = R.lights[i];
+            var sc = getScissorForLight(state.viewMat, state.projMat, light);
+            if (sc == null) {
+              continue;
+            }
+            gl.scissor(sc[0], sc[1], sc[2], sc[3]);
+            renderFullScreenQuad(R.progRed);
+          }
+          gl.disable(gl.SCISSOR_TEST);
+        }
 
         // Disable blending so that it doesn't affect other code
         gl.disable(gl.BLEND);

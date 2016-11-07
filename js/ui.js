@@ -6,7 +6,7 @@ var cfg;
     var Cfg = function() {
         // TODO: Define config fields and defaults here
         this.debugView = -1;
-        this.debugScissor = false;
+        this.enableScissor = 0;
         this.enableBlur = 0;
     };
 
@@ -24,10 +24,13 @@ var cfg;
             '4 Normal map':      4,
             '5 Surface normal':  5
         });
-        gui.add(cfg, 'debugScissor');
+        gui.add(cfg, 'enableScissor', {
+          'No': 0,
+          'Yes': 1,
+          'Yes (with debug view)': 2,
+        });
 
         var gaussBlur = gui.addFolder('Gaussian Blur');
-        console.log(gui);
         gaussBlur.open();
         gaussBlur.add(cfg, 'enableBlur', {
           'None': 0,
