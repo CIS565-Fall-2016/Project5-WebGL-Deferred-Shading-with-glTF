@@ -48,19 +48,19 @@ void main() {
     //     return;
     // }
 
-    float distance = distance(u_lightPos, pos);
-    if (distance  > u_lightRad) {
+    float lightDistance = distance(u_lightPos, pos);
+    if (lightDistance  > u_lightRad) {
         return;
     }
 
     vec3 lightDir = normalize(u_lightPos - pos);
-    float lambertian = max(dot(lightDir, nor), 0.0);
+    float lambertian = clamp(dot(lightDir, nor), 0.0, 1.0);
     vec3 viewDir = normalize(u_viewDir - pos);
      // this is blinn phong
     vec3 halfDir = normalize(lightDir + viewDir);
     float specAngle = max(dot(halfDir, nor), 0.0);
     float specular = float(lambertian > 0.0) * pow(specAngle, 16.0);
-    float falloff = 1.0 / pow(distance, 2.0);
+    float falloff = clamp(1.0 - (lightDistance * lightDistance)/(u_lightRad * u_lightRad), 0.0, 1.0);
     if(u_toon == 1) {
         /* Reference: http://prideout.net/blog/?p=22 */
         float cutoff = 3.0;
@@ -70,8 +70,8 @@ void main() {
     }
 
     gl_FragColor = vec4(
-        u_lightCol * /*(1.0 - (distance * distance) / (u_lightRad * u_lightRad))*/falloff *
-        (colmap * lambertian + vec3(1,1,1) * specular)
+        (colmap * lambertian +
+        specular * vec3(1.0)) * u_lightCol * falloff
         , 1);
 
     // gl_FragColor = vec4(0, 0, 1, 1);  // TODO: perform lighting calculations

@@ -138,7 +138,7 @@
         gl.enable(gl.BLEND);
         // gl.blendEquation( gl.FUNC_ADD );
         gl.blendFunc(gl.ONE,gl.ONE);
-        gl.blendFunc( gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA );
+        // gl.blendFunc( gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA );
 
         // * Bind/setup the ambient pass, and render using fullscreen quad
         bindTexturesForLightPass(R.prog_Ambient);
