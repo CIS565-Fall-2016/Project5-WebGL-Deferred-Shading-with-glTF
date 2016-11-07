@@ -7,7 +7,8 @@ var cfg;
         // TODO: Define config fields and defaults here
         this.debugView = -1;
         this.debugScissor = false;
-        this.enableEffect0 = false;
+        this.enableBloom = false;
+		this.bloomThreshold = 0.3;
     };
 
     var init = function() {
@@ -24,10 +25,13 @@ var cfg;
         });
         gui.add(cfg, 'debugScissor');
 
-        var eff0 = gui.addFolder('EFFECT NAME HERE');
-        eff0.open();
-        eff0.add(cfg, 'enableEffect0');
+        var eff = gui.addFolder('EFFECT NAME HERE');
+        eff.open();
+		var eff0 = gui.addFolder('Bloom');
+        eff0.add(cfg, 'enableBloom');
         // TODO: add more effects toggles and parameters here
+		eff0.add(cfg, 'bloomThreshold', 0.0, 1.0);
+		eff0.open();
     };
 
     window.handle_load.push(init);

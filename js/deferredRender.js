@@ -10,7 +10,8 @@
             !R.prog_Ambient ||
             !R.prog_BlinnPhong_PointLight ||
             !R.prog_Debug ||
-            !R.progPost1)) {
+            !R.progPost1 ||
+			!R.progOutput)) {
             console.log('waiting for programs to load...');
             return;
         }
@@ -52,6 +53,7 @@
             R.pass_post1.render(state);
 
             // OPTIONAL TODO: call more postprocessing passes, if any
+			R.pass_output.render(state);
         }
     };
 
@@ -226,34 +228,51 @@
     };
 
     /**
-     * 'post1' pass: Perform (first) pass of post-processing
+     * 'post1' pass: Generate brightness texture
      */
-    R.pass_post1.render = function(state) {
-        // * Unbind any existing framebuffer (if there are no more passes)
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    R.pass_post1.render = function(state)
+	{
+        gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_post2.fbo0);
 
-        // * Clear the framebuffer depth to 1.0
+        gl.clearColor(0.0, 0.0, 0.0, 0.0);
         gl.clearDepth(1.0);
-        gl.clear(gl.DEPTH_BUFFER_BIT);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-        // * Bind the postprocessing shader program
         gl.useProgram(R.progPost1.prog);
 
-        // * Bind the deferred pass's color output as a texture input
-        // Set gl.TEXTURE0 as the gl.activeTexture unit
-        // TODO: uncomment
         gl.activeTexture(gl.TEXTURE0);
-
-        // Bind the TEXTURE_2D, R.pass_deferred.colorTex to the active texture unit
-        // TODO: uncomment
         gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex);
 
-        // Configure the R.progPost1.u_color uniform to point at texture unit 0
         gl.uniform1i(R.progPost1.u_color, 0);
+		gl.uniform1f(R.progPost1.u_threshold, cfg.bloomThreshold);
 
-        // * Render a fullscreen quad to perform shading on
         renderFullScreenQuad(R.progPost1);
     };
+	
+	/**
+	 * Two-pass Gaussian blur
+	 */
+	R.pass_post2.render = function(state)
+	{
+		
+	}
+	
+	R.pass_output.render = function(state)
+	{
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		
+		gl.clearDepth(1.0);
+        gl.clear(gl.DEPTH_BUFFER_BIT);
+		
+		gl.useProgram(R.progOutput.prog);
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, R.pass_post2.colorTex0);
+
+        gl.uniform1i(R.progOutput.u_color, 0);
+
+        renderFullScreenQuad(R.progOutput);
+	}
 
     var renderFullScreenQuad = (function() {
         // The variables in this function are private to the implementation of

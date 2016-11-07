@@ -5,7 +5,9 @@
     R.pass_copy = {};
     R.pass_debug = {};
     R.pass_deferred = {};
-    R.pass_post1 = {};
+    R.pass_post1 = {}; // generate brightness buffer
+	R.pass_post2 = {}; // bloom
+	R.pass_output = {}; // output to screen
 	R.pass_scissorTestDebug = {};
     R.lights = [];
 
@@ -19,6 +21,7 @@
         loadAllShaderPrograms();
         R.pass_copy.setup();
         R.pass_deferred.setup();
+		R.pass_post2.setup();
     };
 
     // TODO: Edit if you want to change the light initial positions
@@ -98,6 +101,23 @@
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     };
+	
+	R.pass_post2.setup = function()
+	{
+		// ping-pong buffers for blur filerting
+        R.pass_post2.fbo0 = gl.createFramebuffer();
+        R.pass_post2.colorTex0 = createAndBindColorTargetTexture(
+            R.pass_post2.fbo0, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+        abortIfFramebufferIncomplete(R.pass_post2.fbo0);
+		
+		R.pass_post2.fbo1 = gl.createFramebuffer();
+        R.pass_post2.colorTex1 = createAndBindColorTargetTexture(
+            R.pass_post2.fbo1, gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL);
+        abortIfFramebufferIncomplete(R.pass_post2.fbo1);
+		
+        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL, gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL]);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    };
 
     /**
      * Loads all of the shader programs used in the pipeline.
@@ -155,12 +175,18 @@
         });
 
         loadPostProgram('one', function(p) {
+			p.u_threshold = gl.getUniformLocation(p.prog, 'u_threshold');
             p.u_color    = gl.getUniformLocation(p.prog, 'u_color');
             // Save the object into this variable for access later
             R.progPost1 = p;
         });
 
         // TODO: If you add more passes, load and set up their shader programs.
+		loadPostProgram('output', function(p) {
+            p.u_color    = gl.getUniformLocation(p.prog, 'u_color');
+            // Save the object into this variable for access later
+            R.progOutput = p;
+        });
     };
 
     var loadDeferredProgram = function(name, callback) {
