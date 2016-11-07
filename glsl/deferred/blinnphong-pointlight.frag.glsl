@@ -10,6 +10,9 @@ uniform float u_lightRad;
 uniform sampler2D u_gbufs[NUM_GBUFFERS];
 uniform sampler2D u_depth;
 
+uniform vec3 u_cameraPos;
+
+
 varying vec2 v_uv;
 
 vec3 applyNormalMap(vec3 geomnor, vec3 normap) {
@@ -50,7 +53,12 @@ void main() {
     vec3 lightdir = normalize(u_lightPos-pos);
     float dist_from_surface_to_light = length(u_lightPos-pos);
     float attenuation = max(0.0, u_lightRad - dist_from_surface_to_light);
-    thiscolor *= max(0.0, attenuation)*dot(nor,lightdir)*0.25;
+    thiscolor *= attenuation*dot(nor,lightdir)*0.25;
+    //specular
+    vec3 camdir = normalize(u_cameraPos-pos);
+    vec3 tmp = normalize(lightdir+camdir);
+    float specularfact = dot(nor,tmp);
+    thiscolor += colmap * specularfact * attenuation * 0.25;
 
     gl_FragColor = vec4(thiscolor,1);
 
