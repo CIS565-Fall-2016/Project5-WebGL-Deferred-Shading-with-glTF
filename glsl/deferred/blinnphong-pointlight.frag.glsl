@@ -20,7 +20,10 @@ vec3 recoverEyePos(float depth)
 	float ph = u_viewportInfo.x * oneOverHeight;
 	float pw = ph * aspect;
 	vec3 viewVec = vec3(vec2(pw, ph) * (gl_FragCoord.xy - u_viewportInfo.yz * 0.5), -1.0);
-	return viewVec * depth;
+	depth = depth * 2.0 - 1.0;
+	float eyeDepth = (depth - (101.0 / 99.0)) * (99.0 / 200.0);
+	eyeDepth = -1.0 / eyeDepth;
+	return viewVec * eyeDepth;
 }
 
 void main()
@@ -39,7 +42,7 @@ void main()
     }
 
     // TODO: perform lighting calculations
-	vec3 pos = recoverEyePos(gb0.z);
+	vec3 pos = recoverEyePos(depth);
 	vec3 nrm = vec3(gb0.xy, sqrt(1.0 - dot(gb0.xy, gb0.xy)));
 	vec3 albedo = gb1.xyz;
 	float dist2Light = distance(pos, u_lightPos);
