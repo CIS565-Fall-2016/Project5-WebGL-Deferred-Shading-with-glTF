@@ -45,6 +45,8 @@
             // * Deferred pass and postprocessing pass(es)
             // TODO: uncomment these
             R.pass_deferred.render(state);
+            if(cfg.bloom)
+              R.pass_blur.render(state);
             R.pass_post1.render(state);
 
             // OPTIONAL TODO: call more postprocessing passes, if any
@@ -134,8 +136,8 @@
         // http://mrdoob.github.io/webgl-blendfunctions/blendfunc.html
         // TODO: uncomment
         gl.enable(gl.BLEND);
-        gl.blendEquation( gl.FUNC_ADD );
-        // gl.blendFunc(gl.ONE,gl.ONE);
+        // gl.blendEquation( gl.FUNC_ADD );
+        gl.blendFunc(gl.ONE,gl.ONE);
         gl.blendFunc( gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA );
 
         // * Bind/setup the ambient pass, and render using fullscreen quad
@@ -156,7 +158,7 @@
 
           if (cfg.debugScissor) {
                 //scissor test
-                var sc = getScissorForLight(state.viewMat, state.projMat, R.lights[i]);
+                var sc = getBetterScissorForLight(state.viewMat, state.projMat, R.lights[i]);
                 if (sc) {
                     gl.scissor(sc[0], sc[1], sc[2], sc[3]);
                     renderFullScreenQuad(R.prog_BlinnPhong_PointLight);
@@ -183,6 +185,7 @@
 
         // Disable blending so that it doesn't affect other code
         gl.disable(gl.BLEND);
+        R.old_colorTex = R.pass_deferred.colorTex;
     };
 
     var bindTexturesForLightPass = function(prog) {
@@ -198,6 +201,64 @@
         gl.activeTexture(gl['TEXTURE' + R.NUM_GBUFFERS]);
         gl.bindTexture(gl.TEXTURE_2D, R.pass_copy.depthTex);
         gl.uniform1i(prog.u_depth, R.NUM_GBUFFERS);
+    };
+
+
+    R.pass_blur.render = function(state) {
+
+      /*Reference: "http://learnopengl.com/#!Advanced-Lighting/Bloom" */
+
+      gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_hdr.hdrFBO);
+
+      gl.useProgram(R.prog_hdr.prog)
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, R.old_colorTex);
+      gl.uniform1i(R.prog_hdr.u_color, 0);
+      renderFullScreenQuad(R.prog_hdr);
+
+      var horizontal = true, first_iter = true;
+      var amount = 10;
+      gl.useProgram(R.prog_blur.prog)
+      gl.uniform2fv(R.prog_blur.u_tex_offset, [1.0 / width, 1.0/ height]);
+
+      gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_blur.pingpongFBOs[0]);
+      gl.uniform1i(R.prog_blur.u_horizontal, horizontal);
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, R.pass_blur.pingpongBuffer[1]);
+      gl.uniform1i(R.prog_blur.u_color, 0);
+      renderFullScreenQuad(R.prog_blur);
+
+      // for(var i = 0; i < amount; ++i) {
+      //
+      //   gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_blur.pingpongFBOs[horizontal]);
+      //   gl.uniform1i(R.prog_blur.u_horizontal, horizontal);
+      //   gl.activeTexture(gl.TEXTURE0);
+      //   gl.bindTexture(gl.TEXTURE_2D, first_iter? R.pass_hdr.colorBuffers[0] : R.pass_blur.pingpongBuffer[!horizontal]);
+      //   gl.uniform1i(R.prog_blur.u_color, 0);
+      //   renderFullScreenQuad(R.prog_blur);
+      //   horizontal = !horizontal;
+      //   if (first_iter)
+      //     first_iter = false;
+      // }
+
+      gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_blur.pingpongFBOs[1]);
+
+      gl.useProgram(R.prog_blend.prog)
+
+      // deferred pass
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, R.old_colorTex);
+      gl.uniform1i(R.prog_blend.u_scene, 0);
+
+      // blur pass
+      gl.activeTexture(gl.TEXTURE1);
+      gl.bindTexture(gl.TEXTURE_2D, R.pass_blur.pingpongBuffer[2]);
+      gl.uniform1i(R.prog_blend.u_bloomBlur, 1);
+
+      renderFullScreenQuad(R.prog_blend);
+
+      R.old_colorTex = R.pass_blur.pingpongBuffer[0];
+
     };
 
     /**
@@ -221,7 +282,8 @@
 
         // Bind the TEXTURE_2D, R.pass_deferred.colorTex to the active texture unit
         // TODO: uncomment
-        gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex);
+        gl.bindTexture(gl.TEXTURE_2D, R.old_colorTex);
+        // gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex);
 
         // Configure the R.progPost1.u_color uniform to point at texture unit 0
         gl.uniform1i(R.progPost1.u_color, 0);

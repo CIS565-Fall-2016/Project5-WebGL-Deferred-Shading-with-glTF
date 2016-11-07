@@ -61,7 +61,7 @@ void main() {
     float specular = float(lambertian > 0.0) * pow(specAngle, 16.0);
 
     gl_FragColor = vec4(
-        u_lightCol * pow(1.0 - distance / u_lightRad, 2.0) *
+        u_lightCol * (1.0 - (distance * distance) / (u_lightRad * u_lightRad)) *
         (colmap * lambertian + vec3(1,1,1) * specular)
         , 1);
 

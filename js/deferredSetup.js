@@ -6,7 +6,12 @@
     R.pass_debug = {};
     R.pass_deferred = {};
     R.pass_post1 = {};
+    R.pass_blur = {};
+    R.pass_hdr = {};
+    R.pass_blend = {};
+    R.pass_bloom = {};
     R.lights = [];
+    R.old_colorTex;
 
     R.NUM_GBUFFERS = 4;
 
@@ -18,6 +23,10 @@
         loadAllShaderPrograms();
         R.pass_copy.setup();
         R.pass_deferred.setup();
+        R.pass_blur.setup();
+        R.pass_hdr.setup();
+
+        // R.pass_blend.setup();
     };
 
     // TODO: Edit if you want to change the light initial positions
@@ -98,6 +107,42 @@
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     };
 
+    R.pass_blur.setup = function() {
+      var pingpongFBOs = [];
+      var pingpongBuffer = [];
+      for(var i = 0; i < 4; ++i){
+        pingpongFBOs.push(gl.createFramebuffer());
+        pingpongBuffer.push(createAndBindColorTargetTexture(pingpongFBOs[i], gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL));
+        abortIfFramebufferIncomplete(pingpongFBOs[i]);
+
+        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      }
+      R.pass_blur.pingpongFBOs   = pingpongFBOs;
+      R.pass_blur.pingpongBuffer = pingpongBuffer;
+    };
+
+    R.pass_hdr.setup = function() {
+      var hdrFBO = gl.createFramebuffer();
+      var colorBuffers = [];
+      var attachments = [];
+      for (var i = 0; i < 2; ++i) {
+        var attachment = gl_draw_buffers['COLOR_ATTACHMENT' + i + '_WEBGL'];
+        colorBuffers.push(createAndBindColorTargetTexture(hdrFBO, attachment));
+        attachments.push(attachment);
+        // * Check for framebuffer errors
+        // * Tell the WEBGL_draw_buffers extension which FBO attachments are
+        //   being used. (This extension allows for multiple render targets.)
+
+      }
+      abortIfFramebufferIncomplete(R.pass_deferred.fbo);
+      gl_draw_buffers.drawBuffersWEBGL(attachments);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+      R.pass_hdr.hdrFBO = hdrFBO;
+      R.pass_hdr.colorBuffers = colorBuffers;
+    };
+
     /**
      * Loads all of the shader programs used in the pipeline.
      */
@@ -158,6 +203,27 @@
             p.u_debug = gl.getUniformLocation(p.prog, 'u_debug');
             // Save the object into this variable for access later
             R.prog_Debug = p;
+        });
+
+        loadPostProgram('blur', function(p) {
+
+          p.u_color      = gl.getUniformLocation(p.prog, 'u_color');
+          p.u_horizontal = gl.getUniformLocation(p.prog, 'u_horizontal');
+          p.u_tex_offset = gl.getUniformLocation(p.prog, 'u_tex_offset');
+          R.prog_blur = p;
+        });
+
+        loadPostProgram('hdr', function(p) {
+            p.u_color    = gl.getUniformLocation(p.prog, 'u_color');
+
+            R.prog_hdr = p;
+        });
+
+        loadPostProgram('blend', function(p) {
+            p.u_scene        = gl.getUniformLocation(p.prog, 'u_scene');
+            p.u_bloomBlur    = gl.getUniformLocation(p.prog, 'u_bloomBlur');
+
+            R.prog_blend = p;
         });
 
         loadPostProgram('one', function(p) {
