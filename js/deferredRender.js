@@ -257,7 +257,7 @@
 
       renderFullScreenQuad(R.prog_blend);
 
-      R.old_colorTex = R.pass_blur.pingpongBuffer[0];
+      R.old_colorTex = R.pass_blur.pingpongBuffer[2];
 
     };
 
