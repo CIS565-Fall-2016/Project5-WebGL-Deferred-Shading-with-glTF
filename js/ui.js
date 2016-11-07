@@ -8,6 +8,7 @@ var cfg;
         this.debugView = -1;
         this.debugScissor = false;
         this.enableBloomEffect = false;
+        this.enableTiledShading = false;
     };
 
     var init = function() {
@@ -29,6 +30,7 @@ var cfg;
         var eff0 = gui.addFolder('EFFECT NAME HERE');
         eff0.open();
         eff0.add(cfg, 'enableBloomEffect');
+        eff0.add(cfg, 'enableTiledShading');
         // TODO: add more effects toggles and parameters here
     };
 

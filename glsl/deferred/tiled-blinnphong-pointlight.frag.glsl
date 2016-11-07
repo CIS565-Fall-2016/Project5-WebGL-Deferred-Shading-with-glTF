@@ -5,10 +5,13 @@ precision highp float;
 precision highp int;
 
 #define NUM_GBUFFERS 4
+#define NUM_MAX_LIGHTS 200
+#define LIGHT_GRID_CELL_DIM 32
 
-uniform vec3 u_lightCol;
-uniform vec3 u_lightPos;
-uniform float u_lightRad;
+uniform sampler2D u_lightCol;
+uniform sampler2D u_lightPos;
+uniform sampler2D u_lightRad;
+uniform ivec2 u_lightCountAndOffsets[LIGHT_GRID_CELL_DIM * LIGHT_GRID_CELL_DIM];
 uniform sampler2D u_gbufs[NUM_GBUFFERS];
 uniform sampler2D u_depth;
 
@@ -24,9 +27,9 @@ vec3 applyNormalMap(vec3 geomnor, vec3 normap) {
 
 // Blinn-Phong adapted from http://sunandblackcat.com/tipFullView.php?l=eng&topicid=30&topic=Phong-Lighting
 
-vec3 diffuseLighting(vec3 nor, vec3 col, vec3 lightDir) {
+vec3 diffuseLighting(vec3 nor, vec3 col, vec3 lightCol, vec3 lightDir) {
     float diffuseTerm = clamp(dot(nor, lightDir), 0.0, 1.0);
-    return u_lightCol * col * diffuseTerm;    
+    return lightCol * col * diffuseTerm;    
 }
 
 
@@ -45,6 +48,19 @@ vec3 specularLighting(vec3 col, vec3 pos, vec3 nor, vec3 lightDir) {
     return vec3(1,1,1) * specularTerm;
 }
 
+
+vec3 computeLight(
+    vec3 pos,
+    vec3 nor,
+    vec3 diffuse,
+    vec3 specular,
+    vec3 viewDir,
+    float shininess,
+    ivec2 fragPos
+    )
+{
+    return vec3(1,1,1);
+}
 
 void main() {
     vec4 gb0 = texture2D(u_gbufs[0], v_uv);
@@ -66,23 +82,33 @@ void main() {
     vec3 colmap = gb2.rgb;   // The color map - unlit "albedo" (surface color)
     vec3 normap = gb3.xyz;   // The raw normal map (normals relative to the surface they're on)
     vec3 nor = applyNormalMap (geomnor, normap);     // The true normals as we want to light them - with the normal map applied to the geometry normals (applyNormalMap above)
-    vec3 lightDir = normalize(u_lightPos - pos);
+    
+    // Loop through lights
+    // for (int i = 0; i < u_lightCount; ++i) {
 
-    float dis = distance(u_lightPos, pos);
-    if (dis < u_lightRad) {
+    //     // Extract light info
+    //     vec3 lightCol = u_lightCol[u_lightOffset + i];
+    //     vec3 lightPos = u_lightPos[u_lightOffset + i];
+    //     float lightRad = u_lightRad[u_lightOffset + i];
+        
+    //     // Shading
+    //     vec3 lightDir = normalize(lightPos - pos);
+    //     float dis = distance(lightPos, pos);
+    //     if (dis < lightRad) {
 
-        // Write out to colorTex
-        float attenuation = max(0.0, u_lightRad - dis);
-        vec4 color = vec4(
-            diffuseLighting(nor, colmap, lightDir) * attenuation + 
-            specularLighting(colmap, pos, nor, lightDir) * 0.0, 
-            1.0);
-        gl_FragData[0] = color;
+    //         // Write out to colorTex
+    //         float attenuation = max(0.0, lightRad - dis);
+    //         vec4 color = vec4(
+    //             diffuseLighting(nor, colmap, lightCol, lightDir) * attenuation + 
+    //             specularLighting(colmap, pos, nor, lightDir) * 0.0, 
+    //             1.0);
+    //         gl_FragData[0] = color;
 
-        // Write out to hdrTex
-        float brightness = dot(color.rgb, vec3(0.2126, 0.7152, 0.0722));
-        if (brightness > 0.7) {
-            gl_FragData[1] = vec4(color.rgb, 1.0);
-        }
-    }
+    //         // Write out to hdrTex
+    //         float brightness = dot(color.rgb, vec3(0.2126, 0.7152, 0.0722));
+    //         if (brightness > 0.7) {
+    //             gl_FragData[1] = vec4(color.rgb, 1.0);
+    //         }
+    //     }        
+    // }
 }

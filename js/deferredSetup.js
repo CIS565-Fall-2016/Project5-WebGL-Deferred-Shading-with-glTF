@@ -5,10 +5,15 @@
     R.pass_copy = {};
     R.pass_debug = {};
     R.pass_deferred = {};
+    R.pass_tiled_deferred = {};
     R.pass_post1 = {};
     R.pass_gaussian_blur = {};
     R.lights = [];
+    R.tileLightCounts = [];
+    R.tileLightOffsets = [];
+    R.tileLightIndices = [];
 
+    R.TILE_DIM = 2; // This value can be changed for performance analysis
     R.NUM_GBUFFERS = 4;
 
     /**
@@ -16,9 +21,11 @@
      */
     R.deferredSetup = function() {
         setupLights();
+        setupTiles();
         loadAllShaderPrograms();
         R.pass_copy.setup();
         R.pass_deferred.setup();
+        R.pass_tiled_deferred.setup();
         R.pass_gaussian_blur.setup();
     };
 
@@ -53,6 +60,13 @@
             });
         }
     };
+
+    var setupTiles = function() {
+        var tileCount = R.TILE_DIM * R.TILE_DIM;
+        for (var t = 0; t < tileCount; ++t) {
+            R.tileLightIndices.push([]);
+        }
+    }
 
     /**
      * Create/configure framebuffer between "copy" and "deferred" stages
@@ -106,6 +120,29 @@
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     };
 
+    /**
+     * Create/configure framebuffer between "tiled deferred" and "post1" stages
+     */
+    R.pass_tiled_deferred.setup = function() {
+        // * Create the FBO
+        R.pass_tiled_deferred.fbo = gl.createFramebuffer();
+        // * Create, bind, and store a single color target texture and a HDR texture for the FBO
+        R.pass_tiled_deferred.colorTex = createAndBindColorTargetTexture(
+            R.pass_tiled_deferred.fbo, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+        R.pass_tiled_deferred.hdrTex = createAndBindColorTargetTexture(
+            R.pass_tiled_deferred.fbo, gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL);
+
+        // * Check for framebuffer errors
+        abortIfFramebufferIncomplete(R.pass_tiled_deferred.fbo);
+        // * Tell the WEBGL_draw_buffers extension which FBO attachments are
+        //   being used. (This extension allows for multiple render targets.)
+        gl_draw_buffers.drawBuffersWEBGL([
+            gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL,  
+            gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL]
+            );
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    };
 
     /**
      * Create/configure framebuffer for bloom
@@ -174,6 +211,16 @@
             p.u_lightCol = gl.getUniformLocation(p.prog, 'u_lightCol');
             p.u_lightRad = gl.getUniformLocation(p.prog, 'u_lightRad');
             R.prog_BlinnPhong_PointLight = p;
+        });
+
+        loadDeferredProgram('tiled-blinnphong-pointlight', function(p) {
+            // Save the object into this variable for access later
+            p.u_lightPos = gl.getUniformLocation(p.prog, 'u_lightPos');
+            p.u_lightCol = gl.getUniformLocation(p.prog, 'u_lightCol');
+            p.u_lightRad = gl.getUniformLocation(p.prog, 'u_lightRad');
+            p.u_lightCount = gl.getUniformLocation(p.prog, 'u_lightCount');
+            p.u_lightOffset = gl.getUniformLocation(p.prog, 'u_lightOffset');
+            R.prog_Tiled_BlinnPhong_PointLight = p;
         });
 
         loadDeferredProgram('debug', function(p) {

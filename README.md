@@ -3,28 +3,32 @@ WebGL Deferred Shading
 
 **University of Pennsylvania, CIS 565: GPU Programming and Architecture, Project 5**
 
-* (TODO) YOUR NAME HERE
-* Tested on: (TODO) **Google Chrome 222.2** on
-  Windows 22, i7-2222 @ 2.22GHz 22GB, GTX 222 222MB (Moore 2222 Lab)
+* Trung Le
+* Tested on: **Google Chrome 54.0** on
+  Windows 10 Home, i7-4790 CPU @ 3.60GHz 12GB, GTX 980 Ti (Personal desktop)
 
-### Live Online
+# Live Online
 
 [![](img/thumb.png)](http://TODO.github.io/Project5B-WebGL-Deferred-Shading)
 
-### Demo Video/GIF
+# Demo Video/GIF
 
-[![](img/video.png)](TODO)
+# Features
 
-### (TODO: Your README)
+| **Bloom ON ** | **Bloom OFF**|
+|---|---|
+|![](img/20_lights_bloom.png)||![](img/20_lights.png)|
 
-*DO NOT* leave the README to the last minute! It is a crucial part of the
-project, and we will not be able to grade you without a good README.
+### 1. Bloom filter
 
-This assignment has a considerable amount of performance analysis compared
-to implementation work. Complete the implementation early to leave time!
+### 2. Tiled shading
 
+![](img/analysis/grid_data_structure.png)
 
-### Credit
+Data structure layout for the grid construction. This figure is taken from [Tiled Shading](http://www.cse.chalmers.se/~uffe/tiled_shading_preprint.pdf)
+
+# Credit
 
 - [Blinn-Phong](http://sunandblackcat.com/tipFullView.php?l=eng&topicid=30&topic=Phong-Lighting)
 - [Bloom](http://learnopengl.com/#!Advanced-Lighting/Bloom)
+- [Tiled Shading](http://www.cse.chalmers.se/~uffe/tiled_shading_preprint.pdf)

@@ -8,6 +8,7 @@
             !R.progRed ||
             !R.progClear ||
             !R.prog_Ambient ||
+            !R.prog_Tiled_BlinnPhong_PointLight ||
             !R.prog_BlinnPhong_PointLight ||
             !R.prog_Debug ||
             !R.progPost1 ||
@@ -38,7 +39,11 @@
         } else {
             // * Deferred pass and postprocessing pass(es)
             // TODO: uncomment these
-            R.pass_deferred.render(state);
+            if (cfg.enableTiledShading) {
+                R.pass_tiled_deferred.render(state);
+            } else {
+                R.pass_deferred.render(state);
+            }
             R.pass_post1.render(state);
 
             // OPTIONAL TODO: call more postprocessing passes, if any
@@ -141,12 +146,12 @@
         // * Bind/setup the Blinn-Phong pass, and render using fullscreen quad
         bindTexturesForLightPass(R.prog_BlinnPhong_PointLight);
 
-        // TODO: add a loop here, over the values in R.lights, which sets the
-        //   uniforms R.prog_BlinnPhong_PointLight.u_lightPos/Col/Rad etc.,
-        //   then does renderFullScreenQuad(R.prog_BlinnPhong_PointLight).
         if (cfg.debugScissor) {
             gl.enable(gl.SCISSOR_TEST);            
         }
+        // TODO: add a loop here, over the values in R.lights, which sets the
+        //   uniforms R.prog_BlinnPhong_PointLight.u_lightPos/Col/Rad etc.,
+        //   then does renderFullScreenQuad(R.prog_BlinnPhong_PointLight).
         for (var i = 0; i < R.lights.length; i++) {
             gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_lightPos, R.lights[i].pos);
             gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_lightCol, R.lights[i].col);
@@ -160,7 +165,7 @@
             //
             if (cfg.debugScissor) {
                 var sc = getScissorForLight(state.viewMat, state.projMat, R.lights[i]);
-                if (sc !== null) {
+                if (sc !== undefined && sc !== null) {
                    gl.scissor(sc[0], sc[1], sc[2], sc[3]);
                 }
             }
@@ -168,6 +173,72 @@
             renderFullScreenQuad(R.prog_BlinnPhong_PointLight);    
         
         }
+
+        if (cfg.debugScissor) {
+            gl.disable(gl.SCISSOR_TEST);
+        }
+        // Disable blending so that it doesn't affect other code
+        gl.disable(gl.BLEND);
+    };
+
+    /**
+     * 'deferred' pass: Add lighting results for each individual light
+     */
+    R.pass_tiled_deferred.render = function(state) {
+        // * Bind R.pass_deferred.fbo to write into for later postprocessing
+        gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_tiled_deferred.fbo);
+
+        // * Clear depth to 1.0 and color to black
+        gl.clearColor(0.0, 0.0, 0.0, 0.0);
+        gl.clearDepth(1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+        // * _ADD_ together the result of each lighting pass
+
+        // Enable blending and use gl.blendFunc to blend with:
+        //   color = 1 * src_color + 1 * dst_color
+        // Here is a wonderful demo of showing how blend function works:
+        // http://mrdoob.github.io/webgl-blendfunctions/blendfunc.html
+        // TODO: uncomment
+        gl.enable(gl.BLEND);
+        gl.blendEquation( gl.FUNC_ADD );
+        gl.blendFunc(gl.ONE,gl.ONE);
+
+        // * Bind/setup the ambient pass, and render using fullscreen quad
+        bindTexturesForLightPass(R.prog_Ambient);
+        renderFullScreenQuad(R.prog_Ambient);
+
+        // * Bind/setup the Blinn-Phong pass, and render using fullscreen quad
+        bindTexturesForLightPass(R.prog_Tiled_BlinnPhong_PointLight);
+
+        if (cfg.debugScissor) {
+            gl.enable(gl.SCISSOR_TEST);            
+        }
+
+        // Construct tile grid by assigning lights into the corresponding slot
+        clearGrid(R.tileLightIndices, R.TILE_DIM);
+
+        for (var lightId = 0; lightId < R.lights.length; lightId++) {
+            var extent = getScissorForLight(state.viewMat, state.projMat, R.lights[lightId]);
+            if (extent !== undefined && extent !== null) {
+                insertLightExtentToGrid(R.tileLightIndices, extent, state.width, state.height, R.TILE_DIM, lightId);
+            }
+        }
+
+        for (var i = 0; i < R.tileLightIndices.length; ++i) {
+            console.log("Tile idx " + i + ": " + R.tileLightIndices[i]);  
+        }
+
+        // Render per tile
+        for (var r = 0; r < R.TILE_DIM - 1; ++r) {
+            for (var c = 0; c < R.TILE_DIM - 1; ++c) {
+    
+                // * Render a fullscreen quad to perform shading on
+                renderTileQuad(R.prog_Tiled_BlinnPhong_PointLight, 1, 0);  
+
+            }
+        }
+
         if (cfg.debugScissor) {
             gl.disable(gl.SCISSOR_TEST);
         }
@@ -211,7 +282,11 @@
 
         // Bind the TEXTURE_2D, R.pass_deferred.colorTex to the active texture unit
         // TODO: uncomment
-        gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex);
+        if (cfg.enableTiledShading) {
+            gl.bindTexture(gl.TEXTURE_2D, R.pass_tiled_deferred.colorTex);
+        } else {
+            gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex);            
+        }
 
         // Configure the R.progPost1.u_color uniform to point at texture unit 0
         gl.uniform1i(R.progPost1.u_color, 0);
@@ -246,17 +321,19 @@
 
         var horizontal = true;
         var first = true;
-        for (var i = 0; i < 5; i++) {
+        var iterations = 5;
+        for (var i = 0; i < iterations; i++) {
             // Pingpong buffer
             gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_gaussian_blur.ping_pong_buffers[1 - i % 2]);
 
-            if (i == 4) {
+            if (i == iterations - 1) {
+                // Last iteration, render to screen
                 gl.bindFramebuffer(gl.FRAMEBUFFER, null);
             }
 
             // Bind the TEXTURE_2D, R.pass_deferred.colorTex to the active texture unit
             // TODO: uncomment
-            gl.bindTexture(gl.TEXTURE_2D, first ? R.pass_deferred.hdrTex : R.pass_gaussian_blur.blurTex[i % 2]);
+            gl.bindTexture(gl.TEXTURE_2D, first ? (cfg.enableTiledShading ? R.pass_tiled_deferred.hdrTex : R.pass_deferred.hdrTex) : R.pass_gaussian_blur.blurTex[i % 2]);
 
             // Configure the R.progPost1.u_color uniform to point at texture unit 0
             gl.uniform1i(R.progGaussianBlur.u_color, 0);
@@ -285,6 +362,71 @@
         // Disable blending so that it doesn't affect other code
         gl.disable(gl.BLEND);
     }
+
+    var renderTileQuad = (function() {
+
+        var vbo = null;
+
+        var init = function(row, col) {
+
+            var tileSize = 2.0 / R.TILE_DIM;
+            var xMin = col * tileSize - 1.0; 
+            var xMax = (col + 1) * tileSize - 1.0;
+            var yMin = row * tileSize - 1.0;
+            var yMax = (row + 1) * tileSize - 1.0;
+
+            var positions = new Float32Array([
+                xMin, yMin, 0.0,
+                xMax, yMin, 0.0,
+                xMin, yMax, 0.0,
+                xMax, yMax, 0.0,
+            ]);
+
+            // Create a new buffer with gl.createBuffer, and save it as vbo.
+            // TODO: uncomment
+            vbo = gl.createBuffer();
+
+            // Bind the VBO as the gl.ARRAY_BUFFER
+            // TODO: uncomment
+            gl.bindBuffer(gl.ARRAY_BUFFER,vbo);
+
+            // Upload the positions array to the currently-bound array buffer
+            // using gl.bufferData in static draw mode.
+            // TODO: uncomment
+            gl.bufferData(gl.ARRAY_BUFFER,positions,gl.STATIC_DRAW);
+        };
+
+        return function(prog, row, col) {
+            if (!vbo) {
+                // If the vbo hasn't been initialized, initialize it.
+                init(row, col);
+            }
+
+            // Bind the program to use to draw the quad
+            gl.useProgram(prog.prog);
+
+            // Bind the VBO as the gl.ARRAY_BUFFER
+            // TODO: uncomment
+            gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+
+            // Enable the bound buffer as the vertex attrib array for
+            // prog.a_position, using gl.enableVertexAttribArray
+            // TODO: uncomment
+            gl.enableVertexAttribArray(prog.a_position);
+
+            // Use gl.vertexAttribPointer to tell WebGL the type/layout for
+            // prog.a_position's access pattern.
+            // TODO: uncomment
+            gl.vertexAttribPointer(prog.a_position, 3, gl.FLOAT, gl.FALSE, 0, 0);
+
+            // Use gl.drawArrays (or gl.drawElements) to draw your quad.
+            // TODO: uncomment
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+            // Unbind the array buffer.
+            gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        };
+    })();
 
     var renderFullScreenQuad = (function() {
         // The variables in this function are private to the implementation of

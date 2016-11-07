@@ -160,6 +160,36 @@ window.getScissorForLight = (function() {
     };
 })();
 
+window.insertLightExtentToGrid = function(tiles, extent, screenWidth, screenHeight, tileDim, lightId) {
+
+    var tileSize = [screenWidth / tileDim, screenHeight / tileDim];
+    var xMin = extent[0];
+    var yMin = extent[1];
+    var xMax = extent[2] + xMin;
+    var yMax = extent[3] + yMin;
+
+    // console.log("tile size: " + tileSize[0] + ", " + tileSize[1]);
+    // console.log("xMin: " + xMin + ", xMax: " + xMax + ", yMin: " + yMin + ", yMax: " + yMax);
+    for (var x = xMin; x < xMax; x += tileSize[0]) {
+        for (var y = yMin; y < yMax; y += tileSize[1]) {
+            var indexX = Math.floor(x / tileSize[0]);
+            var indexY = Math.floor(y / tileSize[1]);
+
+            var index = indexX + indexY * tileDim;
+            // console.log("ix: " + indexX + ", iy: " + indexY + ", index: " + index);
+            tiles[index].push(lightId);
+        }
+    }
+};
+
+
+window.clearGrid = function(tiles, tileDim) {
+    var tileCount = tileDim * tileDim;
+    for (var i = 0; i < tileCount; ++i) {
+        tiles[i] = [];
+    }
+}
+
 window.abortIfFramebufferIncomplete = function(fbo) {
     gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
     var fbstatus = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
