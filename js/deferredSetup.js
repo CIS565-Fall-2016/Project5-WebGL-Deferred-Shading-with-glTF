@@ -6,9 +6,10 @@
     R.pass_debug = {};
     R.pass_deferred = {};
     R.pass_post1 = {};
+	R.pass_scissorTestDebug = {};
     R.lights = [];
 
-    R.NUM_GBUFFERS = 4;
+    R.NUM_GBUFFERS = 2;
 
     /**
      * Set up the deferred pipeline framebuffer objects and textures.
@@ -109,6 +110,7 @@
 
                 // Retrieve the uniform and attribute locations
                 p.u_cameraMat = gl.getUniformLocation(prog, 'u_cameraMat');
+				p.u_viewMat   = gl.getUniformLocation(prog, 'u_viewMat');
                 p.u_colmap    = gl.getUniformLocation(prog, 'u_colmap');
                 p.u_normap    = gl.getUniformLocation(prog, 'u_normap');
                 p.a_position  = gl.getAttribLocation(prog, 'a_position');
@@ -138,6 +140,7 @@
 
         loadDeferredProgram('blinnphong-pointlight', function(p) {
             // Save the object into this variable for access later
+			p.u_viewportInfo = gl.getUniformLocation(p.prog, 'u_viewportInfo');
             p.u_lightPos = gl.getUniformLocation(p.prog, 'u_lightPos');
             p.u_lightCol = gl.getUniformLocation(p.prog, 'u_lightCol');
             p.u_lightRad = gl.getUniformLocation(p.prog, 'u_lightRad');
@@ -145,6 +148,7 @@
         });
 
         loadDeferredProgram('debug', function(p) {
+			p.u_viewportInfo = gl.getUniformLocation(p.prog, 'u_viewportInfo');
             p.u_debug = gl.getUniformLocation(p.prog, 'u_debug');
             // Save the object into this variable for access later
             R.prog_Debug = p;
@@ -211,14 +215,18 @@
         return depthTex;
     };
 
-    var createAndBindColorTargetTexture = function(fbo, attachment) {
+    var createAndBindColorTargetTexture = function(fbo, attachment,
+		componentFormat = gl.RGBA,
+		componentType = gl.FLOAT)
+	{
         var tex = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, tex);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.FLOAT, null);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0,
+			componentFormat, componentType, null);
         gl.bindTexture(gl.TEXTURE_2D, null);
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);

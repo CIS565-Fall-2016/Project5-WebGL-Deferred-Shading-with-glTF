@@ -155,8 +155,8 @@ window.getScissorForLight = (function() {
 
         ret[0] = Math.round(width * minpt.x);
         ret[1] = Math.round(height * minpt.y);
-        ret[2] = Math.round(width * (maxpt.x - minpt.x));
-        ret[3] = Math.round(height * (maxpt.y - minpt.y));
+        ret[2] = Math.max(0, Math.round(width * (maxpt.x - minpt.x)));
+        ret[3] = Math.max(0, Math.round(height * (maxpt.y - minpt.y)));
         return ret;
     };
 })();
