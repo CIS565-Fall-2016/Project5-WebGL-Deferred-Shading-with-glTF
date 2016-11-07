@@ -14,9 +14,7 @@ With toon |  No toon | Edge Highlint
 :-------------------------:|:-------------------------:  |:-------------------------:
 ![](img/toon.JPG) | ![](img/notoon.JPG) |![](img/edge.JPG)
 
-
-
-
+![](img/scissordebug.JPG) 
 
 ### Live Online
 

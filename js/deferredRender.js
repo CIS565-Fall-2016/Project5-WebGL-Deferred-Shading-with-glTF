@@ -156,6 +156,7 @@
                 if (sc != null && sc[0]>0 && sc[1]>0 && sc[2]>0 && sc[3]>0){
                     gl.scissor(sc[0],sc[1],sc[2],sc[3]);
                     if (cfg.debugScissor){
+                        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);//DONE
                         renderFullScreenQuad(R.progRed);
                     }
                     
