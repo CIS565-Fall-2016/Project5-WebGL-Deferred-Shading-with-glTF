@@ -6,42 +6,46 @@ varying vec2 v_uv;
 
 uniform sampler2D u_color;
 uniform bool u_horizontal;
-uniform vec2 u_tex_offset;
+uniform float u_strength;
 // length of texel in uv coord
 // hard to get texel size in glsl es 100
+uniform vec2 u_tex_offset;
 
-float weight[5];
+// using a gaussian model with a sigma of 0.84089642
+//const float sigma = 0.84089642;
+const float one_over_sigma_sqr = 1.414213;
+const float cent_coeff = 0.22508352;
 
 void main()
 {
-    // since 100 does not support array constructor
-    weight[0] = 0.227027;
-    weight[1] = 0.1945946;
-    weight[2] = 0.1216216;
-    weight[3] = 0.054054;
-    weight[4] = 0.016216;
-    // TODO: make bloom radius a uniform variable
-
     // ref: http://learnopengl.com/#!Advanced-Lighting/Bloom
+    //    & https://en.wikipedia.org/wiki/Gaussian_blur
 
-    //vec2 tex_offset = 1.0 / texel_size; // gets size of single texel
-    //vec3 result= vec3(1.0,1.0,1.0);
-    //vec3 result= texture2D(u_color, v_uv).rgb;
-    vec3 result = texture2D(u_color, v_uv).rgb * weight[0]; // current fragment's contribution
+    float dist_scale_sqr = 1.0 / (u_strength * u_strength);
+
+    vec3 result = texture2D(u_color, v_uv).rgb * cent_coeff; // current fragment's contribution
+    float offset;
+    float weight;
     if(u_horizontal)
     {
-        for(int i = 1; i < 5; ++i)
+        for(int i = 1; i < 100; ++i)
         {
-            result += texture2D(u_color, v_uv + vec2(u_tex_offset.x * float(i), 0.0)).rgb * weight[i];
-            result += texture2D(u_color, v_uv - vec2(u_tex_offset.x * float(i), 0.0)).rgb * weight[i];
+            offset = u_tex_offset.x * float(i);
+            weight = exp(-0.5 * offset * offset * dist_scale_sqr * one_over_sigma_sqr) * cent_coeff;
+            if (weight < 0.01) break;
+            result += texture2D(u_color, v_uv + vec2(offset, 0.0)).rgb * weight;
+            result += texture2D(u_color, v_uv - vec2(offset, 0.0)).rgb * weight;
         }
     }
     else
     {
-        for(int i = 1; i < 5; ++i)
+        for(int i = 1; i < 100; ++i)
         {
-            result += texture2D(u_color, v_uv + vec2(0.0, u_tex_offset.y * float(i))).rgb * weight[i];
-            result += texture2D(u_color, v_uv - vec2(0.0, u_tex_offset.y * float(i))).rgb * weight[i];
+            offset = u_tex_offset.y * float(i);
+            weight = exp(-0.5 * offset * offset * dist_scale_sqr * one_over_sigma_sqr ) * cent_coeff;
+            if (weight < 0.01) break;
+            result += texture2D(u_color, v_uv + vec2(0.0, offset)).rgb * weight;
+            result += texture2D(u_color, v_uv - vec2(0.0, offset)).rgb * weight;
         }
     }
     gl_FragColor = vec4(result, texture2D(u_color, v_uv).a);

@@ -93,7 +93,7 @@ window.readyModelForDraw = function(prog, m) {
     }
 
     gl.bindBuffer(gl.ARRAY_BUFFER, m.attributes);
-    
+
     gl.enableVertexAttribArray(prog.a_position);
     gl.vertexAttribPointer(prog.a_position, m.posInfo.size, m.posInfo.type, false, m.posInfo.stride, m.posInfo.offset);
 
@@ -146,7 +146,9 @@ window.getScissorForLight = (function() {
         maxpt.set(Math.min( 1, b.x), Math.min( 1, b.y));
 
         if (maxpt.x < -1 || 1 < minpt.x ||
-            maxpt.y < -1 || 1 < minpt.y) {
+            maxpt.y < -1 || 1 < minpt.y ||
+            maxpt.x < minpt.x||
+            maxpt.y < minpt.y) {
             return null;
         }
 

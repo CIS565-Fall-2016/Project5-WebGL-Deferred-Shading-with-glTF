@@ -21,8 +21,11 @@ FIXME: glTF files returns 404 on GitHub Pages
 
 * Deferred __Blinn-Phong shading__ with normal mapping
   * Using `clamp(1.0 - light_distance * light_distance / (u_lightRad * u_lightRad), 0.0, 1.0) ` as attenuation model for point lights
-* __Bloom__ post-processing effect
-  * Using three steps: first extract bright areas with a threshold; then do a two-pass Gaussian blur (vertical then horizontal); finally combine the blurred image to the original output.
+* __Bloom__ post-processing effect with __two-pass Gaussian blur__ using three steps:
+  * First extract bright areas with a threshold
+  * Then do a __two-pass Gaussian blur__ using separable convolution (vertical then horizontal)
+    * Using a uniform variable `u_strength` to control blur strength (see `bloom.frag.glsl`)
+  * Finally combine the blurred image to the original output
 * __Scissor test optimization__: when accumulating shading from each point light source, only render in a rectangle around the light.
   * Use `debugScissor` option to toggle scissor visual, or select `6 Light scissors` to show scissor only.
 
