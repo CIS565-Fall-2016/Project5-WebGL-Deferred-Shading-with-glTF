@@ -33,4 +33,6 @@ void main() {
     vec3 nor = applyNormalMap (v_normal, normap);     // The true normals as we want to light them - with the normal map applied to the geometry normals (applyNormalMap above)
 
     gl_FragData[1] =  vec4(nor, 1); 
+    gl_FragData[2] = colormap; 
+    gl_FragData[3] =  vec4(normap, 1); 
 }
