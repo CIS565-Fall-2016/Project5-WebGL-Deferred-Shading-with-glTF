@@ -8,6 +8,7 @@ var cfg;
         this.debugView = -1;
         this.debugScissor = false;
         this.enableEffect0 = false;
+        this.enableToon= false;
     };
 
     var init = function() {
@@ -30,6 +31,7 @@ var cfg;
         eff0.open();
         eff0.add(cfg, 'enableEffect0');
         // TODO: add more effects toggles and parameters here
+        eff0.add(cfg, 'enableToon');
     };
 
     window.handle_load.push(init);

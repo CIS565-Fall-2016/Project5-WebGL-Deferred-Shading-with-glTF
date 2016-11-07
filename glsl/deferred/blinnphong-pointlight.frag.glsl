@@ -10,8 +10,8 @@ uniform float u_lightRad;
 uniform sampler2D u_gbufs[NUM_GBUFFERS];
 uniform sampler2D u_depth;
 
-uniform vec3 u_cameraPos;
-
+uniform vec3 u_camPos;
+uniform vec3 u_effects;
 
 varying vec2 v_uv;
 
@@ -45,17 +45,44 @@ void main() {
         return;
     }
 
-    //gl_FragColor = vec4(0, 0, 1, 1);  // TODO: perform lighting calculations
-    vec3 thiscolor = colmap.rgb*u_lightCol;
-
-    //fill here
-    //diffuse section:
-    vec3 lightdir = normalize(u_lightPos-pos);
     float dist_from_surface_to_light = length(u_lightPos-pos);
     float attenuation = max(0.0, u_lightRad - dist_from_surface_to_light);
-    thiscolor *= attenuation*dot(nor,lightdir)*0.25;
+    
+    //diffuse section:
+    vec3 thiscolor = colmap.rgb*u_lightCol;
+
+    vec3 lightdir = normalize(u_lightPos-pos);
+    float diffusefact=dot(nor,lightdir);
+
+    
+    float enableToon = u_effects.r;
+    if ( enableToon==1.0){
+        float diffusefact2=   abs(diffusefact) ;
+        if (diffusefact2>0.75){
+            thiscolor *= 1.0;
+        }
+        else if (diffusefact2>0.5){
+            thiscolor *= 0.5;
+        }
+        else if (diffusefact2>0.05){
+            thiscolor *= 0.25;
+        }
+        else{
+            thiscolor *= 0.1;
+        }
+        thiscolor *= sign(diffusefact)*attenuation*0.25;
+    }
+    else{
+        thiscolor *= attenuation*diffusefact*0.25;
+    }
+
+ 
+    
+
+    //fill here
+
     //specular
-    vec3 camdir = normalize(u_cameraPos-pos);
+    vec3 camdir = normalize(u_camPos-pos);
     vec3 tmp = normalize(lightdir+camdir);
     float specularfact = dot(nor,tmp);
     thiscolor += colmap * specularfact * attenuation * 0.25;

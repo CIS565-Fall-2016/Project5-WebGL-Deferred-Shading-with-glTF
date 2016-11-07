@@ -160,16 +160,30 @@
                     }
                     
                     else{
-                        gl.uniform1f(R.prog_BlinnPhong_PointLight.u_lightRad,curlight.rad);
+                        
                         gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_lightPos, curlight.pos);
                         gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_lightCol,curlight.col);
-
+                        gl.uniform1f(R.prog_BlinnPhong_PointLight.u_lightRad,curlight.rad);
+                        gl.uniform1f(R.prog_BlinnPhong_PointLight.u_lightRad,curlight.rad);
+                        var campos = [state.cameraPos.x,state.cameraPos.y,state.cameraPos.z];
+                        gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_camPos,campos );
+                         
+                     gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_effects,[cfg.enableToon,0,0] );  
+                         
+  
+                        
                         renderFullScreenQuad(R.prog_BlinnPhong_PointLight);
                     }
                 }
             }
         }
         gl.disable(gl.SCISSOR_TEST);
+
+        //+toon
+        if (cfg.enableToon){
+
+        }
+
         // TODO: see above; add a loop here, over the values in R.lights, which sets the
         //   uniforms R.prog_BlinnPhong_PointLight.u_lightPos/Col/Rad etc.,
         //   then does renderFullScreenQuad(R.prog_BlinnPhong_PointLight).
