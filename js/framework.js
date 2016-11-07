@@ -151,7 +151,11 @@ var width, height;
 
 
             // temp for sponza
-            var colorTextureName = 'texture_color';
+            var colorTextureName = 'texture_color'; // for sponza
+            if (!glTF.json.textures[colorTextureName]) {
+                colorTextureName = (Object.keys(glTF.json.textures))[0];
+                console.log(colorTextureName);
+            }
             var normalTextureName = 'texture_normal';
 
             // textures
@@ -232,9 +236,14 @@ var width, height;
 
                     var posInfo = primitive.attributes[primitive.technique.parameters['position'].semantic];
                     var norInfo = primitive.attributes[primitive.technique.parameters['normal'].semantic];
-                    var uvInfo = primitive.attributes[primitive.technique.parameters['texcoord0'].semantic];
+                    var uvInfo;
+                    if (primitive.technique.parameters['texcoord_0']) {
+                        uvInfo = primitive.attributes[primitive.technique.parameters['texcoord_0'].semantic];
+                    } else if (primitive.technique.parameters['texcoord0']) {
+                        uvInfo = primitive.attributes[primitive.technique.parameters['texcoord0'].semantic];
+                    }
+                    
 
-                    var x = webGLTextures[colorTextureName];
                     models.push({
                         gltf: primitive,
 
@@ -246,8 +255,8 @@ var width, height;
                         uvInfo: {size: uvInfo.size, type: uvInfo.type, stride: uvInfo.stride, offset: uvInfo.offset},
 
                         // specific textures temp test
-                        colmap: webGLTextures[colorTextureName].texture,
-                        normap: webGLTextures[normalTextureName].texture
+                        colmap: webGLTextures[colorTextureName].texture, 
+                        normap: webGLTextures[normalTextureName] ? webGLTextures[normalTextureName].texture : null
                     });
 
                 }
@@ -260,53 +269,53 @@ var width, height;
 
 
         resize();
-        // renderer.render(scene, camera);
+        renderer.render(scene, camera);
 
-        gl.clearColor(0.5, 0.5, 0.5, 0.5);
-        gl.clearDepth(1.0);
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        // gl.clearColor(0.5, 0.5, 0.5, 0.5);
+        // gl.clearDepth(1.0);
+        // gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
         R.deferredSetup();
 
         requestAnimationFrame(update);
     };
 
-    var uploadModel = function(o, callback) {
-        for (var i = -1; i < o.children.length; i++) {
-            var c, g, idx;
+    var uploadModel = function(obj, callback) {
+        for (var i = -1; i < obj.children.length; i++) {
+            var child, geom, idx;
             if (i < 0) {
-                c = o;
-                if (!c.geometry) {
+                child = obj;
+                if (!child.geometry) {
                     continue;
                 }
-                g = c.geometry._bufferGeometry.attributes;
-                idx = c.geometry._bufferGeometry.index;
+                geom = child.geometry._bufferGeometry.attributes;
+                idx = child.geometry._bufferGeometry.index;
             } else {
-                c = o.children[i];
-                g = c.geometry.attributes;
-                idx = c.geometry.index;
+                child = obj.children[i];
+                geom = child.geometry.attributes;
+                idx = child.geometry.index;
             }
 
             var gposition = gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER, gposition);
-            gl.bufferData(gl.ARRAY_BUFFER, g.position.array, gl.STATIC_DRAW);
+            gl.bufferData(gl.ARRAY_BUFFER, geom.position.array, gl.STATIC_DRAW);
 
             var gnormal;
-            if (g.normal && g.normal.array) {
+            if (geom.normal && geom.normal.array) {
                 gnormal = gl.createBuffer();
                 gl.bindBuffer(gl.ARRAY_BUFFER, gnormal);
-                gl.bufferData(gl.ARRAY_BUFFER, g.normal.array, gl.STATIC_DRAW);
+                gl.bufferData(gl.ARRAY_BUFFER, geom.normal.array, gl.STATIC_DRAW);
             }
 
             var guv;
-            if (g.uv && g.uv.array) {
+            if (geom.uv && geom.uv.array) {
                 guv = gl.createBuffer();
                 gl.bindBuffer(gl.ARRAY_BUFFER, guv);
-                gl.bufferData(gl.ARRAY_BUFFER, g.uv.array, gl.STATIC_DRAW);
+                gl.bufferData(gl.ARRAY_BUFFER, geom.uv.array, gl.STATIC_DRAW);
             }
 
             if (!idx) {
-                idx = new Uint32Array(g.position.array.length / 3);
+                idx = new Uint32Array(geom.position.array.length / 3);
                 for (var j = 0; j < idx.length; j++) {
                     idx[j] = j;
                 }
@@ -316,7 +325,7 @@ var width, height;
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gidx);
             gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, idx, gl.STATIC_DRAW);
 
-            var m = {
+            var mesh = {
                 idx: gidx,
                 elemCount: idx.length,
                 position: gposition,
@@ -325,7 +334,7 @@ var width, height;
             };
 
             if (callback) {
-                callback(m);
+                callback(mesh);
             }
         }
     };

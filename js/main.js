@@ -1,4 +1,5 @@
 var handle_load = [];
+// :(
 
 (function() {
     'use strict';

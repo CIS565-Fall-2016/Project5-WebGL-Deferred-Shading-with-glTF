@@ -2,7 +2,7 @@
 precision highp float;
 precision highp int;
 
-#define NUM_GBUFFERS 4
+#define NUM_GBUFFERS 3
 #define NUM_CEL_CUTS 7
 #define GB(i) (texture2D(u_gbufs[i], v_uv).xyz)
 #define color_at_offset(i, j) (texture2D(u_gbufs[2], v_uv + vec2(i, j)))

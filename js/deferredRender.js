@@ -166,6 +166,14 @@
         }
         gl.disable(gl.SCISSOR_TEST);
 
+        gl.uniform3fv(prog.u_kernel, [
+            -1, -1, -1,
+            -1,  5, -1,
+            -1, -1, -1,
+        ]);
+
+        renderFullScreenQuad(R.progEdges);
+
         // TODO: In the lighting loop, use the scissor test optimization
         // Enable gl.SCISSOR_TEST, render all lights, then disable it.
         //
@@ -175,6 +183,7 @@
 
         // Disable blending so that it doesn't affect other code
         gl.disable(gl.BLEND);
+
     };
 
     var bindTexturesForLightPass = function(prog) {
