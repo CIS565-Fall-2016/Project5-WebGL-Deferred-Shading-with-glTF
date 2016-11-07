@@ -92,6 +92,8 @@ window.readyModelForDraw = function(prog, m) {
         gl.uniform1i(prog.u_normap, 1);
     }
 
+    gl.uniform1f(prog.u_specmap, m.specExp);
+
     gl.bindBuffer(gl.ARRAY_BUFFER, m.attributes);
     
     gl.enableVertexAttribArray(prog.a_position);

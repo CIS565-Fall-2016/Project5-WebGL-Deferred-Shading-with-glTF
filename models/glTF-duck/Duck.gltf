@@ -108,10 +108,13 @@
         "file2": {
             "name": "file2",
             "uri": "DuckCM.png"
+        },
+        "normals": {
+          "uri": "normal.png"
         }
     },
     "materials": {
-        "blinn3-fx": {
+        "material_0": {
             "name": "blinn3",
             "technique": "technique0",
             "values": {
@@ -121,14 +124,15 @@
                     0,
                     1
                 ],
-                "diffuse": "texture_file2",
+                "diffuse": "texture_color",
+                "normalMap": "texture_normal",
                 "emission": [
                     0,
                     0,
                     0,
                     1
                 ],
-                "shininess": 38.4,
+                "shininess": 32.0,
                 "specular": [
                     0,
                     0,
@@ -149,7 +153,7 @@
                         "TEXCOORD_0": "accessor_27"
                     },
                     "indices": "accessor_21",
-                    "material": "blinn3-fx",
+                    "material": "material_0",
                     "mode": 4
                 }
             ]
@@ -323,7 +327,7 @@
                 "specular": {
                     "type": 35666
                 },
-                "texcoord0": {
+                "texcoord_0": {
                     "semantic": "TEXCOORD_0",
                     "type": 35664
                 }
@@ -350,13 +354,21 @@
         }
     },
     "textures": {
-        "texture_file2": {
+        "texture_color": {
             "format": 6408,
             "internalFormat": 6408,
             "sampler": "sampler_0",
             "source": "file2",
             "target": 3553,
             "type": 5121
+        },
+        "texture_normal": {
+          "format": 6407,
+          "internalFormat": 6407,
+          "sampler": "sampler_0",
+          "source": "normals",
+          "target": 3553,
+          "type": 5121
         }
     }
 }

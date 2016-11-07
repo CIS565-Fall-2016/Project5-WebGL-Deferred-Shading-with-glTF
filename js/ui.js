@@ -6,8 +6,11 @@ var cfg;
     var Cfg = function() {
         // TODO: Define config fields and defaults here
         this.debugView = -1;
+        this.enableScissor = false;
         this.debugScissor = false;
-        this.enableEffect0 = false;
+        this.toonShading = false;
+        this.packNormals = false;
+        this.motionBlur = false;
     };
 
     var init = function() {
@@ -24,12 +27,16 @@ var cfg;
             '4 Normal map':      4,
             '5 Surface normal':  5
         });
-        gui.add(cfg, 'debugScissor');
+        var scissor = gui.addFolder('Scissor Test');
+        scissor.open();
+        scissor.add(cfg, 'enableScissor');
+        scissor.add(cfg, 'debugScissor');
 
-        var eff0 = gui.addFolder('EFFECT NAME HERE');
-        eff0.open();
-        eff0.add(cfg, 'enableEffect0');
-        // TODO: add more effects toggles and parameters here
+        gui.add(cfg, 'toonShading');
+        gui.add(cfg, 'packNormals');
+        gui.add(cfg, 'motionBlur');
+
+
     };
 
     window.handle_load.push(init);

@@ -106,7 +106,7 @@
     }
   },
   "materials": {
-    "material_lambert2SG": {
+    "material_0": {
       "name": "lambert2SG",
       "extensions": {},
       "values": {
@@ -130,7 +130,7 @@
           0,
           1
         ],
-        "shininess": 0,
+        "shininess": 16.0,
         "transparency": 1
       },
       "technique": "technique0"
@@ -147,7 +147,7 @@
             "TEXCOORD_0": "accessor_uv"
           },
           "indices": "accessor_index_0",
-          "material": "material_lambert2SG",
+          "material": "material_0",
           "mode": 4
         }
       ]

@@ -24,7 +24,7 @@
     R.light_min = [-14, 0, -6];
     R.light_max = [14, 18, 6];
     R.light_dt = -0.03;
-    R.LIGHT_RADIUS = 4.0;
+    R.LIGHT_RADIUS = 8.0;
     R.NUM_LIGHTS = 20; // TODO: test with MORE lights!
     var setupLights = function() {
         Math.seedrandom(0);
@@ -108,9 +108,11 @@
                 var p = { prog: prog };
 
                 // Retrieve the uniform and attribute locations
+                p.u_packNormals = gl.getUniformLocation(prog, 'u_packNormals');
                 p.u_cameraMat = gl.getUniformLocation(prog, 'u_cameraMat');
                 p.u_colmap    = gl.getUniformLocation(prog, 'u_colmap');
                 p.u_normap    = gl.getUniformLocation(prog, 'u_normap');
+                p.u_specmap    = gl.getUniformLocation(prog, 'u_specmap');
                 p.a_position  = gl.getAttribLocation(prog, 'a_position');
                 p.a_normal    = gl.getAttribLocation(prog, 'a_normal');
                 p.a_uv        = gl.getAttribLocation(prog, 'a_uv');
@@ -138,6 +140,9 @@
 
         loadDeferredProgram('blinnphong-pointlight', function(p) {
             // Save the object into this variable for access later
+            p.u_packNormals = gl.getUniformLocation(p.prog, 'u_packNormals');
+            p.u_toon = gl.getUniformLocation(p.prog, 'u_toon');
+            p.u_eyePos = gl.getUniformLocation(p.prog, 'u_eyePos');
             p.u_lightPos = gl.getUniformLocation(p.prog, 'u_lightPos');
             p.u_lightCol = gl.getUniformLocation(p.prog, 'u_lightCol');
             p.u_lightRad = gl.getUniformLocation(p.prog, 'u_lightRad');
@@ -145,12 +150,16 @@
         });
 
         loadDeferredProgram('debug', function(p) {
+            p.u_packNormals = gl.getUniformLocation(p.prog, 'u_packNormals');
             p.u_debug = gl.getUniformLocation(p.prog, 'u_debug');
             // Save the object into this variable for access later
             R.prog_Debug = p;
         });
 
         loadPostProgram('one', function(p) {
+            p.u_prevCameraMat    = gl.getUniformLocation(p.prog, 'u_prevCameraMat');
+            p.u_gbuf0    = gl.getUniformLocation(p.prog, 'u_gbuf0');
+            p.u_motion    = gl.getUniformLocation(p.prog, 'u_motion');
             p.u_color    = gl.getUniformLocation(p.prog, 'u_color');
             // Save the object into this variable for access later
             R.progPost1 = p;
