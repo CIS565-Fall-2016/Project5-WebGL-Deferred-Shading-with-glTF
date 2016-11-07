@@ -26,7 +26,7 @@
         // Execute deferred shading pipeline
 
         // CHECKITOUT: START HERE! You can even uncomment this:
-        debugger;
+        //debugger;
 
         // { // TODO: this block should be removed after testing renderFullScreenQuad
         //     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -44,8 +44,8 @@
         } else {
             // * Deferred pass and postprocessing pass(es)
             // TODO: uncomment these
-            // R.pass_deferred.render(state);
-            // R.pass_post1.render(state);
+             R.pass_deferred.render(state);
+             R.pass_post1.render(state);
 
             // OPTIONAL TODO: call more postprocessing passes, if any
         }
@@ -133,9 +133,9 @@
         // Here is a wonderful demo of showing how blend function works: 
         // http://mrdoob.github.io/webgl-blendfunctions/blendfunc.html
         // TODO: uncomment
-        // gl.enable(gl.BLEND);
-        // gl.blendEquation( gl.FUNC_ADD );
-        // gl.blendFunc(gl.ONE,gl.ONE);
+         gl.enable(gl.BLEND);
+         gl.blendEquation( gl.FUNC_ADD );
+         gl.blendFunc(gl.ONE,gl.ONE);
 
         // * Bind/setup the ambient pass, and render using fullscreen quad
         bindTexturesForLightPass(R.prog_Ambient);
@@ -144,7 +144,28 @@
         // * Bind/setup the Blinn-Phong pass, and render using fullscreen quad
         bindTexturesForLightPass(R.prog_BlinnPhong_PointLight);
 
-        // TODO: add a loop here, over the values in R.lights, which sets the
+
+        //+
+        //for now just scissor
+        gl.enable(gl.SCISSOR_TEST);
+        
+        for (var i=0; i<R.lights.length;i++){
+            if (cfg){
+                var curlight =R.lights[i];
+                var sc = getScissorForLight(state.viewMat, state.projMat, curlight);
+                if (sc != null && sc[0]>0 && sc[1]>0 && sc[2]>0 && sc[3]>0){
+                    gl.scissor(sc[0],sc[1],sc[2],sc[3]);
+                    
+                    gl.uniform1f(R.prog_BlinnPhong_PointLight.u_lightRad,curlight.rad);
+                    gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_lightPos, curlight.pos);
+                    gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_lightCol,curlight.col);
+
+                    renderFullScreenQuad(R.prog_BlinnPhong_PointLight);
+                }
+            }
+        }
+        gl.disable(gl.SCISSOR_TEST);
+        // TODO: see above; add a loop here, over the values in R.lights, which sets the
         //   uniforms R.prog_BlinnPhong_PointLight.u_lightPos/Col/Rad etc.,
         //   then does renderFullScreenQuad(R.prog_BlinnPhong_PointLight).
 
@@ -192,11 +213,11 @@
         // * Bind the deferred pass's color output as a texture input
         // Set gl.TEXTURE0 as the gl.activeTexture unit
         // TODO: uncomment
-        // gl.activeTexture(gl.TEXTURE0);
+         gl.activeTexture(gl.TEXTURE0);
 
         // Bind the TEXTURE_2D, R.pass_deferred.colorTex to the active texture unit
         // TODO: uncomment
-        // gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex);
+         gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex);
 
         // Configure the R.progPost1.u_color uniform to point at texture unit 0
         gl.uniform1i(R.progPost1.u_color, 0);

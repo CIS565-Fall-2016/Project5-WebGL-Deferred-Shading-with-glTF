@@ -23,5 +23,5 @@ void main() {
         return;
     }
 
-    gl_FragColor = vec4(0.1, 0.1, 0.1, 1);  // TODO: replace this
+    gl_FragColor = vec4(gb2.rgb/2.5, 1);  // TODO: replace this
 }
