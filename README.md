@@ -1,16 +1,17 @@
 WebGL Deferred Shading
 ======================
 
-**University of Pennsylvania, CIS 565: GPU Programming and Architecture, Project 5**
+**University of Pennsylvania, CIS 565: GPU Programming and Architecture, Project 4** 
 
-* (TODO) YOUR NAME HERE
-* Tested on: (TODO) **Google Chrome 222.2** on
-  Windows 22, i7-2222 @ 2.22GHz 22GB, GTX 222 222MB (Moore 2222 Lab)
+* Xiang Deng
+* Tested on:  Windows 10-Home, i7-6700U @ 2.6GHz 16GB, GTX 1060 6GB (Personal Computer)
+
+
 
 ![](img/scissor.gif) 
 
 With toon |  No toon | Edge Highlint
-
+:-------------------------:|:-------------------------:  |:-------------------------:
 ![](img/toon.JPG) | ![](img/notoon.JPG) |![](img/edge.JPG)
 
 
