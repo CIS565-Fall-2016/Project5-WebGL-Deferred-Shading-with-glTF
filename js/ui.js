@@ -7,7 +7,14 @@ var cfg;
         // TODO: Define config fields and defaults here
         this.debugView = -1;
         this.debugScissor = false;
-        this.enableEffect0 = false;
+        this.enableBlinnPhong = false;
+        this.enableRampShading = false;
+        this.debugShaders = 1;
+        this.movingLights = true;
+        this.bands = 5;
+        this.edge = false;
+        this.edgeTwoPass = false;
+        this.rampShading = false;
     };
 
     var init = function() {
@@ -22,13 +29,25 @@ var cfg;
             '2 Geometry normal': 2,
             '3 Color map':       3,
             '4 Normal map':      4,
-            '5 Surface normal':  5
+            '5 Surface normal':  5,
+            '6 Edge map':        6,
         });
         gui.add(cfg, 'debugScissor');
-
-        var eff0 = gui.addFolder('EFFECT NAME HERE');
+        gui.add(cfg, 'movingLights');
+        var eff0 = gui.addFolder('Shaders');
         eff0.open();
-        eff0.add(cfg, 'enableEffect0');
+        eff0.add(cfg, 'debugShaders', {
+          'Default': 0,
+          'Blinn-Phong': 1,
+          'Ramp Shading': 2
+        });
+        var post = gui.addFolder('Post Effects');
+        post.open();
+        post.add(cfg, 'bands', 1, 10);
+        post.add(cfg, 'edge');
+        post.add(cfg, 'edgeTwoPass');
+        post.add(cfg, 'rampShading');
+
         // TODO: add more effects toggles and parameters here
     };
 

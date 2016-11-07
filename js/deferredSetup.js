@@ -6,6 +6,8 @@
     R.pass_debug = {};
     R.pass_deferred = {};
     R.pass_post1 = {};
+    R.pass_edge = {};
+    R.pass_toon = {};
     R.lights = [];
 
     R.NUM_GBUFFERS = 4;
@@ -18,13 +20,15 @@
         loadAllShaderPrograms();
         R.pass_copy.setup();
         R.pass_deferred.setup();
+        R.pass_post1.setup();
+        R.pass_edge.setup();
     };
 
     // TODO: Edit if you want to change the light initial positions
     R.light_min = [-14, 0, -6];
     R.light_max = [14, 18, 6];
     R.light_dt = -0.03;
-    R.LIGHT_RADIUS = 4.0;
+    R.LIGHT_RADIUS = 8.0;
     R.NUM_LIGHTS = 20; // TODO: test with MORE lights!
     var setupLights = function() {
         Math.seedrandom(0);
@@ -98,6 +102,33 @@
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     };
 
+    R.pass_post1.setup = function() {
+        R.pass_post1.fbo = gl.createFramebuffer();
+        R.pass_post1.colorTex = createAndBindColorTargetTexture(
+            R.pass_post1.fbo, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+        abortIfFramebufferIncomplete(R.pass_post1.fbo);
+        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    };
+
+    R.pass_edge.setup = function() {
+        R.pass_edge.fbo = gl.createFramebuffer();
+        R.pass_edge.colorTex = createAndBindColorTargetTexture(
+            R.pass_edge.fbo, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+        abortIfFramebufferIncomplete(R.pass_edge.fbo);
+        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    };
+    R.pass_toon.setup = function() {
+        R.pass_toon.fbo = gl.createFramebuffer();
+        R.pass_toon.colorTex = createAndBindColorTargetTexture(
+            R.pass_toon.fbo, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+        abortIfFramebufferIncomplete(R.pass_toon.fbo);
+        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    };
+
+
     /**
      * Loads all of the shader programs used in the pipeline.
      */
@@ -135,14 +166,30 @@
             // Save the object into this variable for access later
             R.prog_Ambient = p;
         });
+        loadDeferredProgram('default', function(p) {
+          p.u_lightPos = gl.getUniformLocation(p.prog, 'u_lightPos');
+          p.u_lightCol = gl.getUniformLocation(p.prog, 'u_lightCol');
+          p.u_lightRad = gl.getUniformLocation(p.prog, 'u_lightRad');
+          R.prog_Default = p;
+        })
 
         loadDeferredProgram('blinnphong-pointlight', function(p) {
             // Save the object into this variable for access later
             p.u_lightPos = gl.getUniformLocation(p.prog, 'u_lightPos');
             p.u_lightCol = gl.getUniformLocation(p.prog, 'u_lightCol');
             p.u_lightRad = gl.getUniformLocation(p.prog, 'u_lightRad');
+            p.u_viewPos = gl.getUniformLocation(p.prog, 'u_viewPos');
             R.prog_BlinnPhong_PointLight = p;
         });
+
+        loadDeferredProgram('toon-rampshading', function (p) {
+          p.u_lightPos = gl.getUniformLocation(p.prog, 'u_lightPos');
+          p.u_lightCol = gl.getUniformLocation(p.prog, 'u_lightCol');
+          p.u_lightRad = gl.getUniformLocation(p.prog, 'u_lightRad');
+          p.u_viewPos = gl.getUniformLocation(p.prog, 'u_viewPos');
+          p.u_bands = gl.getUniformLocation(p.prog, 'u_bands');
+          R.prog_RampShading = p;
+        })
 
         loadDeferredProgram('debug', function(p) {
             p.u_debug = gl.getUniformLocation(p.prog, 'u_debug');
@@ -150,8 +197,26 @@
             R.prog_Debug = p;
         });
 
+        loadPostProgram('edge', function(p) {
+            // Save the object into this variable for access later
+            p.u_color = gl.getUniformLocation(p.prog, 'u_color');
+            p.u_pixSize = gl.getUniformLocation(p.prog, 'u_pixSize');
+            p.u_kernel = gl.getUniformLocation(p.prog, 'u_kernel');
+
+            R.prog_Edge = p;
+        });
+        loadPostProgram('toon', function(p) {
+            // Save the object into this variable for access later
+            p.u_color = gl.getUniformLocation(p.prog, 'u_color');
+            p.u_pixSize = gl.getUniformLocation(p.prog, 'u_pixSize');
+            p.u_kernel = gl.getUniformLocation(p.prog, 'u_kernel');
+            p.u_bands = gl.getUniformLocation(p.prog, 'u_bands');
+
+            R.prog_Toon = p;
+        });
+
         loadPostProgram('one', function(p) {
-            p.u_color    = gl.getUniformLocation(p.prog, 'u_color');
+            p.u_color = gl.getUniformLocation(p.prog, 'u_color');
             // Save the object into this variable for access later
             R.progPost1 = p;
         });

@@ -1,6 +1,7 @@
 (function() {
     'use strict';
     // deferredSetup.js must be loaded first
+    R.lastShader = null;
 
     R.deferredRender = function(state) {
         if (!aborted && (
@@ -10,39 +11,39 @@
             !R.prog_Ambient ||
             !R.prog_BlinnPhong_PointLight ||
             !R.prog_Debug ||
-            !R.progPost1)) {
+            !R.progPost1 ||
+            !R.prog_Edge ||
+            !R.prog_Toon)) {
             console.log('waiting for programs to load...');
             return;
         }
 
         // Move the R.lights
-        for (var i = 0; i < R.lights.length; i++) {
-            // OPTIONAL TODO: Edit if you want to change how lights move
-            var mn = R.light_min[1];
-            var mx = R.light_max[1];
-            R.lights[i].pos[1] = (R.lights[i].pos[1] + R.light_dt - mn + mx) % mx + mn;
+        if (cfg.movingLights) {
+          for (var i = 0; i < R.lights.length; i++) {
+              // OPTIONAL TODO: Edit if you want to change how lights move
+              var mn = R.light_min[1];
+              var mx = R.light_max[1];
+              R.lights[i].pos[1] = (R.lights[i].pos[1] + R.light_dt - mn + mx) % mx + mn;
+          }
         }
 
-        // Execute deferred shading pipeline
-
-        // CHECKITOUT: START HERE! You can even uncomment this:
-        //debugger;
-
-
         R.pass_copy.render(state);
-
         if (cfg && cfg.debugView >= 0) {
-            // Do a debug render instead of a regular render
-            // Don't do any post-processing in debug mode
             R.pass_debug.render(state);
         } else {
             // * Deferred pass and postprocessing pass(es)
             // TODO: uncomment these
             R.pass_deferred.render(state);
             R.pass_post1.render(state);
-
-            // OPTIONAL TODO: call more postprocessing passes, if any
+            if (cfg.rampShading) {
+              R.pass_toon.render(state);
+            }
+            if (cfg.edge) {
+              R.pass_edge.render(state);
+            }
         }
+
     };
 
     /**
@@ -120,13 +121,6 @@
         gl.clearDepth(1.0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-        // * _ADD_ together the result of each lighting pass
-
-        // Enable blending and use gl.blendFunc to blend with:
-        //   color = 1 * src_color + 1 * dst_color
-        // Here is a wonderful demo of showing how blend function works:
-        // http://mrdoob.github.io/webgl-blendfunctions/blendfunc.html
-        // TODO: uncomment
         gl.enable(gl.BLEND);
         gl.blendEquation( gl.FUNC_ADD );
         gl.blendFunc(gl.ONE,gl.ONE);
@@ -135,20 +129,18 @@
         bindTexturesForLightPass(R.prog_Ambient);
         renderFullScreenQuad(R.prog_Ambient);
 
-        // * Bind/setup the Blinn-Phong pass, and render using fullscreen quad
-        bindTexturesForLightPass(R.prog_BlinnPhong_PointLight);
 
-        // TODO: add a loop here, over the values in R.lights, which sets the
-        //   uniforms R.prog_BlinnPhong_PointLight.u_lightPos/Col/Rad etc.,
-        //   then does renderFullScreenQuad(R.prog_BlinnPhong_PointLight).
+        var shadingProg;
+        if (cfg.debugShaders == 1) {
+          shadingProg = R.prog_BlinnPhong_PointLight;
+        } else if (cfg.debugShaders == 2) {
+          shadingProg = R.prog_RampShading;
+        } else {
+          shadingProg = R.prog_Default;
+        }
 
-        // TODO: In the lighting loop, use the scissor test optimization
-        // Enable gl.SCISSOR_TEST, render all lights, then disable it.
-        //
-        // getScissorForLight returns null if the scissor is off the screen.
-        // Otherwise, it returns an array [xmin, ymin, width, height].
-        //
-        //   var sc = getScissorForLight(state.viewMat, state.projMat, light);
+        bindTexturesForLightPass(shadingProg);
+
         if (cfg.debugScissor) {
           gl.enable(gl.SCISSOR_TEST);
         }
@@ -161,17 +153,18 @@
             }
             gl.scissor(sc[0], sc[1], sc[2], sc[3]);
           }
-          gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_lightPos, light.pos);
-          gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_lightCol, light.col);
-          gl.uniform1f(R.prog_BlinnPhong_PointLight.u_lightRad, light.rad);
-          renderFullScreenQuad(R.prog_BlinnPhong_PointLight);
+          gl.uniform3fv(shadingProg.u_lightPos, light.pos);
+          gl.uniform3fv(shadingProg.u_lightCol, light.col);
+          gl.uniform1f(shadingProg.u_lightRad, light.rad);
+          renderFullScreenQuad(shadingProg);
         }
-        // Disable blending so that it doesn't affect other code
-        if (cfg.debugScissor) {
-          gl.disable(gl.SCISSOR_TEST);
-        }
+        gl.uniform3fv(shadingProg.u_viewPos, [state.cameraPos.x,state.cameraPos.y,state.cameraPos.z]);
+        gl.uniform1f(shadingProg.u_bands, cfg.bands);
+
+        gl.disable(gl.SCISSOR_TEST);
         gl.disable(gl.BLEND);
     };
+
 
     var bindTexturesForLightPass = function(prog) {
         gl.useProgram(prog.prog);
@@ -193,29 +186,72 @@
      */
     R.pass_post1.render = function(state) {
         // * Unbind any existing framebuffer (if there are no more passes)
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        if (cfg.edge || cfg.rampShading) {
+          gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_post1.fbo);
+          R.lastShader = R.pass_post1;
+        } else {
+          gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        }
 
-        // * Clear the framebuffer depth to 1.0
         gl.clearDepth(1.0);
         gl.clear(gl.DEPTH_BUFFER_BIT);
 
-        // * Bind the postprocessing shader program
         gl.useProgram(R.progPost1.prog);
 
-        // * Bind the deferred pass's color output as a texture input
-        // Set gl.TEXTURE0 as the gl.activeTexture unit
-        // TODO: uncomment
         gl.activeTexture(gl.TEXTURE0);
 
-        // Bind the TEXTURE_2D, R.pass_deferred.colorTex to the active texture unit
-        // TODO: uncomment
         gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex);
-
-        // Configure the R.progPost1.u_color uniform to point at texture unit 0
         gl.uniform1i(R.progPost1.u_color, 0);
-
-        // * Render a fullscreen quad to perform shading on
         renderFullScreenQuad(R.progPost1);
+        R.lastShader = R.pass_post1;
+    };
+
+    R.pass_toon.render = function (state) {
+      if (cfg.edge) {
+        gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_toon.fbo);
+      } else {
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      }
+      gl.useProgram(R.prog_Toon.prog);
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, R.lastShader.colorTex);
+      gl.uniform1i(R.prog_Toon.u_color, 0);
+      gl.uniform2fv(R.prog_Toon.u_pixSize, [1.0 / width, 1.0 / height]);
+      gl.uniform1f(R.prog_Toon.u_bands, cfg.bands);
+      renderFullScreenQuad(R.prog_Toon);
+      R.lastShader = R.pass_toon;
+    }
+
+    R.pass_edge.render = function (state) {
+      if (cfg.edgeTwoPass) {
+        gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_edge.fbo);
+      } else {
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      }
+      gl.useProgram(R.prog_Edge.prog);
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, R.lastShader.colorTex);
+      gl.uniform1i(R.prog_Edge.u_color, 0);
+      gl.uniform2fv(R.prog_Edge.u_pixSize, [1.0 / width, 1.0 / height]);
+      if (cfg.edgeTwoPass) {
+        gl.uniform1fv(R.prog_Edge.u_kernel, [-1, -2, -1, 0, 0, 0, 1, 2, 1]);
+      } else {
+        gl.uniform1fv(R.prog_Edge.u_kernel, [0, -2, -2, 2, 0, -2, 2, 2, 0]);
+      }
+      // gl.uniform1fv(R.prog_Edge.u_kernel, [-1, -1, -1, -1, 8, -1, -1, -1, -1]);
+      // gl.uniform1fv(R.prog_Edge.u_kernel, [0, 0, 0, 0, 1, 0, 0, 0, 0]);
+      R.lastShader = R.pass_edge;
+      renderFullScreenQuad(R.prog_Edge);
+      if (cfg.edgeTwoPass) {
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, R.lastShader.colorTex);
+        gl.uniform1i(R.prog_Edge.u_color, 0);
+        gl.uniform2fv(R.prog_Edge.u_pixSize, [1.0 / width, 1.0 / height]);
+        gl.uniform1fv(R.prog_Edge.u_kernel, [1, 0, -1, 2, 0, -2, 1, 0, -1]);
+        renderFullScreenQuad(R.prog_Edge);
+      }
+      R.lastShader = R.pass_edge;
     };
 
     var renderFullScreenQuad = (function() {

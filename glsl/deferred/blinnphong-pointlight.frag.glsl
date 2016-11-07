@@ -7,6 +7,9 @@ precision highp int;
 uniform vec3 u_lightCol;
 uniform vec3 u_lightPos;
 uniform float u_lightRad;
+uniform vec3 u_viewPos;
+uniform vec3 u_viewDir;
+
 uniform sampler2D u_gbufs[NUM_GBUFFERS];
 uniform sampler2D u_depth;
 
@@ -37,6 +40,19 @@ void main() {
         gl_FragColor = vec4(0, 0, 0, 0);
         return;
     }
+    vec3 D = u_lightPos - pos;
+    vec3 lightDir = normalize(D);
+    float lambertian = max(dot(lightDir, nor), 0.0);
 
-    gl_FragColor = vec4(nor, 1);
+    float specular = 0.0;
+    float attenuation = max(u_lightRad - length(D), 0.0) / u_lightRad;
+    if (lambertian > 0.0) {
+      vec3 viewDir = normalize(u_viewPos-pos);
+      vec3 halfDir = normalize(lightDir + viewDir);
+      float specAngle = max(dot(halfDir, nor), 0.0);
+      specular = pow(specAngle, u_lightRad);
+    }
+
+    vec3 color = (colmap * lambertian * u_lightCol + specular * u_lightCol) * attenuation;
+    gl_FragColor = vec4(color, 1);
 }
