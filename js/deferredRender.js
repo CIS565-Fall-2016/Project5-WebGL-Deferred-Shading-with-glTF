@@ -155,12 +155,17 @@
                 var sc = getScissorForLight(state.viewMat, state.projMat, curlight);
                 if (sc != null && sc[0]>0 && sc[1]>0 && sc[2]>0 && sc[3]>0){
                     gl.scissor(sc[0],sc[1],sc[2],sc[3]);
+                    if (cfg.debugScissor){
+                        renderFullScreenQuad(R.progRed);
+                    }
                     
-                    gl.uniform1f(R.prog_BlinnPhong_PointLight.u_lightRad,curlight.rad);
-                    gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_lightPos, curlight.pos);
-                    gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_lightCol,curlight.col);
+                    else{
+                        gl.uniform1f(R.prog_BlinnPhong_PointLight.u_lightRad,curlight.rad);
+                        gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_lightPos, curlight.pos);
+                        gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_lightCol,curlight.col);
 
-                    renderFullScreenQuad(R.prog_BlinnPhong_PointLight);
+                        renderFullScreenQuad(R.prog_BlinnPhong_PointLight);
+                    }
                 }
             }
         }
