@@ -6,7 +6,7 @@ varying vec2 v_uv;
 
 uniform sampler2D u_color;
 uniform bool u_horizontal;
-uniform float u_strength;
+uniform float u_scale;
 // length of texel in uv coord
 // hard to get texel size in glsl es 100
 uniform vec2 u_tex_offset;
@@ -21,7 +21,7 @@ void main()
     // ref: http://learnopengl.com/#!Advanced-Lighting/Bloom
     //    & https://en.wikipedia.org/wiki/Gaussian_blur
 
-    float dist_scale_sqr = 1.0 / (u_strength * u_strength);
+    float dist_scale_sqr = 1.0 / (u_scale * u_scale);
 
     vec3 result = texture2D(u_color, v_uv).rgb * cent_coeff; // current fragment's contribution
     float offset;

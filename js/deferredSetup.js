@@ -191,7 +191,7 @@
             p.u_color    = gl.getUniformLocation(p.prog, 'u_color');
             p.u_horizontal = gl.getUniformLocation(p.prog, 'u_horizontal');
             p.u_tex_offset = gl.getUniformLocation(p.prog, 'u_tex_offset');
-            p.u_strength = gl.getUniformLocation(p.prog, 'u_strength');
+            p.u_scale = gl.getUniformLocation(p.prog, 'u_scale');
             // Save the object into this variable for access later
             R.prog_bloom = p;
         });

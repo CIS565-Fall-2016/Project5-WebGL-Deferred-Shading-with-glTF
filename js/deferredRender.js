@@ -265,7 +265,7 @@
         // Step2: two-pass blur
         gl.useProgram(R.prog_bloom.prog);
         gl.uniform2fv(R.prog_bloom.u_tex_offset, [1.0 / width, 1.0/ height]);
-        gl.uniform1f(R.prog_bloom.u_strength, 0.003);
+        gl.uniform1f(R.prog_bloom.u_scale, 0.003);
         for (let i = 1; i < 3; i++)
         {
             gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_bloom.fbos[i]);
