@@ -67,12 +67,12 @@ Here were some odd images that I got by using different 3x3 kernels without thre
 
 Here is the standard 2-pass sobel filter without thresholding.
 
-| -1 | -2 | -1 |
 |----|----|----|
+| -1 | -2 | -1 |
 | 0  | 0  | 0  |
 | 1  | 2  | 1  |
 
-<img src="imd/deferred-1478497944786.png" width="400" height="300"/>
+<img src="img/deferred-1478497944786.png" width="400" height="300"/>
 
 ### Credits
 
