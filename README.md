@@ -56,15 +56,25 @@ The scissor test is an optimization that discards fragments that fall outside of
 The baseline implementation uses 4 buffers for positions, normals, color maps, and normal maps. We can precompute the normals by applying the normal map in the copy pass. This way the memory bandwith is much less throughout the pipeline. 
 
 ## Kernel Experiments
-Here were some odd images that I got by using 3x3 kernels without thresholding–you need to threshold the value obtained from the convolution in order to get the highlighted edges. 
+Here were some odd images that I got by using different 3x3 kernels without thresholding–you need to threshold the value obtained from the convolution in order to get the highlighted edges. 
 
 | -1 | -1 | -1 |
 |----|----|----|
 | -1 | 8  | -1 |
 | -1 | -1 | -1 |
 
-<img src="img/deferred-1478498035688.png" width="400" height="300"/>
+<img src="img/deferred-1478498035688.png" width="400" height="300"/><img src="img/deferred-1478498028576.png" width="400" height="300"/>
 
+Here is the standard 2-pass sobel filter without thresholding.
+| -1 | -2 | -1 |
+|----|----|----|
+| 0  | 0  | 0  |
+| 1  | 2  | 1  |
+| -1 | 0 | 1 |
+|----|---|---|
+| -2 | 0 | 2 |
+| -1 | 0 | 1 |
+<img src="imd/deferred-1478497944786.png" width="400" height="300"/>
 
 ### Credits
 
