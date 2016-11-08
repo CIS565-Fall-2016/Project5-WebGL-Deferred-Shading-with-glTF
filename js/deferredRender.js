@@ -39,7 +39,7 @@
             }
             R.pass_deferred.render(state);
             R.pass_post1.render(state);
-            if (cfg.box) {
+            if (cfg.DoFBlur) {
               R.pass_box.render(state);
             }
             if (cfg.rampShading) {
@@ -165,7 +165,7 @@
      * 'post1' pass: Perform (first) pass of post-processing
      */
     R.pass_post1.render = function(state) {
-        if (cfg.edge > 0 || cfg.rampShading || cfg.box) {
+        if (cfg.edge > 0 || cfg.rampShading || cfg.DoFBlur) {
           gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_post1.fbo);
         } else {
           gl.bindFramebuffer(gl.FRAMEBUFFER, null);

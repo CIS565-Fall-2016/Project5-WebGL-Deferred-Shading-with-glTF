@@ -16,7 +16,7 @@ var cfg;
         this.edge = 0;
         this.rampShading = false;
         this.lightRadius = 4.0;
-        this.box = false;
+        this.DoFBlur = false;
         this.focus = 1;
     };
 
@@ -58,7 +58,7 @@ var cfg;
         });
         var blur = gui.addFolder('Blur Effects');
         blur.open();
-        blur.add(cfg, 'box');
+        blur.add(cfg, 'DoFBlur');
         blur.add(cfg, 'focus', 0, 1);
 
         // TODO: add more effects toggles and parameters here
