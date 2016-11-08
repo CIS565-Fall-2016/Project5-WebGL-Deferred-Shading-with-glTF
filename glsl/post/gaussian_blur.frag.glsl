@@ -21,7 +21,7 @@ void main() {
 	weight[3] = 0.054054;
 	weight[4] = 0.016216;
 
-	vec2 texelSize = vec2(1.0 / float(u_texWidth), 1.0 / float(u_texHeight)); 
+	vec2 texelSize = vec2(1.0 / float(u_texWidth), 1.0 / float(u_texHeight));
     vec3 color = texture2D(u_color, v_uv).rgb * weight[0]; // current frag contribution
 
     if (u_horizontal) {

@@ -6,6 +6,7 @@ precision highp int;
 
 #define NUM_GBUFFERS 4
 
+uniform vec3 u_cameraPos;
 uniform vec3 u_lightCol;
 uniform vec3 u_lightPos;
 uniform float u_lightRad;
@@ -26,7 +27,7 @@ vec3 applyNormalMap(vec3 geomnor, vec3 normap) {
 
 vec3 diffuseLighting(vec3 nor, vec3 col, vec3 lightDir) {
     float diffuseTerm = clamp(dot(nor, lightDir), 0.0, 1.0);
-    return u_lightCol * col * diffuseTerm;    
+    return u_lightCol * col * diffuseTerm;
 }
 
 
@@ -36,7 +37,7 @@ vec3 specularLighting(vec3 col, vec3 pos, vec3 nor, vec3 lightDir) {
     // Compute specular term if light facing the surface
     if (dot(nor, lightDir) > 0.0) {
 
-        vec3 viewDir = normalize(-pos);
+        vec3 viewDir = normalize(u_cameraPos - pos);
         // Half vector
         vec3 halfVec = normalize(lightDir + viewDir);
         specularTerm = pow(dot(nor, halfVec), 10.0);
@@ -74,14 +75,14 @@ void main() {
         // Write out to colorTex
         float attenuation = max(0.0, u_lightRad - dis);
         vec4 color = vec4(
-            diffuseLighting(nor, colmap, lightDir) * attenuation + 
-            specularLighting(colmap, pos, nor, lightDir) * 0.0, 
+            diffuseLighting(nor, colmap, lightDir) * attenuation +
+            specularLighting(colmap, pos, nor, lightDir) * 0.0,
             1.0);
         gl_FragData[0] = color;
 
         // Write out to hdrTex
         float brightness = dot(color.rgb, vec3(0.2126, 0.7152, 0.0722));
-        if (brightness > 0.7) {
+        if (brightness > 1.0) {
             gl_FragData[1] = vec4(color.rgb, 1.0);
         }
     }

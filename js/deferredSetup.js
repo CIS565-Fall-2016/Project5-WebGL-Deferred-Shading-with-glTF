@@ -13,7 +13,7 @@
     R.tileLightOffsets = [];
     R.tileLightIndices = [];
 
-    R.TILE_DIM = 2; // This value can be changed for performance analysis
+    R.TILE_DIM = 16; // This value can be changed for performance analysis
     R.NUM_GBUFFERS = 4;
 
     /**
@@ -34,7 +34,7 @@
     R.light_max = [14, 18, 6];
     R.light_dt = -0.03;
     R.LIGHT_RADIUS = 4.0;
-    R.NUM_LIGHTS = 20;
+    R.NUM_LIGHTS = 10;
     ; // TODO: test with MORE lights!
     var setupLights = function() {
         Math.seedrandom(0);
@@ -113,7 +113,7 @@
         // * Tell the WEBGL_draw_buffers extension which FBO attachments are
         //   being used. (This extension allows for multiple render targets.)
         gl_draw_buffers.drawBuffersWEBGL([
-            gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL,  
+            gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL,
             gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL]
             );
 
@@ -137,7 +137,7 @@
         // * Tell the WEBGL_draw_buffers extension which FBO attachments are
         //   being used. (This extension allows for multiple render targets.)
         gl_draw_buffers.drawBuffersWEBGL([
-            gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL,  
+            gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL,
             gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL]
             );
 
@@ -207,6 +207,7 @@
 
         loadDeferredProgram('blinnphong-pointlight', function(p) {
             // Save the object into this variable for access later
+            p.u_cameraPos = gl.getUniformLocation(p.prog, 'u_cameraPos');
             p.u_lightPos = gl.getUniformLocation(p.prog, 'u_lightPos');
             p.u_lightCol = gl.getUniformLocation(p.prog, 'u_lightCol');
             p.u_lightRad = gl.getUniformLocation(p.prog, 'u_lightRad');
@@ -215,11 +216,15 @@
 
         loadDeferredProgram('tiled-blinnphong-pointlight', function(p) {
             // Save the object into this variable for access later
+            p.u_cameraPos = gl.getUniformLocation(p.prog, 'u_cameraPos');
             p.u_lightPos = gl.getUniformLocation(p.prog, 'u_lightPos');
             p.u_lightCol = gl.getUniformLocation(p.prog, 'u_lightCol');
             p.u_lightRad = gl.getUniformLocation(p.prog, 'u_lightRad');
+            p.u_tileLightIndices = gl.getUniformLocation(p.prog, 'u_tileLightIndices');
             p.u_lightCount = gl.getUniformLocation(p.prog, 'u_lightCount');
             p.u_lightOffset = gl.getUniformLocation(p.prog, 'u_lightOffset');
+            p.u_tileIdx = gl.getUniformLocation(p.prog, 'u_tileIdx');
+            p.u_colorLightCountOnly = gl.getUniformLocation(p.prog, 'u_colorLightCountOnly');
             R.prog_Tiled_BlinnPhong_PointLight = p;
         });
 

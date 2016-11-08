@@ -8,12 +8,26 @@ precision highp int;
 #define NUM_MAX_LIGHTS 200
 #define LIGHT_GRID_CELL_DIM 32
 
+uniform vec3 u_cameraPos;
+uniform sampler2D u_gbufs[NUM_GBUFFERS];
+uniform sampler2D u_depth;
+
+// Texture that stores all light positions, colors, radius
 uniform sampler2D u_lightCol;
 uniform sampler2D u_lightPos;
 uniform sampler2D u_lightRad;
-uniform ivec2 u_lightCountAndOffsets[LIGHT_GRID_CELL_DIM * LIGHT_GRID_CELL_DIM];
-uniform sampler2D u_gbufs[NUM_GBUFFERS];
-uniform sampler2D u_depth;
+
+// The structure that contains light indices for each tile
+uniform sampler2D u_tileLightIndices;
+
+// The light count and light index offet for looking up into u_tileLightIndices
+uniform int u_lightCount;
+uniform int u_lightOffset;
+
+// Tile index
+uniform int u_tileIdx;
+
+uniform bool u_colorLightCountOnly;
 
 varying vec2 v_uv;
 
@@ -29,7 +43,7 @@ vec3 applyNormalMap(vec3 geomnor, vec3 normap) {
 
 vec3 diffuseLighting(vec3 nor, vec3 col, vec3 lightCol, vec3 lightDir) {
     float diffuseTerm = clamp(dot(nor, lightDir), 0.0, 1.0);
-    return lightCol * col * diffuseTerm;    
+    return lightCol * col * diffuseTerm;
 }
 
 
@@ -39,7 +53,7 @@ vec3 specularLighting(vec3 col, vec3 pos, vec3 nor, vec3 lightDir) {
     // Compute specular term if light facing the surface
     if (dot(nor, lightDir) > 0.0) {
 
-        vec3 viewDir = normalize(-pos);
+        vec3 viewDir = normalize(u_cameraPos - pos);
         // Half vector
         vec3 halfVec = normalize(lightDir + viewDir);
         specularTerm = pow(dot(nor, halfVec), 10.0);
@@ -48,19 +62,6 @@ vec3 specularLighting(vec3 col, vec3 pos, vec3 nor, vec3 lightDir) {
     return vec3(1,1,1) * specularTerm;
 }
 
-
-vec3 computeLight(
-    vec3 pos,
-    vec3 nor,
-    vec3 diffuse,
-    vec3 specular,
-    vec3 viewDir,
-    float shininess,
-    ivec2 fragPos
-    )
-{
-    return vec3(1,1,1);
-}
 
 void main() {
     vec4 gb0 = texture2D(u_gbufs[0], v_uv);
@@ -82,15 +83,27 @@ void main() {
     vec3 colmap = gb2.rgb;   // The color map - unlit "albedo" (surface color)
     vec3 normap = gb3.xyz;   // The raw normal map (normals relative to the surface they're on)
     vec3 nor = applyNormalMap (geomnor, normap);     // The true normals as we want to light them - with the normal map applied to the geometry normals (applyNormalMap above)
-    
+
+    if (u_colorLightCountOnly) {
+        float colorFromLightCountValue = (1.0 - 1.0 / float(u_lightCount));
+       if (u_lightCount == 0) {
+            colorFromLightCountValue = 0.0;
+        }
+        gl_FragData[0] = vec4(colorFromLightCountValue, colorFromLightCountValue, colorFromLightCountValue, 1.0);
+    }
+
+
     // Loop through lights
-    // for (int i = 0; i < u_lightCount; ++i) {
+    for (int i = 0; i < 100; ++i) {
+        if (i >= u_lightCount) {
+            break;
+        }
 
     //     // Extract light info
     //     vec3 lightCol = u_lightCol[u_lightOffset + i];
     //     vec3 lightPos = u_lightPos[u_lightOffset + i];
     //     float lightRad = u_lightRad[u_lightOffset + i];
-        
+
     //     // Shading
     //     vec3 lightDir = normalize(lightPos - pos);
     //     float dis = distance(lightPos, pos);
@@ -99,8 +112,8 @@ void main() {
     //         // Write out to colorTex
     //         float attenuation = max(0.0, lightRad - dis);
     //         vec4 color = vec4(
-    //             diffuseLighting(nor, colmap, lightCol, lightDir) * attenuation + 
-    //             specularLighting(colmap, pos, nor, lightDir) * 0.0, 
+    //             diffuseLighting(nor, colmap, lightCol, lightDir) * attenuation +
+    //             specularLighting(colmap, pos, nor, lightDir) * 0.0,
     //             1.0);
     //         gl_FragData[0] = color;
 
@@ -109,6 +122,6 @@ void main() {
     //         if (brightness > 0.7) {
     //             gl_FragData[1] = vec4(color.rgb, 1.0);
     //         }
-    //     }        
-    // }
+    //     }
+    }
 }

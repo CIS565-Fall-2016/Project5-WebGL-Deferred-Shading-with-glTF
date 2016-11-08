@@ -93,7 +93,7 @@ window.readyModelForDraw = function(prog, m) {
     }
 
     gl.bindBuffer(gl.ARRAY_BUFFER, m.attributes);
-    
+
     gl.enableVertexAttribArray(prog.a_position);
     gl.vertexAttribPointer(prog.a_position, m.posInfo.size, m.posInfo.type, false, m.posInfo.stride, m.posInfo.offset);
 

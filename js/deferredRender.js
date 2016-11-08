@@ -61,7 +61,6 @@
         // TODO: uncomment
         gl.bindFramebuffer(gl.FRAMEBUFFER,R.pass_copy.fbo);
 
-
         // * Clear screen using R.progClear
         // TODO: uncomment
         renderFullScreenQuad(R.progClear);
@@ -147,8 +146,11 @@
         bindTexturesForLightPass(R.prog_BlinnPhong_PointLight);
 
         if (cfg.debugScissor) {
-            gl.enable(gl.SCISSOR_TEST);            
+            gl.enable(gl.SCISSOR_TEST);
         }
+
+        gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_cameraPos, state.cameraPos.toArray());
+
         // TODO: add a loop here, over the values in R.lights, which sets the
         //   uniforms R.prog_BlinnPhong_PointLight.u_lightPos/Col/Rad etc.,
         //   then does renderFullScreenQuad(R.prog_BlinnPhong_PointLight).
@@ -170,8 +172,8 @@
                 }
             }
             // * Render a fullscreen quad to perform shading on
-            renderFullScreenQuad(R.prog_BlinnPhong_PointLight);    
-        
+            renderFullScreenQuad(R.prog_BlinnPhong_PointLight);
+
         }
 
         if (cfg.debugScissor) {
@@ -208,40 +210,55 @@
         bindTexturesForLightPass(R.prog_Ambient);
         renderFullScreenQuad(R.prog_Ambient);
 
-        // * Bind/setup the Blinn-Phong pass, and render using fullscreen quad
-        bindTexturesForLightPass(R.prog_Tiled_BlinnPhong_PointLight);
-
-        if (cfg.debugScissor) {
-            gl.enable(gl.SCISSOR_TEST);            
-        }
-
-        // Construct tile grid by assigning lights into the corresponding slot
+        // --- Construct tile grid by assigning lights into the corresponding slot
         clearGrid(R.tileLightIndices, R.TILE_DIM);
 
+
         for (var lightId = 0; lightId < R.lights.length; lightId++) {
+
+            // Convert bounding box into screen space;
             var extent = getScissorForLight(state.viewMat, state.projMat, R.lights[lightId]);
             if (extent !== undefined && extent !== null) {
                 insertLightExtentToGrid(R.tileLightIndices, extent, state.width, state.height, R.TILE_DIM, lightId);
             }
         }
 
+        // --- Compute light count and offsets for each light
         for (var i = 0; i < R.tileLightIndices.length; ++i) {
-            console.log("Tile idx " + i + ": " + R.tileLightIndices[i]);  
+            R.tileLightCounts[i] = R.tileLightIndices[i].length;
+            R.tileLightOffsets[i] = i == 0 ?
+                0 :
+                R.tileLightCounts[i - 1] + R.tileLightOffsets[i - 1];
         }
+
+        // * Bind/setup the Blinn-Phong pass, and render using fullscreen quad
+        bindTexturesForLightPass(R.prog_Tiled_BlinnPhong_PointLight);
+
+        gl.enable(gl.SCISSOR_TEST);
 
         // Render per tile
-        for (var r = 0; r < R.TILE_DIM - 1; ++r) {
-            for (var c = 0; c < R.TILE_DIM - 1; ++c) {
-    
-                // * Render a fullscreen quad to perform shading on
-                renderTileQuad(R.prog_Tiled_BlinnPhong_PointLight, 1, 0);  
+        var tileCount = R.TILE_DIM * R.TILE_DIM;
+        var tileWidth = Math.floor(state.width / R.TILE_DIM);
+        var tileHeight = Math.ceil(state.height / R.TILE_DIM);
 
-            }
+        // -- Create textures for light info
+        var lightPointTex = texture1DFromVec3Floats(tileCount, );
+
+        for (var t = 0; t < tileCount; ++t) {
+
+            var lightCount = R.tileLightCounts[t];
+            gl.uniform1i(R.prog_Tiled_BlinnPhong_PointLight.u_lightCount, lightCount);
+            gl.uniform1i(R.prog_Tiled_BlinnPhong_PointLight.u_colorLightCountOnly, cfg.debugShowTiles);
+
+            // Only render per tile
+
+            var tileRow = Math.floor(t / R.TILE_DIM);
+            var tileCol = Math.floor(t % R.TILE_DIM);
+            gl.scissor(tileCol * tileWidth, tileRow * tileHeight, tileWidth, tileHeight);
+            renderFullScreenQuad(R.prog_Tiled_BlinnPhong_PointLight);
         }
 
-        if (cfg.debugScissor) {
-            gl.disable(gl.SCISSOR_TEST);
-        }
+        gl.disable(gl.SCISSOR_TEST);
         // Disable blending so that it doesn't affect other code
         gl.disable(gl.BLEND);
     };
@@ -260,6 +277,32 @@
         gl.bindTexture(gl.TEXTURE_2D, R.pass_copy.depthTex);
         gl.uniform1i(prog.u_depth, R.NUM_GBUFFERS);
     };
+
+    // Convert from floats to texture
+    // Source: http://stackoverflow.com/questions/19529690/index-expression-must-be-constant-webgl-glsl-error
+    var texture1DFromVec3Floats = function(width, floats) {
+        var oldActiveTexture = gl.getParameter(gl.ACTIVE_TEXTURE);
+        gl.activeTexture(gl.TEXTURE15);
+        var texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+
+        gl.texImage2D(
+            gl.TEXTURE_1D,  // target
+            0,              // level
+            gl.RGB,        // internalformat
+            width,
+            0,              // border
+            gl.RGB,         // format
+            gl.FLOAT,       // type
+            floats
+            );
+
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+
+        gl.activeTexture(oldActiveTexture);
+    }
 
     /**
      * 'post1' pass: Perform (first) pass of post-processing
@@ -285,7 +328,7 @@
         if (cfg.enableTiledShading) {
             gl.bindTexture(gl.TEXTURE_2D, R.pass_tiled_deferred.colorTex);
         } else {
-            gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex);            
+            gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex);
         }
 
         // Configure the R.progPost1.u_color uniform to point at texture unit 0
@@ -306,7 +349,7 @@
         // * Clear the framebuffer depth to 1.0
         gl.clearDepth(1.0);
         gl.clear(gl.DEPTH_BUFFER_BIT);
-        
+
         gl.enable(gl.BLEND);
         gl.blendEquation( gl.FUNC_ADD );
         gl.blendFunc(gl.ONE,gl.ONE);
@@ -370,7 +413,7 @@
         var init = function(row, col) {
 
             var tileSize = 2.0 / R.TILE_DIM;
-            var xMin = col * tileSize - 1.0; 
+            var xMin = col * tileSize - 1.0;
             var xMax = (col + 1) * tileSize - 1.0;
             var yMin = row * tileSize - 1.0;
             var yMax = (row + 1) * tileSize - 1.0;
