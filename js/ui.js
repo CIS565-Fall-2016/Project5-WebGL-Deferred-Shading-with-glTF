@@ -7,7 +7,9 @@ var cfg;
         // TODO: Define config fields and defaults here
         this.debugView = -1;
         this.scissorLights = true;
+        this.tiled = true;
         this.debugScissor = false;
+        this.debugTiles = false;
         this.enableBloom = false;
         this.bloomAmount = 2;
         this.bloomIterations = 10; 
@@ -31,10 +33,12 @@ var cfg;
             '5 Surface normal':  5
         });
         debug.add(cfg, 'debugScissor');
+        debug.add(cfg, 'debugTiles');
 
         var optim = gui.addFolder('Optimizations');
         optim.open();
         optim.add(cfg, 'scissorLights');
+        optim.add(cfg, 'tiled');
 
         var bloom = gui.addFolder('Bloom');
         bloom.open();

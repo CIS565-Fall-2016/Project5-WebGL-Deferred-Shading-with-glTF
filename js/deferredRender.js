@@ -46,11 +46,16 @@
         } else {
             // * Deferred pass and postprocessing pass(es)
             var tex;
-            tex = R.pass_deferred.render(state);
+            if (cfg.tiled) {
+                tex = R.pass_tile_deferred.render(state);
+            } else {
+                tex = R.pass_deferred.render(state);
+            }
             if (cfg.enableBloom) {
                 tex = R.pass_bloom.render(tex);
             }
             R.pass_final.render(tex);
+            
 
             // OPTIONAL TODO: call more postprocessing passes, if any
         }
@@ -177,6 +182,110 @@
         gl.disable(gl.BLEND);
 
         return R.pass_deferred.colorTex;
+    };
+
+    R.pass_tile_deferred.render = function(state) {
+
+        for (var i = 0; i < R.lights.length; i++) {
+            R.pass_tile_deferred.light_data.buffer[4 * i + 0] = R.lights[i].pos[0];
+            R.pass_tile_deferred.light_data.buffer[4 * i + 1] = R.lights[i].pos[1];
+            R.pass_tile_deferred.light_data.buffer[4 * i + 2] = R.lights[i].pos[2];
+            R.pass_tile_deferred.light_data.buffer[4 * i + 3] = R.lights[i].rad;
+            R.pass_tile_deferred.light_data.buffer[4 * i + 0 + 4 * R.lights.length] = R.lights[i].col[0];
+            R.pass_tile_deferred.light_data.buffer[4 * i + 1 + 4 * R.lights.length] = R.lights[i].col[1];
+            R.pass_tile_deferred.light_data.buffer[4 * i + 2 + 4 * R.lights.length] = R.lights[i].col[2];
+            // R.pass_tile_deferred.light_data.buffer[4 * i + 3 + 4 * R.lights.length] = R.lights[i].rad;
+            // R.pass_tile_deferred.light_data.buffer[R.lights.length * 0 + i] = R.lights[i].pos[0];
+            // R.pass_tile_deferred.light_data.buffer[R.lights.length * 1 + i] = R.lights[i].pos[1];
+            // R.pass_tile_deferred.light_data.buffer[R.lights.length * 2 + i] = R.lights[i].pos[2];
+            // R.pass_tile_deferred.light_data.buffer[R.lights.length * 4 + i] = R.lights[i].col[0];
+            // R.pass_tile_deferred.light_data.buffer[R.lights.length * 5 + i] = R.lights[i].col[1];
+            // R.pass_tile_deferred.light_data.buffer[R.lights.length * 6 + i] = R.lights[i].col[2];
+            // R.pass_tile_deferred.light_data.buffer[R.lights.length * 7 + i] = R.lights[i].rad;
+        }
+        gl.bindTexture(gl.TEXTURE_2D, R.pass_tile_deferred.light_data.tex);
+        gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 
+            R.pass_tile_deferred.light_data.dimx, 
+            R.pass_tile_deferred.light_data.dimy, gl.RGBA, gl.FLOAT, 
+            R.pass_tile_deferred.light_data.buffer);
+        // gl.bindTexture(gl.TEXTURE_2D, null);
+        
+        // gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_tile_deferred.light_mask)
+ 
+        gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_tile_deferred.fbo);
+
+        gl.framebufferTexture2D(
+            gl.FRAMEBUFFER, 
+            gl.COLOR_ATTACHMENT0, 
+            gl.TEXTURE_2D, 
+            R.pass_tile_deferred.tile_data.tex, 
+            0
+        );
+
+        gl.useProgram(R.progMapToTiles.prog)
+        
+        gl.activeTexture(gl.TEXTURE0)
+        gl.bindTexture(gl.TEXTURE_2D, R.pass_tile_deferred.light_data.tex)
+        gl.uniform1i(R.progMapToTiles.u_lightbuffer, 0)
+
+        gl.uniformMatrix4fv(R.progMapToTiles.u_viewMat, false, state.viewMat.elements);
+        gl.uniformMatrix4fv(R.progMapToTiles.u_projMat, false, state.projMat.elements);
+
+        gl.uniform1f(R.progMapToTiles.u_nlights, R.lights.length)
+        gl.uniform2f(
+            R.progMapToTiles.u_tilesize, 
+            R.pass_tile_deferred.tile_size, 
+            R.pass_tile_deferred.tile_size)
+        gl.uniform1f(R.progMapToTiles.u_ntiles, R.pass_tile_deferred.nTiles)
+        gl.uniform2f(R.progMapToTiles.u_resolution, width, height);
+        
+        gl.viewport(0, 0, 
+            R.pass_tile_deferred.tile_data.dimx,
+            R.pass_tile_deferred.tile_data.dimy);
+        renderFullScreenQuad(R.progMapToTiles)
+        gl.viewport(0, 0, width, height);
+        
+        gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_tile_deferred.fboOut)
+
+        gl.clearColor(0.0, 0.0, 0.0, 0.0);
+        gl.clearDepth(1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+        gl.enable(gl.BLEND);
+        gl.blendEquation(gl.FUNC_ADD);
+        gl.blendFunc(gl.ONE, gl.ONE);        
+        // gl.useProgram(R.prog_BlinnPhong_PointLight_Tiled.prog);
+
+        // * Bind/setup the ambient pass, and render using fullscreen quad
+        bindTexturesForLightPass(R.prog_Ambient);
+        renderFullScreenQuad(R.prog_Ambient);
+
+        // * Bind/setup the Blinn-Phong pass, and render using fullscreen quad
+        bindTexturesForLightPass(R.prog_BlinnPhong_PointLight_Tiled)
+        gl.activeTexture(gl['TEXTURE' + (R.NUM_GBUFFERS + 1)]);
+        gl.bindTexture(gl.TEXTURE_2D, R.pass_tile_deferred.light_data.tex);
+        gl.uniform1i(R.prog_BlinnPhong_PointLight_Tiled.u_lightbuffer, R.NUM_GBUFFERS + 1);
+        gl.activeTexture(gl['TEXTURE' + (R.NUM_GBUFFERS + 2)]);
+        gl.bindTexture(gl.TEXTURE_2D, R.pass_tile_deferred.tile_data.tex);
+        gl.uniform1i(R.prog_BlinnPhong_PointLight_Tiled.u_tilebuffer, R.NUM_GBUFFERS + 2);
+
+        gl.uniform1f(R.prog_BlinnPhong_PointLight_Tiled.u_nlights, R.lights.length)
+        gl.uniform2f(R.prog_BlinnPhong_PointLight_Tiled.u_tilesize, R.pass_tile_deferred.tile_size, R.pass_tile_deferred.tile_size)
+        gl.uniform1f(R.prog_BlinnPhong_PointLight_Tiled.u_ntiles, R.pass_tile_deferred.nTiles)
+        gl.uniform2f(R.prog_BlinnPhong_PointLight_Tiled.u_resolution, width, height);
+
+        gl.uniform3f(R.prog_BlinnPhong_PointLight_Tiled.u_cameraPos, 
+            state.cameraPos.x, 
+            state.cameraPos.y, 
+            state.cameraPos.z);
+
+        gl.uniform1i(R.prog_BlinnPhong_PointLight_Tiled.u_debug, cfg.debugTiles);
+
+        renderFullScreenQuad(R.prog_BlinnPhong_PointLight_Tiled);
+
+        gl.disable(gl.BLEND)
+        return R.pass_tile_deferred.colorTex;
+
     };
 
     /**

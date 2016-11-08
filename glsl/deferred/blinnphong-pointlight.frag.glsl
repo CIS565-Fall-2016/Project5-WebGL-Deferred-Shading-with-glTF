@@ -2,7 +2,7 @@
 precision highp float;
 precision highp int;
 
-#define NUM_GBUFFERS 4
+#define NUM_GBUFFERS 2
 
 uniform vec3 u_cameraPos;
 uniform vec3 u_lightCol;
@@ -24,8 +24,8 @@ vec3 applyNormalMap(vec3 geomnor, vec3 normap) {
 void main() {
     vec4 gb0 = texture2D(u_gbufs[0], v_uv);
     vec4 gb1 = texture2D(u_gbufs[1], v_uv);
-    vec4 gb2 = texture2D(u_gbufs[2], v_uv);
-    vec4 gb3 = texture2D(u_gbufs[3], v_uv);
+    // vec4 gb2 = texture2D(u_gbufs[2], v_uv);
+    // vec4 gb3 = texture2D(u_gbufs[3], v_uv);
     float depth = texture2D(u_depth, v_uv).x;
 
     // If nothing was rendered to this pixel, set alpha to 0 so that the
@@ -37,11 +37,18 @@ void main() {
 
     // Extract needed properties from the g-buffers into local variables
     // These definitions are suggested for starting out, but you will probably want to change them.
-    vec3 pos = gb0.xyz;     // World-space position
-    vec3 geomnor = gb1.xyz;  // Normals of the geometry as defined, without normal mapping
-    vec3 colmap = gb2.rgb;  // The color map - unlit "albedo" (surface color)
-    vec3 normap = gb3.xyz;  // The raw normal map (normals relative to the surface they're on)
-    vec3 nor = applyNormalMap (geomnor, normap);     // The true normals as we want to light them - with the normal map applied to the geometry normals (applyNormalMap above)
+    // vec3 pos = gb0.xyz;     // World-space position
+    // vec3 geomnor = gb1.xyz;  // Normals of the geometry as defined, without normal mapping
+    // vec3 colmap = gb2.rgb;  // The color map - unlit "albedo" (surface color)
+    // vec3 normap = gb3.xyz;  // The raw normal map (normals relative to the surface they're on)
+    // vec3 nor = applyNormalMap (geomnor, normap);     // The true normals as we want to light them - with the normal map applied to the geometry normals (applyNormalMap above)
+    // vec3 nor = gb1.xyz;
+    vec3 pos = gb0.xyz;
+    vec3 colmap = gb1.rgb;
+    vec3 nor = vec3(gb0[3], gb1[3], 0.0);
+    nor.z = (1.0 - nor.x*nor.x - nor.y*nor.y);
+    nor.z *= sign(dot(nor, u_cameraPos - pos));
+    nor = normalize(nor);
 
     float distance = distance(u_lightPos, pos);
     if (distance  > u_lightRad) {
