@@ -149,7 +149,7 @@
 
             var sc = getScissorForLight(state.viewMat, state.projMat, light);
             if (sc) {
-                // gl.scissor(sc[0], sc[1], sc[2], sc[3]);
+                gl.scissor(sc[0], sc[1], sc[2], sc[3]);
             }
 
             gl.uniform1i(prog.u_toon, cfg.toon|0);
@@ -162,17 +162,14 @@
                 renderFullScreenQuad(R.progRed);
             }
             renderFullScreenQuad(R.prog_BlinnPhong_PointLight);
-            break;
         }
         gl.disable(gl.SCISSOR_TEST);
 
-        gl.uniform3fv(prog.u_kernel, [
-            -1, -1, -1,
-            -1,  5, -1,
-            -1, -1, -1,
-        ]);
-
         renderFullScreenQuad(R.progEdges);
+
+        gl.uniformMatrix4fv(prog.u_view, state.viewMat);
+        gl.uniformMatrix4fv(prog.u_proj, state.projMat);
+        renderFullScreenQuad(R.progBlur);
 
         // TODO: In the lighting loop, use the scissor test optimization
         // Enable gl.SCISSOR_TEST, render all lights, then disable it.

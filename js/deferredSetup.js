@@ -160,8 +160,12 @@
 
         // TODO: If you add more passes, load and set up their shader programs.
         loadDeferredProgram('edges', function (p) {
-            p.u_kernel = gl.getUniformLocation(p.prog, 'u_kernel');
             R.progEdges = p;
+        })
+        loadDeferredProgram('blur', function (p) {
+            p.u_view = gl.getUniformLocation(p.prog, 'view');
+            p.u_proj = gl.getUniformLocation(p.prog, 'proj');
+            R.progBlur = p;
         })
     };
 
