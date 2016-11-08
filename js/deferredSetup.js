@@ -177,6 +177,7 @@
                 // Create an object to hold info about this shader program
                 var p = { prog: prog };
                 p.u_in = gl.getUniformLocation(p.prog, 'u_in');
+                p.u_depth = gl.getUniformLocation(p.prog, 'u_depth');
                 R.progClone = p;
             });
 

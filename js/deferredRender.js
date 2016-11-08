@@ -40,7 +40,7 @@
             // Do a debug render instead of a regular render
             // Don't do any post-processing in debug mode
             if (cfg.debugView == 6) {
-              doPostPasses([R.pass_motionBlur]);
+              doPostPasses([R.pass_post1, R.pass_motionBlur]);
             } else {
               R.pass_debug.render(state);
             }
@@ -94,7 +94,10 @@
                                 gl.TEXTURE_2D, R.prevPos[R.curPosIdx], 0);
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, R.pass_copy.gbufs[0]);
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, R.pass_copy.depthTex);
         gl.uniform1i(R.progClone.u_in, 0);
+        gl.uniform1i(R.progClone.u_depth, 1);
 
         renderFullScreenQuad(R.progClone);
         R.curPosIdx = 1 - R.curPosIdx;
