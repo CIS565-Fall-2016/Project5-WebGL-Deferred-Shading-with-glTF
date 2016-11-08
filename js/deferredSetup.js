@@ -11,8 +11,8 @@
     R.pass_postBlur1d = {};
     R.lights = [];
 
-    R.NUM_GBUFFERS = 4;
-    R.USE_PACKED_GBUFFERS = false;
+    R.USE_PACKED_GBUFFERS = true;
+    R.NUM_GBUFFERS = (R.USE_PACKED_GBUFFERS) ? 2 : 4;
 
     /**
      * Set up the deferred pipeline framebuffer objects and textures.

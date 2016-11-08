@@ -13,10 +13,9 @@ varying vec2 v_uv;
 void main() {
     vec4 gb0 = texture2D(u_gbufs[0], v_uv);
     vec4 gb1 = texture2D(u_gbufs[1], v_uv);
-    vec4 gb2 = texture2D(u_gbufs[2], v_uv);
-    vec4 gb3 = texture2D(u_gbufs[3], v_uv);
     float depth = texture2D(u_depth, v_uv).x;
-    vec3 colmap = gb2.rgb;
+    ivec2 packedCol = ivec2(int(gb1.z), int(gb1.w));
+    vec3 colmap = vec3(packedCol.x / 256, packedCol.x - (packedCol.x / 256) * 256, packedCol.y / 256) / 255.0;
 
 
     if (depth == 1.0) {

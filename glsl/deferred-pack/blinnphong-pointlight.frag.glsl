@@ -24,14 +24,11 @@ vec3 applyNormalMap(vec3 geomnor, vec3 normap) {
 void main() {
     vec4 gb0 = texture2D(u_gbufs[0], v_uv);
     vec4 gb1 = texture2D(u_gbufs[1], v_uv);
-    vec4 gb2 = texture2D(u_gbufs[2], v_uv);
-    vec4 gb3 = texture2D(u_gbufs[3], v_uv);
     float depth = texture2D(u_depth, v_uv).x;
-    vec3 pos = gb0.xyz;
-    vec3 geomnor = vec3(gb1.x, gb1.y, sqrt(1.0 - gb1.x * gb1.x - gb1.y * gb1.y));
-    vec3 colmap = gb2.rgb;
-    vec3 normap = vec3(gb1.z, gb1.a, sqrt(1.0 - gb1.z * gb1.z - gb1.a * gb1.a));
-    vec3 nor = applyNormalMap(geomnor, normap);
+    vec3 pos = gb0.xyz;     // World-space position
+    vec3 nor = vec3(gb1.x, gb1.y, sqrt(1.0 - gb1.x * gb1.x - gb1.y * gb1.y)); // Normal map already applied
+    ivec2 packedCol = ivec2(int(gb1.z), int(gb1.w));
+    vec3 colmap = vec3(packedCol.x / 256, packedCol.x - (packedCol.x / 256) * 256, packedCol.y / 256) / 255.0;
 
     float dist = distance(pos, u_lightPos);
 
