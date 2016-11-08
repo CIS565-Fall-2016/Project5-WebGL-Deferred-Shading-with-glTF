@@ -8,6 +8,12 @@ uniform int u_debug;
 uniform sampler2D u_gbufs[NUM_GBUFFERS];
 uniform sampler2D u_depth;
 
+uniform mat4 u_prevProj;
+uniform vec3 u_camPos;
+
+//http://http.developer.nvidia.com/GPUGems3/gpugems3_ch27.html
+//http://john-chapman-graphics.blogspot.com/2013/01/what-is-motion-blur-motion-pictures-are.html
+//Help! Motion Blur.....
 varying vec2 v_uv;
 
 const vec4 SKY_COLOR = vec4(0.66, 0.73, 1.0, 1.0);
@@ -33,6 +39,12 @@ void main() {
     vec3 colmap = gb2.rgb;  // The color map - unlit "albedo" (surface color)
 //    vec3 normap = gb3.xyz;  // The raw normal map (normals relative to the surface they're on)
     vec3 nor = normalize(gb1.xyz);//applyNormalMap (geomnor, normap);     // The true normals as we want to light them - with the normal map applied to the geometry normals (applyNormalMap above)
+
+// H is the viewport position at this pixel in the range -1 to 1.
+    vec4 cur_pos = vec4(v_uv.x * 2.0 - 1.0, (1.0 - v_uv.y) * 2.0 - 1.0, depth, 1.0);
+    vec4 prev_pos =  u_prevProj * vec4(pos / gb0.w, 1.0);
+    prev_pos /= prev_pos.w;
+    vec2 velocity = (cur_pos.xy - prev_pos.xy) / 2.0;
 
     // TODO: uncomment
     if (u_debug == 0) {
