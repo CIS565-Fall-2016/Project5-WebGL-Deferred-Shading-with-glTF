@@ -9,11 +9,11 @@ WebGL Deferred Shading
 
 ### Live Online
 
-[![](img/thumb.png)](http://159.203.88.91/WebGL-Deferred-Shading)
+![](img/thumb.png)](http://159.203.88.91/WebGL-Deferred-Shading)
 
 ### Demo Video/GIF
 
-[![](img/video.png)]
+![](img/video.png)
 
 ## Deferred Shading
 In deferred shading, the lighting step is postponed to a later step. Instead, in the first pass through, all geometry data is accumulated into texture buffers known as G-buffers. This is then later on used in more complex lighting operations. The benefit of doing this is that all the fragments that are in the G-buffers will ultimately be used in a single lighting pass (the depth-test has already been applied to these fragments). This ensures that we dont run multiple lighting passes over objects that might never make it to a pixel.
@@ -33,12 +33,15 @@ Ramp shading is a non-photorealistic shader that "bands" together colors of simi
 
 ## Post Process Effects
 
+
 ### Ramp-Shading (Post-process)
 In this version of the Ramp-shading, we are directly looking at the final result of the fragments and band the color values independently through their components.
 ![](img/deferred-1478638967271.png)
 
 ### Edge Highlights
-Edge highlights are performed in two ways. One through a single-pass approximated sobel filter and one through a two-pass sobel filter. The latter method uses the standard horizontal and vertical sobel operators shown above. The latter combines the two as a component-wise sum. The rationale behind doing this combination is that the two passes are additively blended together and so we leverage the associativity and commutativity of the two sobel operators to combine them. This is not entirely accurate since the blending isn't necessarily factored in, but the end result looks nice and runs faster (by one shader load and execution).
+Edge highlights are performed in two ways. One through a single-pass approximated sobel filter and one through a two-pass sobel filter. The latter method uses the standard horizontal and vertical sobel operators shown above. The latter combines the two as a component-wise sum. The rationale behind doing this combination is that the two passes are additively blended together and so we leverage the associativity and commutativity of the two sobel operators to combine them. This is not entirely accurate since the blending isn't necessarily factored in, but the end result looks nice and runs faster (by one shader load and execution). The single pass is on the left, and the two-pass is on the right.
+
+<img src="img/deferred-1478639131697.png" width="400" height="300"/> <img src="img/deferred-1478639137171.png" width="400" height="300"/>
 
 
 ### Depth of Field Blur
