@@ -7,8 +7,8 @@ var cfg;
         // TODO: Define config fields and defaults here
         this.debugView = -1;
         this.debugScissor = false;
-        this.enableBloom = false;
-		this.bloomThreshold = 0.3;
+        this.enableBloom = true;
+		this.bloomThreshold = 0.2;
     };
 
     var init = function() {
@@ -27,7 +27,7 @@ var cfg;
 
         var eff = gui.addFolder('EFFECT NAME HERE');
         eff.open();
-		var eff0 = gui.addFolder('Bloom');
+		var eff0 = eff.addFolder('Bloom');
         eff0.add(cfg, 'enableBloom');
         // TODO: add more effects toggles and parameters here
 		eff0.add(cfg, 'bloomThreshold', 0.0, 1.0);

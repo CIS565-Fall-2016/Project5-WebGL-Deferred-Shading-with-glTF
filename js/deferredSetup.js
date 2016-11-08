@@ -67,9 +67,12 @@
         // * Create, bind, and store "color" target textures for the FBO
         R.pass_copy.gbufs = [];
         var attachments = [];
+		var formats = [gl.RGBA, gl.RGBA];
+		var types = [gl.FLOAT, gl.FLOAT];
+		
         for (var i = 0; i < R.NUM_GBUFFERS; i++) {
             var attachment = gl_draw_buffers['COLOR_ATTACHMENT' + i + '_WEBGL'];
-            var tex = createAndBindColorTargetTexture(R.pass_copy.fbo, attachment);
+            var tex = createAndBindColorTargetTexture(R.pass_copy.fbo, attachment, formats[i], types[i]);
             R.pass_copy.gbufs.push(tex);
             attachments.push(attachment);
         }
@@ -109,13 +112,14 @@
         R.pass_post2.colorTex0 = createAndBindColorTargetTexture(
             R.pass_post2.fbo0, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
         abortIfFramebufferIncomplete(R.pass_post2.fbo0);
+		gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
 		
 		R.pass_post2.fbo1 = gl.createFramebuffer();
         R.pass_post2.colorTex1 = createAndBindColorTargetTexture(
-            R.pass_post2.fbo1, gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL);
+            R.pass_post2.fbo1, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
         abortIfFramebufferIncomplete(R.pass_post2.fbo1);
+        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
 		
-        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL, gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL]);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     };
 
@@ -182,8 +186,18 @@
         });
 
         // TODO: If you add more passes, load and set up their shader programs.
+		loadPostProgram('gaussianblur', function(p) {
+			p.u_imgDim = gl.getUniformLocation(p.prog, 'u_imgDim');
+			p.u_isHorizontal = gl.getUniformLocation(p.prog, 'u_isHorizontal');
+            p.u_color    = gl.getUniformLocation(p.prog, 'u_color');
+            // Save the object into this variable for access later
+            R.progPost2 = p;
+        });
+		
 		loadPostProgram('output', function(p) {
             p.u_color    = gl.getUniformLocation(p.prog, 'u_color');
+			p.u_bloomEnabled = gl.getUniformLocation(p.prog, 'u_bloomEnabled');
+			p.u_brightness = gl.getUniformLocation(p.prog, 'u_brightness');
             // Save the object into this variable for access later
             R.progOutput = p;
         });
@@ -251,7 +265,7 @@
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0,
+        gl.texImage2D(gl.TEXTURE_2D, 0, componentFormat, width, height, 0,
 			componentFormat, componentType, null);
         gl.bindTexture(gl.TEXTURE_2D, null);
 

@@ -29,7 +29,10 @@ vec3 recoverEyePos(float depth)
 	float ph = u_viewportInfo.x * oneOverHeight;
 	float pw = ph * aspect;
 	vec3 viewVec = vec3(vec2(pw, ph) * (gl_FragCoord.xy - u_viewportInfo.yz * 0.5), -1.0);
-	return viewVec * depth;
+	depth = depth * 2.0 - 1.0;
+	float eyeDepth = (depth - (101.0 / 99.0)) * (99.0 / 200.0);
+	eyeDepth = -1.0 / eyeDepth;
+	return viewVec * eyeDepth;
 }
 
 void main()
@@ -37,12 +40,13 @@ void main()
     vec4 gb0 = texture2D(u_gbufs[0], v_uv);
     vec4 gb1 = texture2D(u_gbufs[1], v_uv);
     float depth = texture2D(u_depth, v_uv).x;
-    // TODO: Extract needed properties from the g-buffers into local variables
+    
+	// TODO: Extract needed properties from the g-buffers into local variables
     // These definitions are suggested for starting out, but you will probably want to change them.
-    vec3 pos = recoverEyePos(gb0.z);     // World-space position
+    vec3 pos = recoverEyePos(depth);     // World-space position
     vec3 nrm = vec3(gb0.xy, sqrt(1.0 - dot(gb0.xy, gb0.xy)));  // Normals of the geometry as defined, without normal mapping
-    vec3 colmap = gb1.rgb;  // The color map - unlit "albedo" (surface color)
-
+	vec3 colmap = gb1.rgb;  // The color map - unlit "albedo" (surface color)
+	
     // TODO: uncomment
     if (u_debug == 0)
 	{

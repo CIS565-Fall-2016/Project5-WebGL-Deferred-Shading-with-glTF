@@ -11,7 +11,8 @@
             !R.prog_BlinnPhong_PointLight ||
             !R.prog_Debug ||
             !R.progPost1 ||
-			!R.progOutput)) {
+			!R.progOutput ||
+			!R.progPost2)) {
             console.log('waiting for programs to load...');
             return;
         }
@@ -53,6 +54,7 @@
             R.pass_post1.render(state);
 
             // OPTIONAL TODO: call more postprocessing passes, if any
+			R.pass_post2.render(state);
 			R.pass_output.render(state);
         }
     };
@@ -232,11 +234,11 @@
      */
     R.pass_post1.render = function(state)
 	{
+		gl.disable(gl.DEPTH_TEST);
         gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_post2.fbo0);
 
         gl.clearColor(0.0, 0.0, 0.0, 0.0);
-        gl.clearDepth(1.0);
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        gl.clear(gl.COLOR_BUFFER_BIT);
 
         gl.useProgram(R.progPost1.prog);
 
@@ -247,6 +249,7 @@
 		gl.uniform1f(R.progPost1.u_threshold, cfg.bloomThreshold);
 
         renderFullScreenQuad(R.progPost1);
+		gl.enable(gl.DEPTH_TEST);
     };
 	
 	/**
@@ -254,24 +257,50 @@
 	 */
 	R.pass_post2.render = function(state)
 	{
+		gl.disable(gl.DEPTH_TEST);
 		
+		gl.useProgram(R.progPost2.prog);
+		gl.activeTexture(gl.TEXTURE0);
+		
+		gl.uniform2f(R.progPost2.u_imgDim, width, height);
+		gl.uniform1i(R.progPost2.u_color, 0);
+		
+		for (var i = 0; i < 5; ++i)
+		{
+			gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_post2.fbo1);
+			gl.bindTexture(gl.TEXTURE_2D, R.pass_post2.colorTex0);
+			gl.uniform1i(R.progPost2.u_isHorizontal, true);
+			renderFullScreenQuad(R.progPost2);
+			
+			gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_post2.fbo0);
+			gl.bindTexture(gl.TEXTURE_2D, R.pass_post2.colorTex1);
+			gl.uniform1i(R.progPost2.u_isHorizontal, false);
+			renderFullScreenQuad(R.progPost2);
+		}
+		
+		gl.enable(gl.DEPTH_TEST);
 	}
 	
 	R.pass_output.render = function(state)
 	{
-		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		gl.disable(gl.DEPTH_TEST);
 		
-		gl.clearDepth(1.0);
-        gl.clear(gl.DEPTH_BUFFER_BIT);
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		
 		gl.useProgram(R.progOutput.prog);
 
         gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, R.pass_post2.colorTex0);
+        gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex);
+		gl.activeTexture(gl.TEXTURE1);
+		gl.bindTexture(gl.TEXTURE_2D, R.pass_post2.colorTex0)
 
         gl.uniform1i(R.progOutput.u_color, 0);
+		gl.uniform1i(R.progOutput.u_brightness, 1);
+		gl.uniform1i(R.progOutput.u_bloomEnabled, cfg.enableBloom);
 
         renderFullScreenQuad(R.progOutput);
+		
+		gl.enable(gl.DEPTH_TEST);
 	}
 
     var renderFullScreenQuad = (function() {

@@ -6,7 +6,7 @@ precision highp int;
 uniform sampler2D u_colmap;
 uniform sampler2D u_normap;
 
-varying vec3 v_position;
+// varying vec3 v_position;
 varying vec3 v_normal;
 varying vec2 v_uv;
 
@@ -30,6 +30,6 @@ void main()
 	vec3 nrm = applyNormalMap(v_normal, mapnrm);
 	
     // this gives you the idea
-	gl_FragData[0] = vec4(nrm.xy, -v_position.z, 1.0);
+	gl_FragData[0] = vec4(nrm.xy, 0.0, 1.0);
 	gl_FragData[1] = albedo;
 }
