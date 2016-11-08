@@ -1,4 +1,5 @@
 #version 100
+#extension GL_EXT_draw_buffers: enable
 precision highp float;
 precision highp int;
 
@@ -12,9 +13,17 @@ void main() {
     vec4 color = texture2D(u_color, v_uv);
 
     if (color.a == 0.0) {
-        gl_FragColor = SKY_COLOR;
-        return;
-    }
+        gl_FragData[0] = SKY_COLOR;
+    } else {
+		gl_FragData[0] = color;
+	}
 
-    gl_FragColor = color;
+	// output bright color
+	float brightness = dot(gl_FragData[0].rgb, vec3(.2126, .7152, .0722));
+
+    if (brightness > 1.) {
+        gl_FragData[1] = gl_FragData[0];
+	} else {
+		gl_FragData[1] = vec4(0.);
+	}
 }

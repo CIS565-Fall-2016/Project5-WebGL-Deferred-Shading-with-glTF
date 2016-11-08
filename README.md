@@ -13,7 +13,7 @@ WebGL Deferred Shading
 
 ### Demo Video/GIF
 
-![](img/scissor_on.gif)
+![](img/bloom_on.gif)
 
 ### Features
 
@@ -21,7 +21,9 @@ WebGL Deferred Shading
   * [x] Render to G-Buffer
   * [x] Deferred Shading
 * [x] Scissor Test
-* [ ] Post Effect
+* [x] Post Effect
+  * [x] Sky Color
+  * [x] Bloom Effect
 * [x] Performance Analysis
 
 ### Basic Pipeline
@@ -38,8 +40,11 @@ Ambient Lighting | Blinn-Phong Lighting
 --- | ---
 ![](img/ambient.png) | ![](img/blinn_phong.gif)
 
-### Performance Analysis
+Bloom OFF | Bloom ON
+--- | ---
+![](img/bloom_off.gif) | ![](img/bloom_on.gif)
 
+### Performance Analysis
 
 #### Lighting
 
@@ -75,6 +80,14 @@ _Note*_ Scissor box calculation is not accurate enough, thus results in noticeab
 ![](img/perf_scissor.png)
 
 _Note*_ With scissor test turned on, only pixels close enough to a particular light for which lighting will be computed, thus a considerable performance gain can be noticed in the figure.
+
+#### Bloom
+
+Bloom OFF | Bloom ON
+:---:|:---:
+36 ms/frame | 40 ms/frame
+
+_*Note_ To achieve bloom effect, we first extract bright color from original color, then bleed the bright color of each pixel into to its neighboring pixels, subject to a gaussian distribution. Commonly we will first do the color bleeding first in horizontal direction, then vertical direction. Finally we composite the blurred bright color and the original color to achieve bloom effect.
 
 ### Credits
 

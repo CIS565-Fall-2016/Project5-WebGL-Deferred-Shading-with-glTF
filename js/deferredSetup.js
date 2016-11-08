@@ -14,10 +14,11 @@
      * Set up the deferred pipeline framebuffer objects and textures.
      */
     R.deferredSetup = function() {
-        setupLights();
-        loadAllShaderPrograms();
+		setupLights();
+		loadAllShaderPrograms();
         R.pass_copy.setup();
         R.pass_deferred.setup();
+		R.pass_post1.setup();
     };
 
     // TODO: Edit if you want to change the light initial positions
@@ -99,6 +100,45 @@
     };
 
     /**
+     * Create/configure framebuffer between "deferred" and "post1" stages
+     */
+    R.pass_post1.setup = function() {
+		// framebuffer for bright color
+        R.pass_post1.fbo1 = gl.createFramebuffer();
+	    R.pass_post1.colorTex = createAndBindColorTargetTexture(
+			R.pass_post1.fbo1, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+	    R.pass_post1.brightTex = createAndBindColorTargetTexture(
+			R.pass_post1.fbo1, gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL);
+
+        // * Check for framebuffer errors
+		abortIfFramebufferIncomplete(R.pass_post1.fbo1);
+
+        // * Tell the WEBGL_draw_buffers extension which FBO attachments are
+        //   being used. (This extension allows for multiple render targets.)
+        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL,
+			gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL]);
+
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+		// framebuffer for gaussian blur horizontal
+		R.pass_post1.fbo2 = gl.createFramebuffer();
+		R.pass_post1.blurredTex = createAndBindColorTargetTexture(
+			R.pass_post1.fbo2, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+		abortIfFramebufferIncomplete(R.pass_post1.fbo2);
+		gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+		// framebuffer for gaussian blur vertical
+		R.pass_post1.fbo3 = gl.createFramebuffer();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_post1.fbo3);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL,
+			gl.TEXTURE_2D, R.pass_post1.brightTex, 0);
+		abortIfFramebufferIncomplete(R.pass_post1.fbo3);
+		gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    };
+
+    /**
      * Loads all of the shader programs used in the pipeline.
      */
     var loadAllShaderPrograms = function() {
@@ -153,7 +193,23 @@
         loadPostProgram('one', function(p) {
             p.u_color    = gl.getUniformLocation(p.prog, 'u_color');
             // Save the object into this variable for access later
-            R.progPost1 = p;
+            R.progPost1_1 = p;
+        });
+
+        loadPostProgram('blur', function(p) {
+            p.u_bright = gl.getUniformLocation(p.prog, 'u_bright');
+			p.u_horizontal = gl.getUniformLocation(p.prog, 'u_horizontal');
+			p.u_weight = gl.getUniformLocation(p.prog, 'u_weight');
+			p.u_screenSize = gl.getUniformLocation(p.prog, 'u_screenSize');
+            // Save the object into this variable for access later
+            R.progPost1_2 = p;
+        });
+
+        loadPostProgram('add', function(p) {
+			p.u_color    = gl.getUniformLocation(p.prog, 'u_color');
+            p.u_bright   = gl.getUniformLocation(p.prog, 'u_bright');
+            // Save the object into this variable for access later
+            R.progPost1_3 = p;
         });
 
         // TODO: If you add more passes, load and set up their shader programs.

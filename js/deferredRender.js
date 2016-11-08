@@ -10,7 +10,9 @@
             !R.prog_Ambient ||
             !R.prog_BlinnPhong_PointLight ||
             !R.prog_Debug ||
-            !R.progPost1)) {
+            !R.progPost1_1 ||
+			!R.progPost1_2 ||
+			!R.progPost1_3)) {
             console.log('waiting for programs to load...');
             return;
         }
@@ -59,7 +61,6 @@
         // TODO: uncomment
         gl.bindFramebuffer(gl.FRAMEBUFFER,R.pass_copy.fbo);
 
-
         // * Clear screen using R.progClear
         // TODO: uncomment
         renderFullScreenQuad(R.progClear);
@@ -93,7 +94,6 @@
             // If you want to render one model many times, note:
             // readyModelForDraw only needs to be called once.
             readyModelForDraw(R.progCopy, m);
-
             drawReadyModel(m);
         }
     };
@@ -192,30 +192,42 @@
      * 'post1' pass: Perform (first) pass of post-processing
      */
     R.pass_post1.render = function(state) {
-        // * Unbind any existing framebuffer (if there are no more passes)
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-
-        // * Clear the framebuffer depth to 1.0
-        gl.clearDepth(1.0);
-        gl.clear(gl.DEPTH_BUFFER_BIT);
-
-        // * Bind the postprocessing shader program
-        gl.useProgram(R.progPost1.prog);
-
-        // * Bind the deferred pass's color output as a texture input
-        // Set gl.TEXTURE0 as the gl.activeTexture unit
-        // TODO: uncomment
+		// compute color and extract bright color
+		// gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_post1.fbo1);
+        gl.useProgram(R.progPost1_1.prog);
         gl.activeTexture(gl.TEXTURE0);
-
-        // Bind the TEXTURE_2D, R.pass_deferred.colorTex to the active texture unit
-        // TODO: uncomment
         gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex);
+        gl.uniform1i(R.progPost1_1.u_color, 0);
+        renderFullScreenQuad(R.progPost1_1);
 
-        // Configure the R.progPost1.u_color uniform to point at texture unit 0
-        gl.uniform1i(R.progPost1.u_color, 0);
+		// compute gaussian blur in horizontal direction
+		gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_post1.fbo2);
+		gl.useProgram(R.progPost1_2.prog);
+		gl.activeTexture(gl.TEXTURE0);
+		gl.bindTexture(gl.TEXTURE_2D, R.pass_post1.brightTex);
+		gl.uniform1i(R.progPost1_2.u_bright, 0);
+		gl.uniform1i(R.progPost1_2.u_horizontal, 1);
+		gl.uniform4f(R.progPost1_2.u_weight, 0.1945946, 0.1216216, 0.054054, 0.016216);
+		gl.uniform2f(R.progPost1_2.u_screenSize, R.width, R.height);
+		renderFullScreenQuad(R.progPost1_2);
 
-        // * Render a fullscreen quad to perform shading on
-        renderFullScreenQuad(R.progPost1);
+		// compute gaussian blur in vertical direction
+		gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_post1.fbo3);
+		gl.bindTexture(gl.TEXTURE_2D, R.pass_post1.blurredTex);
+		gl.uniform1i(R.progPost1_2.u_horizontal, 0);
+		renderFullScreenQuad(R.progPost1_2);
+
+		// combine color and blurred bright color
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		gl.useProgram(R.progPost1_3.prog);
+		gl.activeTexture(gl.TEXTURE0);
+		gl.bindTexture(gl.TEXTURE_2D, R.pass_post1.colorTex);
+		gl.uniform1i(R.progPost1_3.u_color, 0);
+		gl.activeTexture(gl.TEXTURE1);
+		gl.bindTexture(gl.TEXTURE_2D, R.pass_post1.brightTex);
+		gl.uniform1i(R.progPost1_3.u_bright, 1);
+		renderFullScreenQuad(R.progPost1_3);
     };
 
     var renderFullScreenQuad = (function() {
