@@ -199,9 +199,6 @@
 
         // Enable blending and use gl.blendFunc to blend with:
         //   color = 1 * src_color + 1 * dst_color
-        // Here is a wonderful demo of showing how blend function works:
-        // http://mrdoob.github.io/webgl-blendfunctions/blendfunc.html
-        // TODO: uncomment
         gl.enable(gl.BLEND);
         gl.blendEquation( gl.FUNC_ADD );
         gl.blendFunc(gl.ONE,gl.ONE);
@@ -213,13 +210,20 @@
         // --- Construct tile grid by assigning lights into the corresponding slot
         clearGrid(R.tileLightIndices, R.TILE_DIM);
 
-
         for (var lightId = 0; lightId < R.lights.length; lightId++) {
 
             // Convert bounding box into screen space;
             var extent = getScissorForLight(state.viewMat, state.projMat, R.lights[lightId]);
             if (extent !== undefined && extent !== null) {
                 insertLightExtentToGrid(R.tileLightIndices, extent, state.width, state.height, R.TILE_DIM, lightId);
+            }
+        }
+
+        // Flatten the 2D array tileLightIndices into 1D to create out texture
+        var tileLightIndices = [];
+        for (var i = 0; i < R.tileLightIndices.length; ++i) {
+            for (var j = 0; j < R.tileLightIndices[i].length) {
+                tileLightIndices.push(R.tileLightIndices[i][j]);
             }
         }
 
@@ -231,24 +235,39 @@
                 R.tileLightCounts[i - 1] + R.tileLightOffsets[i - 1];
         }
 
-        // * Bind/setup the Blinn-Phong pass, and render using fullscreen quad
-        bindTexturesForLightPass(R.prog_Tiled_BlinnPhong_PointLight);
-
-        gl.enable(gl.SCISSOR_TEST);
-
-        // Render per tile
         var tileCount = R.TILE_DIM * R.TILE_DIM;
         var tileWidth = Math.floor(state.width / R.TILE_DIM);
         var tileHeight = Math.ceil(state.height / R.TILE_DIM);
 
         // -- Create textures for light info
-        var lightPointTex = texture1DFromVec3Floats(tileCount, );
+        var lightPoints = new Float32Array(R.lights.length * 3);
+        var lightColors = new Float32Array(R.lights.length * 3);
+        var lightRads = new Float32Array(R.lights.length * 3);
+        for (var l = 0; l < R.lights.length; ++l) {
+            var light = R.lights[l];
+            for (var i = 0; i < 3; ++i) {
+                lightPoints[l * 3 + i] = light.pos;
+                lightColors[l * 3 + i] = light.col;
+                lightRads[l * 3 + i] = light.rad;   
+            }
+        }
+        var lightPointTex = texture1DFromVec3Floats(R.lights.length * 3, lightPoints);
+        var lightColorTex = texture1DFromVec3Floats(R.lights.length * 3, lightColors);
+        var lightRadTex = texture1DFromFloats(R.lights.length * 3, lightRads);
 
+
+        // Bind textures
+        gl.enable(gl.SCISSOR_TEST);
+
+        bindTexturesForTiledLightPass(R.prog_Tiled_BlinnPhong_PointLight, lightPoints, lightColors, lightRads);
+
+        // -- Render for each tile!
         for (var t = 0; t < tileCount; ++t) {
 
             var lightCount = R.tileLightCounts[t];
             gl.uniform1i(R.prog_Tiled_BlinnPhong_PointLight.u_lightCount, lightCount);
             gl.uniform1i(R.prog_Tiled_BlinnPhong_PointLight.u_colorLightCountOnly, cfg.debugShowTiles);
+            gl.uniform1i(R.prog_Tiled_BlinnPhong_PointLight.u_tileIdx, t);
 
             // Only render per tile
 
@@ -278,8 +297,36 @@
         gl.uniform1i(prog.u_depth, R.NUM_GBUFFERS);
     };
 
-    // Convert from floats to texture
-    // Source: http://stackoverflow.com/questions/19529690/index-expression-must-be-constant-webgl-glsl-error
+    var bindTexturesForTiledLightPass = function(prog, lightPointTex, lightColTex, lightRadTex) {
+        gl.useProgram(prog.prog);
+
+        // * Bind all of the g-buffers and depth buffer as texture uniform
+        //   inputs to the shader
+        for (var i = 0; i < R.NUM_GBUFFERS; i++) {
+            gl.activeTexture(gl['TEXTURE' + i]);
+            gl.bindTexture(gl.TEXTURE_2D, R.pass_copy.gbufs[i]);
+            gl.uniform1i(prog.u_gbufs[i], i);
+        }
+        gl.activeTexture(gl['TEXTURE' + R.NUM_GBUFFERS]);
+        gl.bindTexture(gl.TEXTURE_2D, R.pass_copy.depthTex);
+        gl.uniform1i(prog.u_depth, R.NUM_GBUFFERS);
+
+        var texId = R.NUM_GBUFFERS + 1;
+        gl.activeTexture(gl['TEXTURE' + texId]);
+        gl.bindTexture(gl.TEXTURE_2D, lightPointTex);
+        gl.uniform1i(prog.u_depth, texId);
+
+        texId++;
+        gl.activeTexture(gl['TEXTURE' + texId]);
+        gl.bindTexture(gl.TEXTURE_2D, lightColTex);
+        gl.uniform1i(prog.u_depth, texId);
+
+        texId++;
+        gl.activeTexture(gl['TEXTURE' + texId]);
+        gl.bindTexture(gl.TEXTURE_2D, lightRadTex);
+        gl.uniform1i(prog.u_depth, texId);
+    };
+
     var texture1DFromVec3Floats = function(width, floats) {
         var oldActiveTexture = gl.getParameter(gl.ACTIVE_TEXTURE);
         gl.activeTexture(gl.TEXTURE15);
@@ -303,6 +350,31 @@
 
         gl.activeTexture(oldActiveTexture);
     }
+
+    var texture1DFromFloats = function(width, floats) {
+        var oldActiveTexture = gl.getParameter(gl.ACTIVE_TEXTURE);
+        gl.activeTexture(gl.TEXTURE15);
+        var texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+
+        gl.texImage2D(
+            gl.TEXTURE_1D,  // target
+            0,              // level
+            gl.R,        // internalformat
+            width,
+            0,              // border
+            gl.R,         // format
+            gl.FLOAT,       // type
+            floats
+            );
+
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+
+        gl.activeTexture(oldActiveTexture);
+    }
+
 
     /**
      * 'post1' pass: Perform (first) pass of post-processing
