@@ -7,8 +7,10 @@
     R.pass_deferred = {};
     R.pass_post1 = {};
     R.pass_motionBlur = {};
+    R.pass_brightness = {};
     R.pass_postBlur2d = {};
     R.pass_postBlur1d = {};
+    R.pass_bloom = {};
     R.lights = [];
 
     R.USE_PACKED_GBUFFERS = true;
@@ -24,6 +26,8 @@
         R.pass_deferred.setup();
         R.pass_post1.setup();
         R.pass_postBlur1d.setup();
+        R.pass_brightness.setup();
+        R.pass_bloom.setup();
 
         R.prevPos = [];
         R.curPosIdx = 0;
@@ -41,9 +45,8 @@
 
     R.light_min = [-14, 0, -6];
     R.light_max = [14, 18, 6];
-    R.light_dt = -0.03;
-    R.LIGHT_RADIUS = 4.0;
-    R.NUM_LIGHTS = 25; 
+    R.LIGHT_RADIUS = 2.0;
+    R.NUM_LIGHTS = 100; 
     var setupLights = function() {
         Math.seedrandom(0);
 
@@ -130,6 +133,23 @@
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     }
 
+    R.pass_brightness.setup = function() {
+      R.pass_brightness.fbo = gl.createFramebuffer();
+      R.pass_brightness.colorTex = createAndBindColorTargetTexture(
+        R.pass_brightness.fbo, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+      abortIfFramebufferIncomplete(R.pass_brightness.fbo);
+      gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    }
+    
+    R.pass_bloom.setup = function() {
+      R.pass_bloom.fbo = gl.createFramebuffer();
+      R.pass_bloom.colorTex = createAndBindColorTargetTexture(
+        R.pass_bloom.fbo, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+      abortIfFramebufferIncomplete(R.pass_bloom.fbo);
+      gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    }
     R.pass_postBlur1d.setup = function() {
         R.pass_postBlur1d.fbo = gl.createFramebuffer();
         R.pass_postBlur1d.colorTex = createAndBindColorTargetTexture(
@@ -212,6 +232,19 @@
           p.u_projMat = gl.getUniformLocation(p.prog, 'u_projMat');
           p.u_debug = gl.getUniformLocation(p.prog, 'u_debug');
           R.progMotionBlur = p;
+        });
+
+        loadPostProgram('brightness', function(p) {
+            p.u_color    = gl.getUniformLocation(p.prog, 'u_color');
+            // Save the object into this variable for access later
+            R.progBrightness = p;
+        });
+
+        loadPostProgram('bloom', function(p) {
+            p.u_color    = gl.getUniformLocation(p.prog, 'u_color');
+            p.u_glow    = gl.getUniformLocation(p.prog, 'u_glow');
+            // Save the object into this variable for access later
+            R.progBloom = p;
         });
 
         loadPostProgram('gaussian2d', function(p) {

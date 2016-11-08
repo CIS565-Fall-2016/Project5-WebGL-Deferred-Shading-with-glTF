@@ -121,14 +121,14 @@ window.getScissorForLight = (function() {
     var maxpt = new THREE.Vector2(0, 0);
     var ret = [0, 0, 0, 0];
 
-    return function(view, proj, l) {
+    return function(view, proj, l, scale) {
         // front bottom-left corner of sphere's bounding cube
         a.fromArray(l.pos);
         a.w = 1;
         a.applyMatrix4(view);
         a.x -= l.rad;
         a.y -= l.rad;
-        a.z += l.rad;
+        a.z -= l.rad;
         a.applyMatrix4(proj);
         a.divideScalar(a.w);
 
@@ -153,10 +153,18 @@ window.getScissorForLight = (function() {
         minpt.addScalar(1.0); minpt.multiplyScalar(0.5);
         maxpt.addScalar(1.0); maxpt.multiplyScalar(0.5);
 
-        ret[0] = Math.round(width * minpt.x);
-        ret[1] = Math.round(height * minpt.y);
-        ret[2] = Math.round(width * (maxpt.x - minpt.x));
-        ret[3] = Math.round(height * (maxpt.y - minpt.y));
+        if (scale === undefined) {
+          scale = 1.0;
+        }
+        var mx = 0.5 * (minpt.x + maxpt.x);
+        var my = 0.5 * (minpt.y + maxpt.y);
+        var w = 0.5 * (maxpt.x - minpt.x) * scale;
+        var h = 0.5 * (maxpt.y - minpt.y) * scale;
+
+        ret[0] = Math.round(width * (mx - w));
+        ret[1] = Math.round(height * (my - h));
+        ret[2] = Math.round(width * w * 2.0);
+        ret[3] = Math.round(height * h * 2.0);
         return ret;
     };
 })();

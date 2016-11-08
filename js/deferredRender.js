@@ -7,9 +7,15 @@
             !R.progCopy ||
             !R.progRed ||
             !R.progClear ||
+            !R.progClone ||
             !R.prog_Ambient ||
             !R.prog_BlinnPhong_PointLight ||
             !R.prog_Debug ||
+            !R.progMotionBlur ||
+            !R.progBloom ||
+            !R.progBrightness ||
+            !R.progBlur2d ||
+            !R.progBlur1dconv ||
             !R.progPost1)) {
             console.log('waiting for programs to load...');
             return;
@@ -19,7 +25,8 @@
         for (var i = 0; i < R.lights.length; i++) {
             var mn = R.light_min[1];
             var mx = R.light_max[1];
-            R.lights[i].pos[1] = (R.lights[i].pos[1] + R.light_dt - mn + mx) % mx + mn;
+            var dt = (cfg) ? -cfg.light_dt : -0.03;
+            R.lights[i].pos[1] = (R.lights[i].pos[1] + dt - mn + mx) % mx + mn;
         }
 
         // Execute deferred shading pipeline
@@ -41,6 +48,8 @@
             // Don't do any post-processing in debug mode
             if (cfg.debugView == 6) {
               doPostPasses([R.pass_post1, R.pass_motionBlur]);
+            } else if (cfg.debugView == 7 || cfg.debugView == 8) {
+              doPostPasses([R.pass_post1, R.pass_bloom]);
             } else {
               R.pass_debug.render(state);
             }
@@ -52,10 +61,8 @@
             if (cfg.enableMotionBlur) {
               passes.push(R.pass_motionBlur);
             }
-            if (cfg.enableBlur == 1) {
-              passes.push(R.pass_postBlur2d);
-            } else if (cfg.enableBlur == 2) {
-              passes.push(R.pass_postBlur1d);
+            if (cfg.bloom > 0) {
+              passes.push(R.pass_bloom);
             }
             doPostPasses(passes);
         }
@@ -164,7 +171,7 @@
         for (var i = 0; i < R.lights.length; i++) {
           var light = R.lights[i];
           if (cfg && cfg.enableScissor > 0) {
-            var sc = getScissorForLight(state.viewMat, state.projMat, light);
+            var sc = getScissorForLight(state.viewMat, state.projMat, light, cfg.boundingBoxScale);
             if (sc == null) {
               continue;
             }
@@ -182,7 +189,7 @@
           gl.blendFunc(gl.SRC_ALPHA,gl.ONE);
           for (var i = 0; i < R.lights.length; i++) {
             var light = R.lights[i];
-            var sc = getScissorForLight(state.viewMat, state.projMat, light);
+            var sc = getScissorForLight(state.viewMat, state.projMat, light, cfg.boundingBoxScale);
             if (sc == null) {
               continue;
             }
@@ -262,9 +269,48 @@
       renderFullScreenQuad(R.progMotionBlur);
     };
 
-    /**
-     * 'postBlur' pass: Perform gaussian blur pass of post-processing
-     */
+    R.pass_bloom.render = function(state, fbo, tex) {
+      if (cfg.debugView == 7) {
+        R.pass_brightness.render(state, null, tex);
+        return;
+      }
+      R.pass_brightness.render(state, R.pass_brightness.fbo, tex);
+      if (cfg.debugView == 8) {
+        R.pass_postBlur2d.render(state, null, R.pass_brightness.colorTex);
+        return;
+      }
+      if (cfg.bloom == 1) {
+        R.pass_postBlur2d.render(state, R.pass_bloom.fbo, R.pass_brightness.colorTex);
+      } else {
+        R.pass_postBlur1d.render(state, R.pass_bloom.fbo, R.pass_brightness.colorTex);
+      }
+      
+      gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+      gl.useProgram(R.progBloom.prog);
+
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, tex);
+      gl.activeTexture(gl.TEXTURE1);
+      gl.bindTexture(gl.TEXTURE_2D, R.pass_bloom.colorTex);
+
+      gl.uniform1i(R.progBloom.u_color, 0);
+      gl.uniform1i(R.progBloom.u_glow, 1);
+
+      renderFullScreenQuad(R.progBloom);
+    }
+
+    R.pass_brightness.render = function(state, fbo, tex) {
+      gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+      gl.useProgram(R.progBrightness.prog);
+
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, tex);
+
+      gl.uniform1i(R.progBrightness.u_color, 0);
+
+      renderFullScreenQuad(R.progBrightness);
+    }
+
     R.pass_postBlur2d.render = function(state, fbo, tex) {
       gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
       gl.useProgram(R.progBlur2d.prog);
