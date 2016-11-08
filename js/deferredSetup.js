@@ -9,6 +9,7 @@
     R.pass_edge = {};
     R.pass_toon = {};
     R.pass_scissor = {};
+    R.pass_box = {};
     R.lights = [];
 
     R.NUM_GBUFFERS = 4;
@@ -25,6 +26,7 @@
         R.pass_edge.setup();
         R.pass_toon.setup();
         R.pass_scissor.setup();
+        R.pass_box.setup();
     };
 
     // TODO: Edit if you want to change the light initial positions
@@ -120,6 +122,14 @@
         gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     };
+    R.pass_box.setup = function() {
+        R.pass_box.fbo = gl.createFramebuffer();
+        R.pass_box.colorTex = createAndBindColorTargetTexture(
+            R.pass_box.fbo, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+        abortIfFramebufferIncomplete(R.pass_box.fbo);
+        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    };
 
 
 
@@ -140,8 +150,7 @@
                 p.a_normal    = gl.getAttribLocation(prog, 'a_normal');
                 p.a_uv        = gl.getAttribLocation(prog, 'a_uv');
 
-                // Save the object into this variable for access later
-                R.progCopy = p;
+                    R.progCopy = p;
             });
 
         loadShaderProgram(gl, 'glsl/quad.vert.glsl', 'glsl/clear.frag.glsl',
@@ -151,7 +160,6 @@
             });
 
         loadDeferredProgram('ambient', function(p) {
-            // Save the object into this variable for access later
             R.prog_Ambient = p;
         });
         loadDeferredProgram('red', function(p) {
@@ -167,7 +175,6 @@
         })
 
         loadDeferredProgram('blinnphong-pointlight', function(p) {
-            // Save the object into this variable for access later
             p.u_lightPos = gl.getUniformLocation(p.prog, 'u_lightPos');
             p.u_lightCol = gl.getUniformLocation(p.prog, 'u_lightCol');
             p.u_lightRad = gl.getUniformLocation(p.prog, 'u_lightRad');
@@ -186,20 +193,26 @@
 
         loadDeferredProgram('debug', function(p) {
             p.u_debug = gl.getUniformLocation(p.prog, 'u_debug');
-            // Save the object into this variable for access later
             R.prog_Debug = p;
         });
 
         loadPostProgram('edge', function(p) {
-            // Save the object into this variable for access later
             p.u_color = gl.getUniformLocation(p.prog, 'u_color');
             p.u_pixSize = gl.getUniformLocation(p.prog, 'u_pixSize');
             p.u_kernel = gl.getUniformLocation(p.prog, 'u_kernel');
 
             R.prog_Edge = p;
         });
+        loadPostProgram('box', function(p) {
+            p.u_color = gl.getUniformLocation(p.prog, 'u_color');
+            p.u_depth = gl.getUniformLocation(p.prog, 'u_depth');
+            p.u_pixSize = gl.getUniformLocation(p.prog, 'u_pixSize');
+            p.u_kernel = gl.getUniformLocation(p.prog, 'u_kernel');
+            p.u_focus = gl.getUniformLocation(p.prog, 'u_focus');
+
+            R.prog_Box = p;
+        });
         loadPostProgram('toon', function(p) {
-            // Save the object into this variable for access later
             p.u_color = gl.getUniformLocation(p.prog, 'u_color');
             p.u_pixSize = gl.getUniformLocation(p.prog, 'u_pixSize');
             p.u_kernel = gl.getUniformLocation(p.prog, 'u_kernel');
@@ -210,7 +223,6 @@
 
         loadPostProgram('one', function(p) {
             p.u_color = gl.getUniformLocation(p.prog, 'u_color');
-            // Save the object into this variable for access later
             R.progPost1 = p;
         });
 

@@ -16,6 +16,8 @@ var cfg;
         this.edge = 0;
         this.rampShading = false;
         this.lightRadius = 4.0;
+        this.box = false;
+        this.focus = 1;
     };
 
     var init = function() {
@@ -31,7 +33,6 @@ var cfg;
             '3 Color map':       3,
             '4 Normal map':      4,
             '5 Surface normal':  5,
-            '6 Scissor masks':   6,
         });
         gui.add(cfg, 'lightRadius', 0.0, 10.0);
         gui.add(cfg, 'debugScissor');
@@ -44,15 +45,21 @@ var cfg;
           'Blinn-Phong': 1,
           'Ramp Shading': 2
         });
-        var post = gui.addFolder('Post Effects');
-        post.open();
-        post.add(cfg, 'bands', 1, 10);
-        post.add(cfg, 'edge', {
+        var ramp = gui.addFolder('Ramp Shading');
+        ramp.open();
+        ramp.add(cfg, 'bands', 1, 10);
+        ramp.add(cfg, 'rampShading');
+        var edge = gui.addFolder('Edge Highlights');
+        edge.open();
+        edge.add(cfg, 'edge', {
           'None': 0,
           'One Pass': 1,
           'Two Pass': 2
         });
-        post.add(cfg, 'rampShading');
+        var blur = gui.addFolder('Blur Effects');
+        blur.open();
+        blur.add(cfg, 'box');
+        blur.add(cfg, 'focus', 0, 1);
 
         // TODO: add more effects toggles and parameters here
     };

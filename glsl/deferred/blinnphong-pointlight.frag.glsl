@@ -15,6 +15,8 @@ uniform sampler2D u_depth;
 
 varying vec2 v_uv;
 
+#define OPTIMIZATION 0
+
 vec3 applyNormalMap(vec3 geomnor, vec3 normap) {
     normap = normap * 2.0 - 1.0;
     vec3 up = normalize(vec3(0.001, 1, 0.001));
@@ -29,11 +31,15 @@ void main() {
     vec4 gb2 = texture2D(u_gbufs[2], v_uv);
     vec4 gb3 = texture2D(u_gbufs[3], v_uv);
     float depth = texture2D(u_depth, v_uv).x;
-    // TODO: Extract needed properties from the g-buffers into local variables
+    #if OPTIMIZATION == 0
     vec3 pos = gb0.xyz;
     vec3 colmap = gb2.rgb;
     vec3 nor = applyNormalMap(gb1.xyz, gb3.xyz);
-
+    #elif OPTIMIZATION == 1
+    vec3 pos = gb0.xyz;
+    vec3 nor = gb1.xyz;
+    vec3 colmap = gb2.rgb;
+    #endif
     // If nothing was rendered to this pixel, set alpha to 0 so that the
     // postprocessing step can render the sky color.
     if (depth == 1.0) {

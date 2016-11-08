@@ -39,15 +39,16 @@
             }
             R.pass_deferred.render(state);
             R.pass_post1.render(state);
+            if (cfg.box) {
+              R.pass_box.render(state);
+            }
             if (cfg.rampShading) {
               R.pass_toon.render(state);
             }
             if (cfg.edge > 0) {
-              if (cfg.edge == 2) {
-
-              }
               R.pass_edge.render(state);
             }
+
         }
 
     };
@@ -164,7 +165,7 @@
      * 'post1' pass: Perform (first) pass of post-processing
      */
     R.pass_post1.render = function(state) {
-        if (cfg.edge > 0 || cfg.rampShading) {
+        if (cfg.edge > 0 || cfg.rampShading || cfg.box) {
           gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_post1.fbo);
         } else {
           gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -194,6 +195,26 @@
       renderFullScreenQuad(R.prog_Toon);
       R.lastShader = R.pass_toon;
     }
+
+    R.pass_box.render = function (state) {
+      if (cfg.edge > 0 || cfg.rampShading) {
+        gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_box.fbo);
+      } else {
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      }
+      gl.useProgram(R.prog_Box.prog);
+      gl.activeTexture(gl['TEXTURE' + R.NUM_GBUFFERS]);
+      gl.bindTexture(gl.TEXTURE_2D, R.pass_copy.depthTex);
+      gl.uniform1i(R.prog_Box.u_depth, R.NUM_GBUFFERS);
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, R.lastShader.colorTex);
+      gl.uniform1i(R.prog_Box.u_color, 0);
+      gl.uniform1f(R.prog_Box.u_focus, cfg.focus);
+      gl.uniform2fv(R.prog_Box.u_pixSize, [1.0 / width, 1.0 / height]);
+      gl.uniform1fv(R.prog_Box.u_kernel, [0.1111, 0.1111, 0.1111, 0.1111, 0.1111, 0.1111, 0.1111, 0.1111, 0.1111]);
+      renderFullScreenQuad(R.prog_Box);
+      R.lastShader = R.pass_box;
+    };
 
     R.pass_edge.render = function (state) {
       if (cfg.edge == 2) {
@@ -225,6 +246,7 @@
       }
       R.lastShader = R.pass_edge;
     };
+
 
     var drawScene = function(state) {
         for (var i = 0; i < state.models.length; i++) {
