@@ -3,6 +3,8 @@
 precision highp float;
 precision highp int;
 
+#define NUM_GBUFFERS 2
+
 uniform sampler2D u_colmap;
 uniform sampler2D u_normap;
 
@@ -25,11 +27,19 @@ void main() {
     vec4 color = texture2D(u_colmap, v_uv);
     vec4 normap = texture2D(u_normap, v_uv);
 
-    vec3 nor = applyNormalMap(v_normal, normap.xyz);
+    vec3 nor = normalize(applyNormalMap(v_normal, normap.xyz));
 
     // this gives you the idea
-    gl_FragData[0] = vec4( v_position, 1.0 );
-    gl_FragData[1] = vec4( nor, 0.0);
+    gl_FragData[0] = vec4( v_position, nor[0] );
+
+#if NUM_GBUFFERS == 2
+    gl_FragData[1] = vec4( color.rgb, nor[1]);
+#elif NUM_GBUFFERS == 3
+    gl_FragData[1] = vec4( nor, nor[1]);
     gl_FragData[2] = color;
-    // gl_FragData[3] = normal;
+#elif NUM_GBUFFERS == 4
+    gl_FragData[1] = vec4( v_normal, 0.0);
+    gl_FragData[2] = color;
+    gl_FragData[3] = normap;
+#endif
 }
