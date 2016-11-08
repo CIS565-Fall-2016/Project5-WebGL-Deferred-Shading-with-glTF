@@ -7,11 +7,12 @@ var cfg;
         // TODO: Define config fields and defaults here
         this.debugView = -1;
         this.debugScissor = false;
-        this.debugShowTiles = false;
+        this.debugTiledShading = false;
 
         this.bloomEffect = false;
         this.pixelateEffect = false;
 
+        this.scissorTest = false;
         this.tiledShading = false;
     };
 
@@ -29,16 +30,18 @@ var cfg;
             '4 Normal map':      4,
             '5 Surface normal':  5
         });
-        gui.add(cfg, 'debugScissor');
-        gui.add(cfg, 'debugShowTiles');
+
+        var optimization = gui.addFolder("OPTIMIZATION");
+        optimization.open();
+        optimization.add(cfg, 'scissorTest');
+        optimization.add(cfg, 'debugScissor');
+        optimization.add(cfg, 'tiledShading');
+        optimization.add(cfg, 'debugTiledShading');
 
         var eff0 = gui.addFolder('EFFECT NAME HERE');
         eff0.open();
         eff0.add(cfg, 'bloomEffect');
         eff0.add(cfg, 'pixelateEffect');
-
-        var optimization = gui.addFolder("OPTIMIZATION");
-        optimization.add(cfg, 'tiledShading');
 
         // TODO: add more effects toggles and parameters here
     };

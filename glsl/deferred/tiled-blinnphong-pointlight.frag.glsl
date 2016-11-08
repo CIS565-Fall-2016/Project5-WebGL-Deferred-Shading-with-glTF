@@ -97,6 +97,8 @@ void main() {
         // Loop through lights
         vec4 color = vec4(0,0,0,1);
         vec4 hdrColor = vec4(0,0,0,1);
+
+        vec2 uv = gl_FragCoord.xy / u_tileLightIndicesTexWidth;
         for (int i = 0; i < 100; ++i) {
             if (i >= u_lightCount) {
                 break;

@@ -150,7 +150,7 @@
         // * Bind/setup the Blinn-Phong pass, and render using fullscreen quad
         bindTexturesForLightPass(R.prog_BlinnPhong_PointLight);
 
-        if (cfg.debugScissor) {
+        if (cfg.scissorTest) {
             gl.enable(gl.SCISSOR_TEST);
         }
 
@@ -170,18 +170,20 @@
             // getScissorForLight returns null if the scissor is off the screen.
             // Otherwise, it returns an array [xmin, ymin, width, height].
             //
-            if (cfg.debugScissor) {
+            if (cfg.scissorTest) {
                 var sc = getScissorForLight(state.viewMat, state.projMat, R.lights[i]);
                 if (sc !== undefined && sc !== null) {
                    gl.scissor(sc[0], sc[1], sc[2], sc[3]);
                 }
+
+                gl.uniform1i(R.prog_BlinnPhong_PointLight.u_debugScissor, cfg.debugScissor);
             }
             // * Render a fullscreen quad to perform shading on
             renderFullScreenQuad(R.prog_BlinnPhong_PointLight);
 
         }
 
-        if (cfg.debugScissor) {
+        if (cfg.scissorTest) {
             gl.disable(gl.SCISSOR_TEST);
         }
         // Disable blending so that it doesn't affect other code
@@ -285,7 +287,7 @@
             var lightOffset = R.tileLightOffsets[t];
             gl.uniform1i(R.prog_Tiled_BlinnPhong_PointLight.u_lightCount, lightCount);
             gl.uniform1i(R.prog_Tiled_BlinnPhong_PointLight.u_lightOffset, lightOffset);
-            gl.uniform1i(R.prog_Tiled_BlinnPhong_PointLight.u_colorLightCountOnly, cfg.debugShowTiles);
+            gl.uniform1i(R.prog_Tiled_BlinnPhong_PointLight.u_colorLightCountOnly, cfg.debugTiledShading);
 
             // Only render per tile
             var tileRow = Math.floor(t / R.TILE_DIM);

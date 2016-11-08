@@ -12,6 +12,7 @@ uniform vec3 u_lightPos;
 uniform float u_lightRad;
 uniform sampler2D u_gbufs[NUM_GBUFFERS];
 uniform sampler2D u_depth;
+uniform bool u_debugScissor;
 
 varying vec2 v_uv;
 
@@ -48,6 +49,12 @@ vec3 specularLighting(vec3 col, vec3 pos, vec3 nor, vec3 lightDir) {
 
 
 void main() {
+
+    if (u_debugScissor) {
+        gl_FragData[0] = vec4(0.1,0,0,1.0);
+        return;
+    }
+
     vec4 gb0 = texture2D(u_gbufs[0], v_uv);
     vec4 gb1 = texture2D(u_gbufs[1], v_uv);
     vec4 gb2 = texture2D(u_gbufs[2], v_uv);

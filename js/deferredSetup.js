@@ -212,6 +212,7 @@
             p.u_lightPos = gl.getUniformLocation(p.prog, 'u_lightPos');
             p.u_lightCol = gl.getUniformLocation(p.prog, 'u_lightCol');
             p.u_lightRad = gl.getUniformLocation(p.prog, 'u_lightRad');
+            p.u_debugScissor = gl.getUniformLocation(p.prog, 'u_debugScissor');
             R.prog_BlinnPhong_PointLight = p;
         });
 
