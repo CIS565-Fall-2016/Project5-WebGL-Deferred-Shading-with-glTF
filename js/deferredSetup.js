@@ -10,6 +10,7 @@
     R.pass_hdr = {};
     R.pass_blend = {};
     R.pass_bloom = {};
+    R.pass_sobel = {};
     R.lights = [];
     R.old_colorTex;
 
@@ -24,6 +25,7 @@
         R.pass_copy.setup();
         R.pass_deferred.setup();
         R.pass_blur.setup();
+        R.pass_sobel.setup();
 
         // R.pass_blend.setup();
     };
@@ -99,6 +101,22 @@
 
         // * Check for framebuffer errors
         abortIfFramebufferIncomplete(R.pass_deferred.fbo);
+        // * Tell the WEBGL_draw_buffers extension which FBO attachments are
+        //   being used. (This extension allows for multiple render targets.)
+        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    };
+
+    R.pass_sobel.setup = function() {
+        // * Create the FBO
+        R.pass_sobel.fbo = gl.createFramebuffer();
+        // * Create, bind, and store a single color target texture for the FBO
+        R.pass_sobel.colorTex = createAndBindColorTargetTexture(
+            R.pass_sobel.fbo, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+
+        // * Check for framebuffer errors
+        abortIfFramebufferIncomplete(R.pass_sobel.fbo);
         // * Tell the WEBGL_draw_buffers extension which FBO attachments are
         //   being used. (This extension allows for multiple render targets.)
         gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
@@ -208,6 +226,13 @@
             p.u_color    = gl.getUniformLocation(p.prog, 'u_color');
             // Save the object into this variable for access later
             R.progPost1 = p;
+        });
+
+        loadPostProgram('sobel', function(p) {
+            p.u_color    = gl.getUniformLocation(p.prog, 'u_color');
+            p.u_tex_offset = gl.getUniformLocation(p.prog, 'u_tex_offset');
+            // Save the object into this variable for access later
+            R.progSobel = p;
         });
 
         // TODO: If you add more passes, load and set up their shader programs.

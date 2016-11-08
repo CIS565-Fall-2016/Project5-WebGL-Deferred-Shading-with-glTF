@@ -8,6 +8,7 @@ var cfg;
         this.debugView = -1;
         this.debugScissor = false;
         this.bloom = false;
+        this.toon = false;
     };
 
     var init = function() {
@@ -26,9 +27,11 @@ var cfg;
         });
         gui.add(cfg, 'debugScissor');
 
-        var eff0 = gui.addFolder('Bloom');
+        var eff0 = gui.addFolder('Post processing');
         eff0.open();
         eff0.add(cfg, 'bloom');
+        eff0.add(cfg, 'toon');
+
         // TODO: add more effects toggles and parameters here
     };
 

@@ -47,6 +47,8 @@
             R.pass_deferred.render(state);
             if(cfg.bloom)
               R.pass_blur.render(state);
+            if(cfg.toon)
+              R.pass_sobel.render(state);
             R.pass_post1.render(state);
 
             // OPTIONAL TODO: call more postprocessing passes, if any
@@ -261,6 +263,35 @@
 
       R.old_colorTex = R.pass_blur.pingpongBuffer[3];
 
+    };
+
+    /**
+     * 'sobel filter' pass: Perform (sobel) pass of post-processing
+     */
+    R.pass_sobel.render = function(state) {
+        // * Unbind any existing framebuffer (if there are no more passes)
+        gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_sobel.fbo);
+
+        // * Bind the postprocessing shader program
+        gl.useProgram(R.progSobel.prog);
+
+        // * Bind the deferred pass's color output as a texture input
+        // Set gl.TEXTURE0 as the gl.activeTexture unit
+        // TODO: uncomment
+        gl.activeTexture(gl.TEXTURE0);
+
+        // Bind the TEXTURE_2D, R.pass_deferred.colorTex to the active texture unit
+        // TODO: uncomment
+        gl.bindTexture(gl.TEXTURE_2D, R.old_colorTex);
+        // gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex);
+
+        // Configure the R.progPost1.u_color uniform to point at texture unit 0
+        gl.uniform1i(R.progSobel.u_color, 0);
+        gl.uniform2fv(R.progSobel.u_tex_offset, [1.0 / width, 1.0/ height]);
+
+        // * Render a fullscreen quad to perform shading on
+        renderFullScreenQuad(R.progSobel);
+        R.old_colorTex = R.pass_sobel.colorTex;
     };
 
     /**
