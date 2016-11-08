@@ -66,7 +66,7 @@ Here were some odd images that I got by using different 3x3 kernels without thre
 <img src="img/deferred-1478498035688.png" width="400" height="300"/><img src="img/deferred-1478498028576.png" width="400" height="300"/>
 
 Here is the standard 2-pass sobel filter without thresholding.
-
+|    |    |    |
 |----|----|----|
 | -1 | -2 | -1 |
 | 0  | 0  | 0  |
