@@ -11,6 +11,7 @@
             !R.prog_BlinnPhong_PointLight ||
             !R.prog_Debug ||
             !R.progPost1 ||
+            !R.progScissor||
             !R.progToon||
             !R.progbloomextract||
             !R.progbloomblur||
@@ -41,13 +42,14 @@
         }
 */
         R.pass_copy.render(state);
-        if (cfg && cfg.debugView >= 0) {
-            // Do a debug render instead of a regular render
-            // Don't do any post-processing in debug mode
-            R.pass_debug.render(state);
-        } else {
+        if (cfg && cfg.debugScissor == true) {
+           // if I not put is here, debugScissor will never be executed
+            R.pass_debug.renderScissor(state);
+        } else if(cfg && cfg.debugView >= 0) {
+            R.pass_debug.render(state); //if do not adjust, will never come in this
             // * Deferred pass and postprocessing pass(es)
             // TODO: uncomment these
+        } else {
             R.pass_deferred.render(state);
             if(cfg.bloom == true) {
           	  	R.pass_bloomextract.render(state);
@@ -58,7 +60,6 @@
             } else {
                 R.pass_post1.render(state);
             }
-
             // OPTIONAL TODO: call more postprocessing passes, if any
             // add bloom here
             // R.pass_bloomextract.render(state);
@@ -76,8 +77,6 @@
         // * Bind the framebuffer R.pass_copy.fbo
         // TODO: uncomment
         gl.bindFramebuffer(gl.FRAMEBUFFER,R.pass_copy.fbo);
-
-
         // * Clear screen using R.progClear
         // TODO: uncomment
         renderFullScreenQuad(R.progClear);
@@ -133,6 +132,32 @@
          renderFullScreenQuad(R.prog_Debug);
     };
 
+//try another way
+   R.pass_debug.renderScissor = function(state) {
+        //put it at screen
+         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+         // * Clear depth to 1.0 and color to black
+         gl.clearColor(0.0, 0.0, 0.0, 0.0);
+         gl.clearDepth(1.0);
+         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+//https://www.opengl.org/sdk/docs/man/html/glBlendFunc.xhtml
+         gl.enable(gl.BLEND);
+         gl.blendEquation( gl.FUNC_ADD );
+         gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+
+         gl.enable(gl.SCISSOR_TEST);
+
+         for (var light of R.lights) {
+            var sc = getScissorForLight(state.viewMat, state.projMat, light);
+            if (sc == null) {continue;}
+            gl.scissor(sc[0], sc[1], sc[2], sc[3]);
+            renderFullScreenQuad(R.progScissor);
+          }
+         gl.disable(gl.BLEND);
+         gl.disable(gl.SCISSOR_TEST);
+     };
+
     /**
      * 'deferred' pass: Add lighting results for each individual light
      */
@@ -160,48 +185,32 @@
         bindTexturesForLightPass(R.prog_Ambient);
         renderFullScreenQuad(R.prog_Ambient);
 
+        gl.enable(gl.SCISSOR_TEST);
         // * Bind/setup the Blinn-Phong pass, and render using fullscreen quad
         bindTexturesForLightPass(R.prog_BlinnPhong_PointLight);
-
         // TODO: In the lighting loop, use the scissor test optimization
         // Enable gl.SCISSOR_TEST, render all lights, then disable it.
 
-        gl.enable(gl.SCISSOR_TEST);
         // TODO: add a loop here, over the values in R.lights, which sets the
         //   uniforms R.prog_BlinnPhong_PointLight.u_lightPos/Col/Rad etc.,
         //   then does renderFullScreenQuad(R.prog_BlinnPhong_PointLight).
         for (var light of R.lights) {
           	var l = light;
-          	var eye = [state.cameraPos.x,state.cameraPos.y,state.cameraPos.z];
+            var sc = getScissorForLight(state.viewMat, state.projMat, light);
+            if(sc != null) {
+               gl.scissor(sc[0],sc[1],sc[2],sc[3]);
+             }
+            var eye = [state.cameraPos.x,state.cameraPos.y,state.cameraPos.z];
             gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_camPos,eye);
             gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_lightPos, l.pos);
             gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_lightCol, l.col);
             gl.uniform1f(R.prog_BlinnPhong_PointLight.u_lightRad,l.rad);
-
             if (cfg.toon) {
-                gl.uniform1f(R.prog_BlinnPhong_PointLight.u_toon, 1.0);
+               gl.uniform1f(R.prog_BlinnPhong_PointLight.u_toon, 1.0);
             } else {
-                gl.uniform1f(R.prog_BlinnPhong_PointLight.u_toon, 0.0);
+               gl.uniform1f(R.prog_BlinnPhong_PointLight.u_toon, 0.0);
             }
-
-            var sc = getScissorForLight(state.viewMat, state.projMat, light);
-            // getScissorForLight returns null if the scissor is off the screen.
-            // Otherwise, it returns an array [xmin, ymin, width, height];
-            //   var sc = getScissorForLight(state.viewMat, state.projMat, light)
-            if(sc != null)
-            {
-             	if(cfg && cfg.debugScissor == true)	{
-            			gl.scissor(sc[0],sc[1],sc[2],sc[3]); //[xmin, ymin, width, height].
-              		renderFullScreenQuad(R.progRed);
-             		}	else {
-                	gl.scissor(sc[0],sc[1],sc[2],sc[3]);
-              		// gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_camPos,eye);
-            			// gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_lightPos, l.pos);
-             		// 	gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_lightCol, l.col);
-            			// gl.uniform1f(R.prog_BlinnPhong_PointLight.u_lightRad,l.rad);
-            			renderFullScreenQuad(R.prog_BlinnPhong_PointLight);
-            		}
-            	}
+            renderFullScreenQuad(R.prog_BlinnPhong_PointLight);
         }
         // Disable blending so that it doesn't affect other code
          gl.disable(gl.SCISSOR_TEST);
@@ -350,8 +359,6 @@
          // * Render a fullscreen quad
       renderFullScreenQuad(R.progbloomblurtwice);
     }
-
-
 
     var renderFullScreenQuad = (function() {
         // The variables in this function are private to the implementation of

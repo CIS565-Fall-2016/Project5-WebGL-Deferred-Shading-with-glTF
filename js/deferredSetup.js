@@ -196,6 +196,10 @@
             R.prog_BlinnPhong_PointLight = p;
         });
 
+        loadDeferredProgram('scissor', function(p) {
+            R.progScissor = p;
+        });
+
         loadDeferredProgram('debug', function(p) {
             p.u_debug = gl.getUniformLocation(p.prog, 'u_debug');
             // Save the object into this variable for access later
