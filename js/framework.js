@@ -249,6 +249,8 @@ var width, height;
 
                         idx: indicesBuffer,
 
+                        interleaved: true,
+
                         attributes: vertexBuffer,
                         posInfo: {size: posInfo.size, type: posInfo.type, stride: posInfo.stride, offset: posInfo.offset},
                         norInfo: {size: norInfo.size, type: norInfo.type, stride: norInfo.stride, offset: norInfo.offset},
@@ -325,9 +327,21 @@ var width, height;
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gidx);
             gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, idx, gl.STATIC_DRAW);
 
+            // var m = {
+            //     idx: gidx,
+            //     elemCount: idx.length,
+            //     position: gposition,
+            //     normal: gnormal,
+            //     uv: guv
+            // };
+
+            // adapt to new readyModelForDraw and drawReadyModel (glTF version)
             var m = {
                 idx: gidx,
                 elemCount: idx.length,
+
+                interleaved: false,
+
                 position: gposition,
                 normal: gnormal,
                 uv: guv
