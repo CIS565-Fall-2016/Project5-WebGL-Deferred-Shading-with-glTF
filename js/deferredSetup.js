@@ -12,8 +12,8 @@
     R.pass_bloomblurtwice = {};
     R.lights = [];
 
-    R.NUM_GBUFFERS = 4;
-
+    // R.NUM_GBUFFERS = 4;
+    R.NUM_GBUFFERS = 3;
     /**
      * Set up the deferred pipeline framebuffer objects and textures.
      */

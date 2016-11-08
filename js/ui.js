@@ -21,10 +21,12 @@ var cfg;
             'None':             -1,
             '0 Depth':           0,
             '1 Position':        1,
-            '2 Geometry normal': 2,
-            '3 Color map':       3,
-            '4 Normal map':      4,
-            '5 Surface normal':  5
+            '2 Surface normal':  2,
+            '3 Color map':       3
+            // '2 Geometry normal': 2,
+            // '3 Color map':       3,
+            // '4 Normal map':      4,
+            // '5 Surface normal':  5
         });
         gui.add(cfg, 'debugScissor');
 

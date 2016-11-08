@@ -2,8 +2,8 @@
 precision highp float;
 precision highp int;
 
-#define NUM_GBUFFERS 4
-
+//#define NUM_GBUFFERS 4
+#define NUM_GBUFFERS 3
 uniform vec3 u_lightCol;
 uniform vec3 u_lightPos;
 uniform float u_lightRad;
@@ -25,16 +25,16 @@ void main() {
     vec4 gb0 = texture2D(u_gbufs[0], v_uv);
     vec4 gb1 = texture2D(u_gbufs[1], v_uv);
     vec4 gb2 = texture2D(u_gbufs[2], v_uv);
-    vec4 gb3 = texture2D(u_gbufs[3], v_uv);
+//    vec4 gb3 = texture2D(u_gbufs[3], v_uv);
     float depth = texture2D(u_depth, v_uv).x;
     // TODO: Extract needed properties from the g-buffers into local variables
     // local? extract, alright
 
      vec3 pos = gb0.xyz;
-     vec3 geomnor = gb1.xyz;
+  //   vec3 geomnor = gb1.xyz;
      vec3 color = gb2.rgb;
-     vec3 normap = gb3.xyz;
-     vec3 nor = applyNormalMap(geomnor,normap);
+//     vec3 normap = gb3.xyz;
+     vec3 nor = normalize(gb1.xyz);
 
      vec3 lightDir = normalize(u_lightPos - pos);
      float distToLight = distance(u_lightPos, pos);
