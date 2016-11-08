@@ -28,22 +28,26 @@
         // debugger;
 
         R.pass_copy.render(state);
-
+        var doPostPasses = function(passes) {
+            for (var i = 0; i < passes.length; i++) {
+              var tex = (i == 0) ? R.pass_deferred.colorTex : R.tex[1 - R.curFbo];
+              var fbo = (i == passes.length - 1) ? null : R.fbo[R.curFbo];
+              passes[i].render(state, fbo, tex);
+              R.curFbo = 1 - R.curFbo;
+            }
+          };
         if (cfg && cfg.debugView >= 0) {
             // Do a debug render instead of a regular render
             // Don't do any post-processing in debug mode
-            R.pass_debug.render(state);
+            if (cfg.debugView == 6) {
+              doPostPasses([R.pass_motionBlur]);
+            } else {
+              R.pass_debug.render(state);
+            }
         } else {
             // * Deferred pass and postprocessing pass(es)
             R.pass_deferred.render(state);
-            var doPostPasses = function(passes) {
-              for (var i = 0; i < passes.length; i++) {
-                var tex = (i == 0) ? R.pass_deferred.colorTex : R.tex[1 - R.curFbo];
-                var fbo = (i == passes.length - 1) ? null : R.fbo[R.curFbo];
-                passes[i].render(state, fbo, tex);
-                R.curFbo = 1 - R.curFbo;
-              }
-            };
+            
             var passes = [R.pass_post1];
             if (cfg.enableMotionBlur) {
               passes.push(R.pass_motionBlur);
@@ -246,6 +250,11 @@
 
       gl.uniform1i(R.progMotionBlur.u_color, 0);
       gl.uniform1i(R.progMotionBlur.u_oldpos, 1);
+      if (cfg.debugView == 6) {
+        gl.uniform1i(R.progMotionBlur.u_debug, 1);
+      } else {
+        gl.uniform1i(R.progMotionBlur.u_debug, 0);
+      }
       gl.uniformMatrix4fv(R.progMotionBlur.u_projMat, false, state.cameraMat.elements);
       renderFullScreenQuad(R.progMotionBlur);
     };

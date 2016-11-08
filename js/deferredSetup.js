@@ -209,6 +209,7 @@
           p.u_color = gl.getUniformLocation(p.prog, 'u_color');
           p.u_oldpos = gl.getUniformLocation(p.prog, 'u_oldpos');
           p.u_projMat = gl.getUniformLocation(p.prog, 'u_projMat');
+          p.u_debug = gl.getUniformLocation(p.prog, 'u_debug');
           R.progMotionBlur = p;
         });
 

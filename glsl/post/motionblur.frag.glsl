@@ -4,7 +4,7 @@ precision highp int;
 
 uniform sampler2D u_color;
 uniform sampler2D u_oldpos;
-
+uniform int u_debug;
 uniform mat4 u_projMat;
 
 varying vec2 v_uv;
@@ -19,5 +19,9 @@ void main() {
   for (float i = 0.0; i < 1.0; i += INV_SAMPLES) {
     color += texture2D(u_color, v_uv + i * diff);
   }
-  gl_FragColor = color * INV_SAMPLES;
+  if (u_debug == 0) {
+    gl_FragColor = color * INV_SAMPLES;
+  } else if (u_debug == 1) {
+    gl_FragColor = vec4(diff, 0.0, 1.0);
+  }
 }
