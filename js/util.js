@@ -200,8 +200,8 @@ window.insertLightExtentToGrid = function(tiles, extent, screenWidth, screenHeig
     var tileSize = [screenWidth / tileDim, screenHeight / tileDim];
     var xMin = extent[0];
     var yMin = extent[1];
-    var xMax = extent[2] + xMin;
-    var yMax = extent[3] + yMin;
+    var xMax = Math.min(extent[2] + xMin, screenWidth);
+    var yMax = Math.min(extent[3] + yMin, screenHeight);
 
     // console.log("tile size: " + tileSize[0] + ", " + tileSize[1]);
     // console.log("xMin: " + xMin + ", xMax: " + xMax + ", yMin: " + yMin + ", yMax: " + yMax);
@@ -211,6 +211,7 @@ window.insertLightExtentToGrid = function(tiles, extent, screenWidth, screenHeig
             var indexY = Math.floor(y / tileSize[1]);
 
             var index = indexX + indexY * tileDim;
+            // console.log("x: " + x + ", y: " + y + ", y / ts: " + y / tileSize[1] + ", width: " + width + ", height: " + height);
             // console.log("ix: " + indexX + ", iy: " + indexY + ", index: " + index);
             tiles[index].push(lightId);
         }
@@ -223,6 +224,11 @@ window.clearGrid = function(tiles, tileDim) {
     for (var i = 0; i < tileCount; ++i) {
         tiles[i] = [];
     }
+}
+
+// Taken from https://bocoup.com/weblog/find-the-closest-power-of-2-with-javascript
+window.nearestPow2 = function( aSize ){
+  return Math.pow( 2, Math.round( Math.log( aSize ) / Math.log( 2 ) ) );
 }
 
 window.abortIfFramebufferIncomplete = function(fbo) {

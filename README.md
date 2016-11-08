@@ -27,6 +27,10 @@ WebGL Deferred Shading
 
 Data structure layout for the grid construction. This figure is taken from [Tiled Shading](http://www.cse.chalmers.se/~uffe/tiled_shading_preprint.pdf)
 
+### Optimization
+
+- pass in a vec2 texture size instead of just u_texWidth or u_texHeight for bloom
+
 # Credit
 
 - [Blinn-Phong](http://sunandblackcat.com/tipFullView.php?l=eng&topicid=30&topic=Phong-Lighting)
@@ -37,3 +41,5 @@ Data structure layout for the grid construction. This figure is taken from [Tile
 * [webgl-debug](https://github.com/KhronosGroup/WebGLDeveloperTools) by Khronos Group Inc.
 * [glMatrix](https://github.com/toji/gl-matrix) by [@toji](https://github.com/toji) and contributors
 * [minimal-gltf-loader](https://github.com/shrekshao/minimal-gltf-loader) by [@shrekshao](https://github.com/shrekshao)
+* [nearest power of 2](https://bocoup.com/weblog/find-the-closest-power-of-2-with-javascript)
+* [packing data to texture](http://stackoverflow.com/questions/17262574/packing-vertex-data-into-a-webgl-texture)

@@ -8,8 +8,11 @@ var cfg;
         this.debugView = -1;
         this.debugScissor = false;
         this.debugShowTiles = false;
-        this.enableBloomEffect = false;
-        this.enableTiledShading = false;
+
+        this.bloomEffect = false;
+        this.pixelateEffect = false;
+
+        this.tiledShading = false;
     };
 
     var init = function() {
@@ -31,8 +34,12 @@ var cfg;
 
         var eff0 = gui.addFolder('EFFECT NAME HERE');
         eff0.open();
-        eff0.add(cfg, 'enableBloomEffect');
-        eff0.add(cfg, 'enableTiledShading');
+        eff0.add(cfg, 'bloomEffect');
+        eff0.add(cfg, 'pixelateEffect');
+
+        var optimization = gui.addFolder("OPTIMIZATION");
+        optimization.add(cfg, 'tiledShading');
+
         // TODO: add more effects toggles and parameters here
     };
 

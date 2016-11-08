@@ -12,7 +12,8 @@
             !R.prog_BlinnPhong_PointLight ||
             !R.prog_Debug ||
             !R.progPost1 ||
-            !R.progGaussianBlur)) {
+            !R.progGaussianBlur ||
+            !R.progPostPixelated)) {
             console.log('waiting for programs to load...');
             return;
         }
@@ -39,7 +40,7 @@
         } else {
             // * Deferred pass and postprocessing pass(es)
             // TODO: uncomment these
-            if (cfg.enableTiledShading) {
+            if (cfg.tiledShading) {
                 R.pass_tiled_deferred.render(state);
             } else {
                 R.pass_deferred.render(state);
@@ -47,8 +48,12 @@
             R.pass_post1.render(state);
 
             // OPTIONAL TODO: call more postprocessing passes, if any
-            if (cfg.enableBloomEffect) {
+            if (cfg.bloomEffect) {
                 R.pass_gaussian_blur.render(state);
+            }
+
+            if (cfg.pixelateEffect) {
+                R.pass_post_pixelated.render(state);
             }
         }
     };
@@ -211,7 +216,6 @@
         clearGrid(R.tileLightIndices, R.TILE_DIM);
 
         for (var lightId = 0; lightId < R.lights.length; lightId++) {
-
             // Convert bounding box into screen space;
             var extent = getScissorForLight(state.viewMat, state.projMat, R.lights[lightId]);
             if (extent !== undefined && extent !== null) {
@@ -226,6 +230,14 @@
                 tileLightIndices.push(R.tileLightIndices[i][j]);
             }
         }
+        var texTileLightIndicesWidth = nearestPow2(Math.ceil(Math.sqrt(tileLightIndices.length)));
+        var texTileLightIndicesArea = texTileLightIndicesWidth * texTileLightIndicesWidth
+        var tileLightIndicesData = new Uint8Array(texTileLightIndicesArea);
+        // Copy over the grid array
+        for (var i = 0; i < tileLightIndices.length; ++i) {
+            tileLightIndicesData[i] = tileLightIndices[i];
+        }
+        var tileLightIndicesTex = texture2DFromUint8(texTileLightIndicesArea, tileLightIndicesData);
 
         // --- Compute light count and offsets for each light
         for (var i = 0; i < R.tileLightIndices.length; ++i) {
@@ -240,39 +252,46 @@
         var tileHeight = Math.ceil(state.height / R.TILE_DIM);
 
         // -- Create textures for light info
-        var lightPoints = new Float32Array(R.lights.length * 3);
-        var lightColors = new Float32Array(R.lights.length * 3);
-        var lightRads = new Float32Array(R.lights.length * 3);
+        var lightTexWidth = Math.ceil(Math.sqrt(R.lights.length));
+        var lightTexArea = lightTexWidth * lightTexWidth;
+        var lightPositions = new Float32Array(lightTexArea  * 3); // vec3
+        var lightColors = new Float32Array(lightTexArea * 3); // vec3
+        var lightRads = new Float32Array(nearestPow2(lightTexArea)); // scalar
         for (var l = 0; l < R.lights.length; ++l) {
             var light = R.lights[l];
             for (var i = 0; i < 3; ++i) {
-                lightPoints[l * 3 + i] = light.pos;
-                lightColors[l * 3 + i] = light.col;
-                lightRads[l * 3 + i] = light.rad;
+                lightPositions[l * 3 + i] = light.pos[i];
+                lightColors[l * 3 + i] = light.col[i];
             }
+            lightRads[l] = light.rad;
         }
-        var lightPointTex = texture1DFromVec3Floats(R.lights.length * 3, lightPoints);
-        var lightColorTex = texture1DFromVec3Floats(R.lights.length * 3, lightColors);
-        var lightRadTex = texture1DFromFloats(R.lights.length * 3, lightRads);
+
+        var lightPositionTex = texture2DFromVec3Floats(lightTexArea, lightPositions);
+        var lightColorTex = texture2DFromVec3Floats(lightTexArea, lightColors);
+        var lightRadTex = texture2DFromFloats(nearestPow2(lightTexArea), lightRads);
 
 
         // Bind textures
-        gl.enable(gl.SCISSOR_TEST);
-
-        bindTexturesForTiledLightPass(R.prog_Tiled_BlinnPhong_PointLight, lightPoints, lightColors, lightRads);
+        bindTexturesForTiledLightPass(R.prog_Tiled_BlinnPhong_PointLight, lightPositionTex, lightColorTex, lightRadTex, tileLightIndicesTex);
 
         // -- Render for each tile!
+        gl.enable(gl.SCISSOR_TEST);
+
+        gl.uniform1i(R.prog_Tiled_BlinnPhong_PointLight.u_lightTexWidth, lightTexArea);
+        gl.uniform1i(R.prog_Tiled_BlinnPhong_PointLight.u_tileLightIndicesTexWidth, texTileLightIndicesArea);
         for (var t = 0; t < tileCount; ++t) {
 
             var lightCount = R.tileLightCounts[t];
+            var lightOffset = R.tileLightOffsets[t];
             gl.uniform1i(R.prog_Tiled_BlinnPhong_PointLight.u_lightCount, lightCount);
+            gl.uniform1i(R.prog_Tiled_BlinnPhong_PointLight.u_lightOffset, lightOffset);
             gl.uniform1i(R.prog_Tiled_BlinnPhong_PointLight.u_colorLightCountOnly, cfg.debugShowTiles);
-            gl.uniform1i(R.prog_Tiled_BlinnPhong_PointLight.u_tileIdx, t);
 
             // Only render per tile
-
             var tileRow = Math.floor(t / R.TILE_DIM);
             var tileCol = Math.floor(t % R.TILE_DIM);
+
+            // Scissor out the specific tile
             gl.scissor(tileCol * tileWidth, tileRow * tileHeight, tileWidth, tileHeight);
             renderFullScreenQuad(R.prog_Tiled_BlinnPhong_PointLight);
         }
@@ -297,7 +316,7 @@
         gl.uniform1i(prog.u_depth, R.NUM_GBUFFERS);
     };
 
-    var bindTexturesForTiledLightPass = function(prog, lightPointTex, lightColTex, lightRadTex) {
+    var bindTexturesForTiledLightPass = function(prog, lightPositionTex, lightColTex, lightRadTex, tileLightIndices) {
         gl.useProgram(prog.prog);
 
         // * Bind all of the g-buffers and depth buffer as texture uniform
@@ -313,57 +332,95 @@
 
         var texId = R.NUM_GBUFFERS + 1;
         gl.activeTexture(gl['TEXTURE' + texId]);
-        gl.bindTexture(gl.TEXTURE_2D, lightPointTex);
-        gl.uniform1i(prog.u_depth, texId);
+        gl.bindTexture(gl.TEXTURE_2D, lightPositionTex);
+        gl.uniform1i(prog.u_lightPos, texId);
 
         texId++;
         gl.activeTexture(gl['TEXTURE' + texId]);
         gl.bindTexture(gl.TEXTURE_2D, lightColTex);
-        gl.uniform1i(prog.u_depth, texId);
+        gl.uniform1i(prog.u_lightCol, texId);
 
         texId++;
         gl.activeTexture(gl['TEXTURE' + texId]);
         gl.bindTexture(gl.TEXTURE_2D, lightRadTex);
-        gl.uniform1i(prog.u_depth, texId);
+        gl.uniform1i(prog.u_lightRad, texId);
+
+        texId++;
+        gl.activeTexture(gl['TEXTURE' + texId]);
+        gl.bindTexture(gl.TEXTURE_2D, tileLightIndices);
+        gl.uniform1i(prog.u_tileLightIndices, texId);
+
     };
 
-    var texture1DFromVec3Floats = function(width, floats) {
+    var texture2DFromVec3Floats = function(width, floats) {
         var oldActiveTexture = gl.getParameter(gl.ACTIVE_TEXTURE);
         gl.activeTexture(gl.TEXTURE15);
         var texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
 
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
         gl.texImage2D(
-            gl.TEXTURE_1D,  // target
+            gl.TEXTURE_2D,  // target
             0,              // level
-            gl.RGB,        // internalformat
+            gl.RGB,         // internalformat
             width,
+            1,
             0,              // border
             gl.RGB,         // format
             gl.FLOAT,       // type
             floats
             );
 
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
         gl.bindTexture(gl.TEXTURE_2D, null);
 
         gl.activeTexture(oldActiveTexture);
+
+        return texture;
     }
 
-    var texture1DFromFloats = function(width, floats) {
+    var texture2DFromUint8 = function(width, ints) {
         var oldActiveTexture = gl.getParameter(gl.ACTIVE_TEXTURE);
         gl.activeTexture(gl.TEXTURE15);
         var texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
 
         gl.texImage2D(
-            gl.TEXTURE_1D,  // target
+            gl.TEXTURE_2D,  // target
             0,              // level
-            gl.R,        // internalformat
+            gl.ALPHA,        // internalformat
             width,
+            1,
             0,              // border
-            gl.R,         // format
+            gl.ALPHA,         // format
+            gl.UNSIGNED_BYTE,       // type
+            ints
+            );
+
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+
+        gl.activeTexture(oldActiveTexture);
+        return texture;
+    }
+
+    var texture2DFromFloats = function(width, floats) {
+        var oldActiveTexture = gl.getParameter(gl.ACTIVE_TEXTURE);
+        gl.activeTexture(gl.TEXTURE15);
+        var texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+
+        gl.texImage2D(
+            gl.TEXTURE_2D,  // target
+            0,              // level
+            gl.ALPHA,        // internalformat
+            width,
+            1,
+            0,              // border
+            gl.ALPHA,         // format
             gl.FLOAT,       // type
             floats
             );
@@ -373,6 +430,7 @@
         gl.bindTexture(gl.TEXTURE_2D, null);
 
         gl.activeTexture(oldActiveTexture);
+        return texture;
     }
 
 
@@ -397,7 +455,7 @@
 
         // Bind the TEXTURE_2D, R.pass_deferred.colorTex to the active texture unit
         // TODO: uncomment
-        if (cfg.enableTiledShading) {
+        if (cfg.tiledShading) {
             gl.bindTexture(gl.TEXTURE_2D, R.pass_tiled_deferred.colorTex);
         } else {
             gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex);
@@ -410,6 +468,42 @@
         renderFullScreenQuad(R.progPost1);
     };
 
+    R.pass_post_pixelated.render = function(state) {
+        // * Unbind any existing framebuffer (if there are no more passes)
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+        // * Clear the framebuffer depth to 1.0
+        gl.clearDepth(1.0);
+        gl.clear(gl.DEPTH_BUFFER_BIT);
+
+        // * Bind the postprocessing shader program
+        gl.useProgram(R.progPostPixelated.prog);
+
+        // * Bind the deferred pass's color output as a texture input
+        // Set gl.TEXTURE0 as the gl.activeTexture unit
+        // TODO: uncomment
+        gl.activeTexture(gl.TEXTURE0);
+
+        // Bind the TEXTURE_2D, R.pass_deferred.colorTex to the active texture unit
+        // TODO: uncomment
+        if (cfg.tiledShading) {
+            gl.bindTexture(gl.TEXTURE_2D, R.pass_tiled_deferred.colorTex);
+        } else {
+            gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex);
+        }
+
+        // Configure the R.progPost1.u_color uniform to point at texture unit 0
+        gl.uniform1i(R.progPostPixelated.u_color, 0);
+
+        var d = new Date();
+        var t = d.getTime();
+        gl.uniform1i(R.progPostPixelated.u_color, 0);
+        gl.uniform1i(R.progPostPixelated.u_time, t);
+        gl.uniform2f(R.progPostPixelated.u_textureSize, state.width, state.height);
+
+        // * Render a fullscreen quad to perform shading on
+        renderFullScreenQuad(R.progPostPixelated);
+    };
 
     /**
      * 'pass_gaussian_blur' pass: Perform bloom pass of post-processing
@@ -448,7 +542,7 @@
 
             // Bind the TEXTURE_2D, R.pass_deferred.colorTex to the active texture unit
             // TODO: uncomment
-            gl.bindTexture(gl.TEXTURE_2D, first ? (cfg.enableTiledShading ? R.pass_tiled_deferred.hdrTex : R.pass_deferred.hdrTex) : R.pass_gaussian_blur.blurTex[i % 2]);
+            gl.bindTexture(gl.TEXTURE_2D, first ? (cfg.tiledShading ? R.pass_tiled_deferred.hdrTex : R.pass_deferred.hdrTex) : R.pass_gaussian_blur.blurTex[i % 2]);
 
             // Configure the R.progPost1.u_color uniform to point at texture unit 0
             gl.uniform1i(R.progGaussianBlur.u_color, 0);

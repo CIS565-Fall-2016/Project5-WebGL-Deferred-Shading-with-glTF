@@ -8,12 +8,13 @@
     R.pass_tiled_deferred = {};
     R.pass_post1 = {};
     R.pass_gaussian_blur = {};
+    R.pass_post_pixelated = {};
     R.lights = [];
     R.tileLightCounts = [];
     R.tileLightOffsets = [];
     R.tileLightIndices = [];
 
-    R.TILE_DIM = 16; // This value can be changed for performance analysis
+    R.TILE_DIM = 32; // This value can be changed for performance analysis
     R.NUM_GBUFFERS = 4;
 
     /**
@@ -34,7 +35,7 @@
     R.light_max = [14, 18, 6];
     R.light_dt = -0.03;
     R.LIGHT_RADIUS = 4.0;
-    R.NUM_LIGHTS = 10;
+    R.NUM_LIGHTS = 3;
     ; // TODO: test with MORE lights!
     var setupLights = function() {
         Math.seedrandom(0);
@@ -216,6 +217,7 @@
 
         loadDeferredProgram('tiled-blinnphong-pointlight', function(p) {
             // Save the object into this variable for access later
+            p.u_colorLightCountOnly = gl.getUniformLocation(p.prog, 'u_colorLightCountOnly');
             p.u_cameraPos = gl.getUniformLocation(p.prog, 'u_cameraPos');
             p.u_lightPos = gl.getUniformLocation(p.prog, 'u_lightPos');
             p.u_lightCol = gl.getUniformLocation(p.prog, 'u_lightCol');
@@ -223,8 +225,9 @@
             p.u_tileLightIndices = gl.getUniformLocation(p.prog, 'u_tileLightIndices');
             p.u_lightCount = gl.getUniformLocation(p.prog, 'u_lightCount');
             p.u_lightOffset = gl.getUniformLocation(p.prog, 'u_lightOffset');
-            p.u_tileIdx = gl.getUniformLocation(p.prog, 'u_tileIdx');
-            p.u_colorLightCountOnly = gl.getUniformLocation(p.prog, 'u_colorLightCountOnly');
+            p.u_lightTexWidth = gl.getUniformLocation(p.prog, 'u_lightTexWidth');
+            p.u_tileLightIndicesTexWidth = gl.getUniformLocation(p.prog, 'u_tileLightIndicesTexWidth');
+
             R.prog_Tiled_BlinnPhong_PointLight = p;
         });
 
@@ -249,7 +252,13 @@
             R.progGaussianBlur = p;
         });
 
-        // TODO: If you add more passes, load and set up their shader programs.
+        loadPostProgram('pixelated', function(p) {
+            p.u_color    = gl.getUniformLocation(p.prog, 'u_color');
+            p.u_textureSize    = gl.getUniformLocation(p.prog, 'u_textureSize');
+            p.u_time    = gl.getUniformLocation(p.prog, 'u_time');
+            // Save the object into this variable for access later
+            R.progPostPixelated = p;
+        });
     };
 
     var loadDeferredProgram = function(name, callback) {
