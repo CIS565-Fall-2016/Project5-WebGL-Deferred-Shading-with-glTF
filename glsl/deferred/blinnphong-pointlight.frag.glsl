@@ -53,6 +53,7 @@ void main() {
     if (lightDistance  > u_lightRad) {
         return;
     }
+    float edgeDetection = 1.0;
 
     vec3 lightDir = normalize(u_lightPos - pos);
     float lambertian = clamp(dot(lightDir, normalize(nor)), 0.0, 1.0);
@@ -62,7 +63,7 @@ void main() {
     float specAngle = max(dot(halfDir, nor), 0.0);
     float specular = float(lambertian > 0.0) * pow(specAngle, 16.0);
     float falloff = clamp(1.0 - (lightDistance * lightDistance)/(u_lightRad * u_lightRad), 0.0, 1.0);
-    // if(u_toon == 1) {
+     if(u_toon == 1) {
         /* Reference: http://prideout.net/blog/?p=22 */
         // float cutoff = 3.0;
         // lambertian = ceil(lambertian * cutoff) / cutoff;
@@ -77,9 +78,10 @@ void main() {
         else if (lambertian < B) lambertian = 0.35;
         else if (lambertian < C) lambertian = 0.7;
         else lambertian = D;
-        // specular = step(0.5, specular);
-    // }
-    float edgeDetection = (dot(viewDir, nor) > 0.4) ? 1.0 : 0.0;
+        specular = step(0.5, specular);
+        edgeDetection = (dot(viewDir, nor) > 0.4) ? 1.0 : 0.0;
+    }
+
     gl_FragColor = vec4(
         (colmap * lambertian +
         specular * vec3(1.0)) * u_lightCol * falloff * edgeDetection

@@ -8,6 +8,7 @@ var cfg;
         this.debugView = -1;
         this.debugScissor = false;
         this.bloom = false;
+        this.sobel = false;
         this.toon = false;
     };
 
@@ -31,6 +32,7 @@ var cfg;
         eff0.open();
         eff0.add(cfg, 'bloom');
         eff0.add(cfg, 'toon');
+        eff0.add(cfg, 'sobel');
 
         // TODO: add more effects toggles and parameters here
     };

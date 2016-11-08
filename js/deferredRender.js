@@ -47,7 +47,7 @@
             R.pass_deferred.render(state);
             if(cfg.bloom)
               R.pass_blur.render(state);
-            if(cfg.toon)
+            if(cfg.sobel)
               R.pass_sobel.render(state);
             R.pass_post1.render(state);
 
@@ -152,6 +152,7 @@
         // TODO: add a loop here, over the values in R.lights, which sets the
         //   uniforms R.prog_BlinnPhong_PointLight.u_lightPos/Col/Rad etc.,
         //   then does renderFullScreenQuad(R.prog_BlinnPhong_PointLight).
+        if(cfg.toon) gl.uniform1i(R.prog_BlinnPhong_PointLight.u_toon, 1);
         if (cfg.debugScissor) gl.enable(gl.SCISSOR_TEST);
         for(var i = 0; i < R.NUM_LIGHTS; ++i){
           gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_lightPos, R.lights[i].pos);
