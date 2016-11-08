@@ -7,6 +7,16 @@ WebGL Deferred Shading
 * Platform: *FireFox 49.0.2* on
 
   Windows 10 x64, i7-6700K @ 4.00GHz 16GB, GTX 970 4096MB (Personal Desktop)
+  
+  
+###Features I Implemented
+
+* Deferred Blinn-Phong shading
+* Bloom using blur
+* Bloom using two-pass Gaussian blur (extract, blur, blurtwice, combine)
+* Toon Shading (ramp shading, edge detection)
+* Scissor Test (with debug view)
+
 
 ### Live Online
 
