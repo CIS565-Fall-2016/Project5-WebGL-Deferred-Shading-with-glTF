@@ -55,6 +55,17 @@ The scissor test is an optimization that discards fragments that fall outside of
 ### G-Buffer Packing
 The baseline implementation uses 4 buffers for positions, normals, color maps, and normal maps. We can precompute the normals by applying the normal map in the copy pass. This way the memory bandwith is much less throughout the pipeline. 
 
+## Kernel Experiments
+Here were some odd images that I got by using 3x3 kernels without thresholding–you need to threshold the value obtained from the convolution in order to get the highlighted edges. 
+
+| -1 | -1 | -1 |
+|----|----|----|
+| -1 | 8  | -1 |
+| -1 | -1 | -1 |
+
+<img src="img/deferred-1478498035688.png" width="400" height="300"/>
+
+
 ### Credits
 
 * [Three.js](https://github.com/mrdoob/three.js) by [@mrdoob](https://github.com/mrdoob) and contributors
