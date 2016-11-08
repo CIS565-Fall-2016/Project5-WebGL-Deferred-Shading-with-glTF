@@ -6,6 +6,7 @@
     R.pass_debug = {};
     R.pass_deferred = {};
     R.pass_post1 = {};
+    R.pass_toon = {};
     R.pass_bloomextract = {};
     R.pass_bloomblur = {};
     R.pass_bloomblurtwice = {};
@@ -21,6 +22,7 @@
         loadAllShaderPrograms();
         R.pass_copy.setup();
         R.pass_deferred.setup();
+//        R.pass_toon.setup();
         R.pass_bloomextract.setup();
         R.pass_bloomblur.setup();
         R.pass_bloomblurtwice.setup();
@@ -190,6 +192,7 @@
             p.u_lightCol = gl.getUniformLocation(p.prog, 'u_lightCol');
             p.u_lightRad = gl.getUniformLocation(p.prog, 'u_lightRad');
             p.u_camPos = gl.getUniformLocation(p.prog, 'u_camPos');
+            p.u_toon = gl.getUniformLocation(p.prog, 'u_toon');
             R.prog_BlinnPhong_PointLight = p;
         });
 
@@ -205,7 +208,13 @@
             R.progPost1 = p;
         });
 
-        // TODO: If you add more passes, load and set up their shader programs.
+      //  TODO: If you add more passes, load and set up their shader programs.
+        loadPostProgram('toon', function(p) {
+             p.u_color = gl.getUniformLocation(p.prog, 'u_color');
+             p.u_size = gl.getUniformLocation(p.prog, 'u_size');
+             p.u_depth = gl.getUniformLocation(p.prog, 'u_depth');
+             R.progToon = p;
+        });
 
         loadPostProgram('bloomextract', function(p) {
             p.u_color    = gl.getUniformLocation(p.prog, 'u_color');
@@ -227,9 +236,6 @@
          // Save the object into this variable for access later
           R.progbloomblurtwice = p;
        });
-
-
-
     };
 
     var loadDeferredProgram = function(name, callback) {

@@ -9,6 +9,7 @@ var cfg;
         this.debugScissor = false;
         this.enableEffect0 = false;
         this.bloom = false;
+        this.toon = false;
     };
 
     var init = function() {
@@ -31,6 +32,7 @@ var cfg;
         var eff0 = gui.addFolder('EFFECT');
         eff0.open();
         eff0.add(cfg, 'bloom');
+        eff0.add(cfg, 'toon');
         // TODO: add more effects toggles and parameters here
     };
 

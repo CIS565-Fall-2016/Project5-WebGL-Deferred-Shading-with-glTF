@@ -11,6 +11,7 @@
             !R.prog_BlinnPhong_PointLight ||
             !R.prog_Debug ||
             !R.progPost1 ||
+            !R.progToon||
             !R.progbloomextract||
             !R.progbloomblur||
             !R.progbloomblurtwice)) {
@@ -39,9 +40,7 @@
             return;
         }
 */
-
         R.pass_copy.render(state);
-
         if (cfg && cfg.debugView >= 0) {
             // Do a debug render instead of a regular render
             // Don't do any post-processing in debug mode
@@ -54,6 +53,8 @@
           	  	R.pass_bloomextract.render(state);
                 R.pass_bloomblur.render(state);
                 R.pass_bloomblurtwice.render(state);
+            } else if(cfg.toon == true) {
+                R.pass_toon.render(state);
             } else {
                 R.pass_post1.render(state);
             }
@@ -172,11 +173,17 @@
         for (var light of R.lights) {
           	var l = light;
           	var eye = [state.cameraPos.x,state.cameraPos.y,state.cameraPos.z];
-      //      gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_camPos,eye);
-      //    	gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_lightPos, l.pos);
-      //      gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_lightCol, l.col);
-      //     	gl.uniform1f(R.prog_BlinnPhong_PointLight.u_lightRad,l.rad);
-      //      renderFullScreenQuad(R.prog_BlinnPhong_PointLight);
+            gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_camPos,eye);
+            gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_lightPos, l.pos);
+            gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_lightCol, l.col);
+            gl.uniform1f(R.prog_BlinnPhong_PointLight.u_lightRad,l.rad);
+
+            if (cfg.toon) {
+                gl.uniform1f(R.prog_BlinnPhong_PointLight.u_toon, 1.0);
+            } else {
+                gl.uniform1f(R.prog_BlinnPhong_PointLight.u_toon, 0.0);
+            }
+
             var sc = getScissorForLight(state.viewMat, state.projMat, light);
             // getScissorForLight returns null if the scissor is off the screen.
             // Otherwise, it returns an array [xmin, ymin, width, height];
@@ -188,10 +195,10 @@
               		renderFullScreenQuad(R.progRed);
              		}	else {
                 	gl.scissor(sc[0],sc[1],sc[2],sc[3]);
-              		gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_camPos,eye);
-            			gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_lightPos, l.pos);
-             			gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_lightCol, l.col);
-            			gl.uniform1f(R.prog_BlinnPhong_PointLight.u_lightRad,l.rad);
+              		// gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_camPos,eye);
+            			// gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_lightPos, l.pos);
+             		// 	gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_lightCol, l.col);
+            			// gl.uniform1f(R.prog_BlinnPhong_PointLight.u_lightRad,l.rad);
             			renderFullScreenQuad(R.prog_BlinnPhong_PointLight);
             		}
             	}
@@ -246,6 +253,36 @@
         // * Render a fullscreen quad to perform shading on
         renderFullScreenQuad(R.progPost1);
     };
+
+    R.pass_toon.render = function(state) {
+      // * Unbind any existing framebuffer (if there are no more passes)
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+      // * Clear the framebuffer depth to 1.0
+      gl.clearDepth(1.0);
+      gl.clear(gl.DEPTH_BUFFER_BIT);
+
+      // * Bind the postprocessing shader program
+      gl.useProgram(R.progToon.prog);
+      // * Bind the deferred pass's color output as a texture input
+      // Set gl.TEXTURE0 as the gl.activeTexture unit
+      gl.activeTexture(gl.TEXTURE0);
+      // Bind the TEXTURE_2D, R.pass_deferred.colorTex to the active texture unit
+      gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex);
+      // Configure the R.progPost1.u_color uniform to point at texture unit 0
+      gl.uniform1i(R.progToon.u_color, 0);
+
+      var tSize = [width,height];
+      gl.uniform2fv(R.progToon.u_size, tSize);
+
+      gl.activeTexture(gl['TEXTURE' + R.NUM_GBUFFERS]);
+      gl.bindTexture(gl.TEXTURE_2D, R.pass_copy.depthTex);
+      gl.uniform1i(R.progToon.u_depth, R.NUM_GBUFFERS);
+
+      renderFullScreenQuad(R.progToon);
+
+    };
+
 
    R.pass_bloomextract.render = function(state) {
       // * Unbind any existing framebuffer (if there are no more passes)

@@ -10,7 +10,7 @@ uniform float u_lightRad;
 uniform vec3 u_camPos; // add camera position
 uniform sampler2D u_gbufs[NUM_GBUFFERS];
 uniform sampler2D u_depth;
-
+uniform float u_toon;
 varying vec2 v_uv;
 
 vec3 applyNormalMap(vec3 geomnor, vec3 normap) { //normal map -> geometry normal, each geometry get its normal through this way
@@ -53,12 +53,27 @@ void main() {
 //    float attenuation = 1.0 / (1.0 + u_lightRad * distToLight * distToLight);
     float lambert = max(dot(lightDir, nor),0.0);
   	float specular = 0.0;
-  	if(lambert > 0.0)
-  	{
+  	if(lambert > 0.0)	{
   		float ndotH = max(dot(halfDir,nor),0.0);
   		specular = pow(ndotH, 12.0);
   	}
-     gl_FragColor = vec4((lambert * color + specular) * u_lightCol * attenuation, 1.0);
+    vec3 finalcolor = (lambert * color + specular) * u_lightCol * attenuation;
+    float ndotH = max(dot(halfDir,nor),0.0);
 
+    if (u_toon > 0.6) { //let's make a threshold
+       if (lambert < 0.6) {
+          lambert = 0.2;
+       } else {
+          lambert = 1.0;
+       }
+       if (ndotH > 0.75) {
+          specular = 1.0; //pow(ndotH, 12.0);
+       } else {
+          specular = 0.0;
+       }
+    finalcolor = (lambert * color + specular) * u_lightCol * attenuation;
+    }
+
+    gl_FragColor = vec4(finalcolor, 1.0);
 //    gl_FragColor = vec4(0, 0, 1, 1);  // TODO: perform lighting calculations
 }
