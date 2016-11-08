@@ -203,14 +203,14 @@
 
             R.prog_Edge = p;
         });
-        loadPostProgram('box', function(p) {
+        loadPostProgram('blur', function(p) {
             p.u_color = gl.getUniformLocation(p.prog, 'u_color');
             p.u_depth = gl.getUniformLocation(p.prog, 'u_depth');
             p.u_pixSize = gl.getUniformLocation(p.prog, 'u_pixSize');
             p.u_kernel = gl.getUniformLocation(p.prog, 'u_kernel');
             p.u_focus = gl.getUniformLocation(p.prog, 'u_focus');
 
-            R.prog_Box = p;
+            R.prog_Blur = p;
         });
         loadPostProgram('toon', function(p) {
             p.u_color = gl.getUniformLocation(p.prog, 'u_color');

@@ -202,17 +202,17 @@
       } else {
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
       }
-      gl.useProgram(R.prog_Box.prog);
+      gl.useProgram(R.prog_Blur.prog);
       gl.activeTexture(gl['TEXTURE' + R.NUM_GBUFFERS]);
       gl.bindTexture(gl.TEXTURE_2D, R.pass_copy.depthTex);
-      gl.uniform1i(R.prog_Box.u_depth, R.NUM_GBUFFERS);
+      gl.uniform1i(R.prog_Blur.u_depth, R.NUM_GBUFFERS);
       gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_2D, R.lastShader.colorTex);
-      gl.uniform1i(R.prog_Box.u_color, 0);
-      gl.uniform1f(R.prog_Box.u_focus, cfg.focus);
-      gl.uniform2fv(R.prog_Box.u_pixSize, [1.0 / width, 1.0 / height]);
-      gl.uniform1fv(R.prog_Box.u_kernel, [0.1111, 0.1111, 0.1111, 0.1111, 0.1111, 0.1111, 0.1111, 0.1111, 0.1111]);
-      renderFullScreenQuad(R.prog_Box);
+      gl.uniform1i(R.prog_Blur.u_color, 0);
+      gl.uniform1f(R.prog_Blur.u_focus, cfg.focus);
+      gl.uniform2fv(R.prog_Blur.u_pixSize, [1.0 / width, 1.0 / height]);
+      gl.uniform1fv(R.prog_Blur.u_kernel, [0.1111, 0.1111, 0.1111, 0.1111, 0.1111, 0.1111, 0.1111, 0.1111, 0.1111]);
+      renderFullScreenQuad(R.prog_Blur);
       R.lastShader = R.pass_box;
     };
 
