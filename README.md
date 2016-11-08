@@ -7,9 +7,9 @@ WebGL Deferred Shading
 * Tested on: **Google Chrome 54.0.2840.59** on
   Linux Mint 18, i5-5200U @ 2.20GHz 7.7GB, GTX 940m
 
-## [Live Demo]()
+## [Live Demo](http://austineng.github.io/WebGL-Deferred-Shading)
 
-[![](img/recording.gif)]()
+[![](img/recording.gif)](http://austineng.github.io/WebGL-Deferred-Shading)
 
 ## Deferred Shading
 
