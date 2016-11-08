@@ -1,8 +1,6 @@
 Parallel Fast Fourier Transform
 ======================
 
-***PAGE UNDER CONSTRUCTION***
-
 **University of Pennsylvania, CIS 565: GPU Programming and Architecture, Project 5**
 
 * Gabriel Naghi
@@ -16,13 +14,13 @@ Fourier Transforms define a process by which to trasnform a signal from the time
 ![](img/Fourier_unit_pulse.png)
 Source: Wikipedia
 
-Representing a signal in the freqency domain is useful for a few reasons. First and foremost, it tells you what frequencies are present in the signal, and in what proportions. Another important use is that a multiplication in frequency domain is equivalent to a convolution in the time domain. It is generally easier to transform and multiply than compute a convolution. A similar optimization exists with regard to cross-correlations. It is also much easier to compute the n-th derivative of a fucntion in the frequency domain than the time domain. There are many other uses of Fourier Transforms (see discussion [here](http://dsp.stackexchange.com/questions/69/why-is-the-fourier-transform-so-important)).
+Representing a signal in the freqency domain is useful for a few reasons. First and foremost, it tells you what frequencies are present in the signal, and in what proportions. Another important use is that a multiplication in frequency domain is equivalent to a convolution in the time domain. It is generally easier to transform and multiply than compute a convolution. A similar optimization exists with regard to cross-correlations. It is also much easier to compute the n-th derivative of a function in the frequency domain than in the time domain. There are many other uses of Fourier Transforms (see discussion [here](http://dsp.stackexchange.com/questions/69/why-is-the-fourier-transform-so-important)).
 
 ##Discrete Fourier Transforms
 
 In practice, Discrete Fourier Transforms (DFT) are used. This means that samples are of finite quantity and are equally spaced over time. The transform occurs by correlating each sample with with analyzing functions in the form of sinusoids. Of course, this produces high coefficients when the sample is similar and low amplitudes when dissimilar. 
 
-In general the formula for computing a DFT is as follows: 
+In general the formula for computing a given frequency bucket in a DFT is as follows: 
 
 ![](img/dft.png)
 Source: http://www.cmlab.csie.ntu.edu.tw/cml/dsp/training/coding/transform/fft.html
@@ -31,12 +29,10 @@ This results in an O(N^2) algorithm. We can do much better.
 
 
 ##Fast Fourier Transforms
-Originally discovered by Carl Friedrich Gauss, and re-popularized by Cooley and Tukey in the 20th century, the Fast Fourier Transform exploits two properties to reduce the number of elemetary operations:
+Originally discovered by Carl Friedrich Gauss, and re-popularized by J.W. Cooley and John Tukey in the 20th century, the Fast Fourier Transform exploits two properties to reduce the number of elemetary operations:
 
 ![](img/properties.png)
 Source: http://www.cmlab.csie.ntu.edu.tw/cml/dsp/training/coding/transform/fft.html
-
-where W is the phase factor. 
 
 In short, this allows us to recursively break up DFTs into N/2 point problems in a divide-and-conquer strategy, and recombine the sub-pieces. 
 
@@ -71,7 +67,7 @@ After the inputs have been reorganized, the sub-DFTs must be computed. Starting 
 
 ![](img/butterfly.png)
 
-This operation is conducted lgN times, each time involving O(N) complex additions/subtractions, as depicted in the flow diagram below.
+These operations are conducted lgN times, each time involving O(N) complex additions/subtractions, as depicted in the flow diagram below.
 
 ![](img/correctbutterfly.png)
 Source: Scientific Research Publishing
@@ -84,7 +80,7 @@ My first optimization, as always was to find the generally optimal blocksize for
 
 ![](img/blocksizes.png)
 
-Unfortunately for me and everyone else hoping for an easy exploit in the embarassingly parallel department, FFTW, an acronym for Fastest Fourier Transform in the West, really lives up to its name. It completely blew away my parallel GPU implementation, even on large inputs.
+Unfortunately for me (and everyone else hoping for an easy exploit in the embarassingly parallel department) FFTW, an acronym for Fastest Fourier Transform in the West, really lives up to its name. It completely blew away my parallel GPU implementation, even on very large inputs.
 
 ![](img/implementations.png)
 
@@ -104,7 +100,7 @@ There is a lot of room for improvement in the FFT implementation I've done. Amon
 * Generalization to non radix-2 
 
 
-##Roadblocks
+##Bloopers
 
 I spent a gratuitous amount of time trying to decode GPU Gems 2's description of the algorithm, especially with regard to the Twiddle factor.
 
@@ -118,5 +114,4 @@ Source: Scientific Research Publishing
 
 ###Sources
 * GPU GEMS 2
-* YouTube videos
-
+* [YouTube](https://www.youtube.com/watch?v=EsJGuI7e_ZQ)
