@@ -153,7 +153,11 @@ var width, height;
 
 
             // temp for sponza
-            var colorTextureName = 'texture_color';
+            var colorTextureName = 'texture_color'; // for sponza
+            if (!glTF.json.textures[colorTextureName]) {
+                colorTextureName = (Object.keys(glTF.json.textures))[0];
+                console.log(colorTextureName);
+            }
             var normalTextureName = 'texture_normal';
 
             // textures
@@ -234,12 +238,20 @@ var width, height;
 
                     var posInfo = primitive.attributes[primitive.technique.parameters['position'].semantic];
                     var norInfo = primitive.attributes[primitive.technique.parameters['normal'].semantic];
-                    var uvInfo = primitive.attributes[primitive.technique.parameters['texcoord_0'].semantic];
+                    var uvInfo;
+                    if (primitive.technique.parameters['texcoord_0']) {
+                        uvInfo = primitive.attributes[primitive.technique.parameters['texcoord_0'].semantic];
+                    } else if (primitive.technique.parameters['texcoord0']) {
+                        uvInfo = primitive.attributes[primitive.technique.parameters['texcoord0'].semantic];
+                    }
+
 
                     models.push({
                         gltf: primitive,
 
                         idx: indicesBuffer,
+
+                        interleaved: true,
 
                         attributes: vertexBuffer,
                         posInfo: {size: posInfo.size, type: posInfo.type, stride: posInfo.stride, offset: posInfo.offset},
@@ -248,7 +260,7 @@ var width, height;
 
                         // specific textures temp test
                         colmap: webGLTextures[colorTextureName].texture,
-                        normap: webGLTextures[normalTextureName].texture
+                        normap: webGLTextures[normalTextureName] ? webGLTextures[normalTextureName].texture : null
                     });
 
                 }
@@ -317,9 +329,21 @@ var width, height;
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gidx);
             gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, idx, gl.STATIC_DRAW);
 
+            // var m = {
+            //     idx: gidx,
+            //     elemCount: idx.length,
+            //     position: gposition,
+            //     normal: gnormal,
+            //     uv: guv
+            // };
+
+            // adapt to new readyModelForDraw and drawReadyModel (glTF version)
             var m = {
                 idx: gidx,
                 elemCount: idx.length,
+
+                interleaved: false,
+
                 position: gposition,
                 normal: gnormal,
                 uv: guv

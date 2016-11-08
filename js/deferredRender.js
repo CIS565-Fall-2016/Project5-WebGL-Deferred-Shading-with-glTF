@@ -222,7 +222,7 @@
         // Flatten the 2D array tileLightIndices into 1D to create out texture
         var tileLightIndices = [];
         for (var i = 0; i < R.tileLightIndices.length; ++i) {
-            for (var j = 0; j < R.tileLightIndices[i].length) {
+            for (var j = 0; j < R.tileLightIndices[i].length; ++j) {
                 tileLightIndices.push(R.tileLightIndices[i][j]);
             }
         }
@@ -248,7 +248,7 @@
             for (var i = 0; i < 3; ++i) {
                 lightPoints[l * 3 + i] = light.pos;
                 lightColors[l * 3 + i] = light.col;
-                lightRads[l * 3 + i] = light.rad;   
+                lightRads[l * 3 + i] = light.rad;
             }
         }
         var lightPointTex = texture1DFromVec3Floats(R.lights.length * 3, lightPoints);

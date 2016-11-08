@@ -32,3 +32,8 @@ Data structure layout for the grid construction. This figure is taken from [Tile
 - [Blinn-Phong](http://sunandblackcat.com/tipFullView.php?l=eng&topicid=30&topic=Phong-Lighting)
 - [Bloom](http://learnopengl.com/#!Advanced-Lighting/Bloom)
 - [Tiled Shading](http://www.cse.chalmers.se/~uffe/tiled_shading_preprint.pdf)
+* [Three.js](https://github.com/mrdoob/three.js) by [@mrdoob](https://github.com/mrdoob) and contributors
+* [stats.js](https://github.com/mrdoob/stats.js) by [@mrdoob](https://github.com/mrdoob) and contributors
+* [webgl-debug](https://github.com/KhronosGroup/WebGLDeveloperTools) by Khronos Group Inc.
+* [glMatrix](https://github.com/toji/gl-matrix) by [@toji](https://github.com/toji) and contributors
+* [minimal-gltf-loader](https://github.com/shrekshao/minimal-gltf-loader) by [@shrekshao](https://github.com/shrekshao)
