@@ -47,8 +47,8 @@ var cfg;
         });
         var ramp = gui.addFolder('Ramp Shading');
         ramp.open();
-        ramp.add(cfg, 'bands', 1, 10);
         ramp.add(cfg, 'rampShading');
+        ramp.add(cfg, 'bands', 1, 10);
         var edge = gui.addFolder('Edge Highlights');
         edge.open();
         edge.add(cfg, 'edge', {
