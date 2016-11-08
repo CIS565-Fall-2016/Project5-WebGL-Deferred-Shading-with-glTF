@@ -3,12 +3,14 @@
 
     window.R = {};
     R.pass_copy = {};
+	R.pass_copyDepth = {};
     R.pass_debug = {};
     R.pass_deferred = {};
     R.pass_post1 = {}; // generate brightness buffer
 	R.pass_post2 = {}; // bloom
 	R.pass_output = {}; // output to screen
 	R.pass_scissorTestDebug = {};
+	R.pass_sphereProxyDebug = {};
     R.lights = [];
 
     R.NUM_GBUFFERS = 2;
@@ -20,6 +22,7 @@
         setupLights();
         loadAllShaderPrograms();
         R.pass_copy.setup();
+		R.pass_copyDepth.setup();
         R.pass_deferred.setup();
 		R.pass_post2.setup();
     };
@@ -85,6 +88,16 @@
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     };
+	
+	R.pass_copyDepth.setup = function()
+	{
+		R.pass_copyDepth.fbo = gl.createFramebuffer();
+		R.pass_copyDepth.colorTex = createAndBindColorTargetTexture(R.pass_copyDepth.fbo,
+			gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+		abortIfFramebufferIncomplete(R.pass_copyDepth.fbo);
+		gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+	};
 
     /**
      * Create/configure framebuffer between "deferred" and "post1" stages
@@ -95,6 +108,7 @@
         // * Create, bind, and store a single color target texture for the FBO
         R.pass_deferred.colorTex = createAndBindColorTargetTexture(
             R.pass_deferred.fbo, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, R.pass_copy.depthTex, 0);
 
         // * Check for framebuffer errors
         abortIfFramebufferIncomplete(R.pass_deferred.fbo);
@@ -144,11 +158,33 @@
                 // Save the object into this variable for access later
                 R.progCopy = p;
             });
+			
+		loadShaderProgram(gl, 'glsl/quad.vert.glsl', 'glsl/copydepth.frag.glsl',
+            function(prog) {
+                // Create an object to hold info about this shader program
+				var p = { prog: prog };
+				
+				p.u_depth = gl.getUniformLocation(prog, 'u_depth');
+				
+                R.progCopyDepth = p;
+            });
 
         loadShaderProgram(gl, 'glsl/quad.vert.glsl', 'glsl/red.frag.glsl',
             function(prog) {
                 // Create an object to hold info about this shader program
                 R.progRed = { prog: prog };
+            });
+			
+		loadShaderProgram(gl, 'glsl/sphereproxy.vert.glsl', 'glsl/red.frag.glsl',
+            function(prog) {
+                // Create an object to hold info about this shader program
+				var p = { prog: prog };
+				
+				p.u_lightPos = gl.getUniformLocation(prog, 'u_lightPos');
+				p.u_lightRad = gl.getUniformLocation(prog, 'u_lightRad');
+				p.u_proj = gl.getUniformLocation(prog, 'u_proj');
+				
+                R.progSphereRed = p;
             });
 
         loadShaderProgram(gl, 'glsl/quad.vert.glsl', 'glsl/clear.frag.glsl',
@@ -162,8 +198,18 @@
             R.prog_Ambient = p;
         });
 
-        loadDeferredProgram('blinnphong-pointlight', function(p) {
+/*         loadDeferredProgram('blinnphong-pointlight', function(p) {
             // Save the object into this variable for access later
+			p.u_viewportInfo = gl.getUniformLocation(p.prog, 'u_viewportInfo');
+            p.u_lightPos = gl.getUniformLocation(p.prog, 'u_lightPos');
+            p.u_lightCol = gl.getUniformLocation(p.prog, 'u_lightCol');
+            p.u_lightRad = gl.getUniformLocation(p.prog, 'u_lightRad');
+            R.prog_BlinnPhong_PointLight = p;
+        }); */
+		
+		loadDeferredProgram_SphereProxy('blinnphong-pointlight', function(p) {
+            // Save the object into this variable for access later
+			p.u_proj = gl.getUniformLocation(p.prog, 'u_proj');
 			p.u_viewportInfo = gl.getUniformLocation(p.prog, 'u_viewportInfo');
             p.u_lightPos = gl.getUniformLocation(p.prog, 'u_lightPos');
             p.u_lightCol = gl.getUniformLocation(p.prog, 'u_lightCol');
@@ -205,6 +251,25 @@
 
     var loadDeferredProgram = function(name, callback) {
         loadShaderProgram(gl, 'glsl/quad.vert.glsl',
+                          'glsl/deferred/' + name + '.frag.glsl',
+            function(prog) {
+                // Create an object to hold info about this shader program
+                var p = { prog: prog };
+
+                // Retrieve the uniform and attribute locations
+                p.u_gbufs = [];
+                for (var i = 0; i < R.NUM_GBUFFERS; i++) {
+                    p.u_gbufs[i] = gl.getUniformLocation(prog, 'u_gbufs[' + i + ']');
+                }
+                p.u_depth    = gl.getUniformLocation(prog, 'u_depth');
+                p.a_position = gl.getAttribLocation(prog, 'a_position');
+
+                callback(p);
+            });
+    };
+	
+	var loadDeferredProgram_SphereProxy = function(name, callback) {
+        loadShaderProgram(gl, 'glsl/sphereproxy.vert.glsl',
                           'glsl/deferred/' + name + '.frag.glsl',
             function(prog) {
                 // Create an object to hold info about this shader program

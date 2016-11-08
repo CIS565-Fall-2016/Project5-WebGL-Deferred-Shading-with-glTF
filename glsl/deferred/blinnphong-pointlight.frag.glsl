@@ -11,7 +11,7 @@ uniform float u_lightRad;
 uniform sampler2D u_gbufs[NUM_GBUFFERS];
 uniform sampler2D u_depth;
 
-varying vec2 v_uv;
+// varying vec2 v_uv;
 
 vec3 recoverEyePos(float depth)
 {
@@ -28,6 +28,7 @@ vec3 recoverEyePos(float depth)
 
 void main()
 {
+	vec2 v_uv = gl_FragCoord.xy / u_viewportInfo.yz;
     vec4 gb0 = texture2D(u_gbufs[0], v_uv); // (eye_normal_x, eye_normal_y, -eye_pos_z)
     vec4 gb1 = texture2D(u_gbufs[1], v_uv); // albedo
     float depth = texture2D(u_depth, v_uv).x;

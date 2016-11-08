@@ -9,6 +9,7 @@ var cfg;
         this.debugScissor = false;
         this.enableBloom = true;
 		this.bloomThreshold = 0.2;
+		this.sphereProxy = true;
     };
 
     var init = function() {
@@ -24,6 +25,8 @@ var cfg;
             '3 Color map':       3,
         });
         gui.add(cfg, 'debugScissor');
+		
+		gui.add(cfg, 'sphereProxy');
 
         var eff = gui.addFolder('EFFECT NAME HERE');
         eff.open();

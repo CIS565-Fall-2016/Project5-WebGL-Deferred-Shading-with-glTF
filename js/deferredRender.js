@@ -5,7 +5,9 @@
     R.deferredRender = function(state) {
         if (!aborted && (
             !R.progCopy ||
+			!R.progCopyDepth ||
             !R.progRed ||
+			!R.progSphereRed ||
             !R.progClear ||
             !R.prog_Ambient ||
             !R.prog_BlinnPhong_PointLight ||
@@ -38,10 +40,18 @@
         } */
 
         R.pass_copy.render(state);
+		R.pass_copyDepth.render(state);
 
 		if (cfg && cfg.debugScissor)
 		{
-			R.pass_scissorTestDebug.render(state);
+			if (cfg.sphereProxy)
+			{
+				R.pass_sphereProxyDebug.render(state);
+			}
+			else
+			{
+				R.pass_scissorTestDebug.render(state);
+			}
 		}
         else if (cfg && cfg.debugView >= 0) {
             // Do a debug render instead of a regular render
@@ -50,6 +60,7 @@
         } else {
             // * Deferred pass and postprocessing pass(es)
             // TODO: uncomment these
+			R.pass_deferred.render = cfg.sphereProxy ? sphereProxyLighting : scissorTestLighting;
             R.pass_deferred.render(state);
             R.pass_post1.render(state);
 
@@ -59,6 +70,18 @@
         }
     };
 
+	R.pass_copyDepth.render = function(state)
+	{
+		gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_copyDepth.fbo);
+		gl.depthFunc(gl.ALWAYS);
+		gl.activeTexture(gl.TEXTURE0);
+		gl.bindTexture(gl.TEXTURE_2D, R.pass_copy.depthTex);
+		gl.useProgram(R.progCopyDepth.prog);
+		gl.uniform1i(R.progCopyDepth.u_depth, 0);
+		renderFullScreenQuad(R.progCopyDepth);
+		gl.depthFunc(gl.LEQUAL);
+	};
+	
     /**
      * 'copy' pass: Render into g-buffers
      */
@@ -108,7 +131,9 @@
         }
     };
 
-    R.pass_debug.render = function(state) {
+    R.pass_debug.render = function(state)
+	{
+		gl.disable(gl.DEPTH_TEST);
         // * Unbind any framebuffer, so we can write to the screen
         // TODO: uncomment
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -123,8 +148,37 @@
         // * Render a fullscreen quad to perform shading on
         // TODO: uncomment
         renderFullScreenQuad(R.prog_Debug);
+		gl.enable(gl.DEPTH_TEST);
     };
 
+	R.pass_sphereProxyDebug.render = function(state)
+	{
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+        gl.clearColor(0.0, 0.0, 0.0, 0.0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+		
+		gl.disable(gl.DEPTH_TEST);
+		gl.enable(gl.BLEND);
+        gl.blendEquation(gl.FUNC_ADD);
+		gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+		
+		readySphereProxy(R.progSphereRed, R.sphereModel);
+		for (var i = 0; i < R.lights.length; ++i)
+		{
+			var light = R.lights[i];
+			var lightPos = new THREE.Vector3(light.pos[0], light.pos[1], light.pos[2]);
+			lightPos.applyMatrix4(state.viewMat);
+			gl.uniform3fv(R.progSphereRed.u_lightPos, lightPos.toArray());
+			gl.uniform1f(R.progSphereRed.u_lightRad, light.rad);
+			gl.uniformMatrix4fv(R.progSphereRed.u_proj, false, state.projMat.elements);
+			drawSphereProxy(R.sphereModel);
+		}
+		
+		gl.disable(gl.BLEND);
+		gl.enable(gl.DEPTH_TEST);
+	};
+	
 	R.pass_scissorTestDebug.render = function(state)
 	{
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -132,13 +186,14 @@
 
         // * Clear depth to 1.0 and color to black
         gl.clearColor(0.0, 0.0, 0.0, 0.0);
-        gl.clearDepth(1.0);
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        gl.clear(gl.COLOR_BUFFER_BIT);
 		
+		gl.disable(gl.DEPTH_TEST);
 		gl.enable(gl.BLEND);
         gl.blendEquation(gl.FUNC_ADD);
 		gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
 		gl.enable(gl.SCISSOR_TEST);
+		
 		for (var i = 0; i < R.lights.length; ++i)
 		{
 			var sc = getScissorForLight(state.viewMat, state.projMat, R.lights[i]);
@@ -148,21 +203,66 @@
 				renderFullScreenQuad(R.progRed);
 			}
 		}
+		
 		gl.disable(gl.SCISSOR_TEST);
 		gl.disable(gl.BLEND);
+		gl.enable(gl.DEPTH_TEST);
 	};
 	
     /**
      * 'deferred' pass: Add lighting results for each individual light
      */
-    R.pass_deferred.render = function(state) {
+	var sphereProxyLighting = function(state)
+	{
+        gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_deferred.fbo);
+
+        gl.clearColor(0.0, 0.0, 0.0, 0.0);
+		gl.clear(gl.COLOR_BUFFER_BIT);
+
+        gl.enable(gl.BLEND);
+        gl.blendEquation(gl.FUNC_ADD);
+		gl.blendFunc(gl.ONE,gl.ONE);
+
+		// Ambient light
+		gl.disable(gl.DEPTH_TEST);
+		bindTexturesForLightPass(R.prog_Ambient);
+		renderFullScreenQuad(R.prog_Ambient);
+		gl.enable(gl.DEPTH_TEST);
+		
+		// Blinn-Phong point light
+		bindTexturesForLightPass(R.prog_BlinnPhong_PointLight);
+		readySphereProxy(R.prog_BlinnPhong_PointLight, R.sphereModel);
+		gl.uniform3f(R.prog_BlinnPhong_PointLight.u_viewportInfo, 2.0 * Math.tan(22.5 * Math.PI / 180.0), width, height);
+		gl.uniformMatrix4fv(R.prog_BlinnPhong_PointLight.u_proj, false, state.projMat.elements);
+
+		gl.depthFunc(gl.GREATER);
+		gl.depthMask(false);
+		gl.disable(gl.CULL_FACE);
+		
+		for (var i = 0; i < R.lights.length; ++i)
+		{
+			var light = R.lights[i];
+			var lightPos = new THREE.Vector3(light.pos[0], light.pos[1], light.pos[2]);
+			lightPos.applyMatrix4(state.viewMat);
+			gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_lightPos, lightPos.toArray());
+			gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_lightCol, light.col);
+			gl.uniform1f(R.prog_BlinnPhong_PointLight.u_lightRad, light.rad);
+			drawSphereProxy(R.sphereModel);
+		}
+		
+		gl.enable(gl.CULL_FACE);
+		gl.depthMask(true);
+		gl.depthFunc(gl.LEQUAL);
+		
+        gl.disable(gl.BLEND);
+    };
+	
+	var scissorTestLighting = function(state) {
         // * Bind R.pass_deferred.fbo to write into for later postprocessing
         gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_deferred.fbo);
 
-        // * Clear depth to 1.0 and color to black
         gl.clearColor(0.0, 0.0, 0.0, 0.0);
-        gl.clearDepth(1.0);
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+		gl.clear(gl.COLOR_BUFFER_BIT);
 
         // * _ADD_ together the result of each lighting pass
 
@@ -171,6 +271,7 @@
         // Here is a wonderful demo of showing how blend function works: 
         // http://mrdoob.github.io/webgl-blendfunctions/blendfunc.html
         // TODO: uncomment
+		gl.disable(gl.DEPTH_TEST);
         gl.enable(gl.BLEND);
         gl.blendEquation(gl.FUNC_ADD);
 		gl.blendFunc(gl.ONE,gl.ONE);
@@ -178,7 +279,7 @@
 		// * Bind/setup the ambient pass, and render using fullscreen quad
 		bindTexturesForLightPass(R.prog_Ambient);
 		renderFullScreenQuad(R.prog_Ambient);
-
+		
 		// * Bind/setup the Blinn-Phong pass, and render using fullscreen quad
 		bindTexturesForLightPass(R.prog_BlinnPhong_PointLight);
 
@@ -191,15 +292,16 @@
 		//
 		// getScissorForLight returns null if the scissor is off the screen.
 		// Otherwise, it returns an array [xmin, ymin, width, height].
+		
 		gl.enable(gl.SCISSOR_TEST);
 		for (var i = 0; i < R.lights.length; ++i)
 		{
 			var light = R.lights[i];
 			var sc = getScissorForLight(state.viewMat, state.projMat, light);
+			
 			if (sc != null)
 			{
 				gl.scissor(sc[0], sc[1], sc[2], sc[3]);
-				gl.uniform3f(R.prog_BlinnPhong_PointLight.u_viewportInfo, 2.0 * Math.tan(22.5 * Math.PI / 180.0), width, height);
 				var lightPos = new THREE.Vector3(light.pos[0], light.pos[1], light.pos[2]);
 				lightPos.applyMatrix4(state.viewMat);
 				gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_lightPos, lightPos.toArray());
@@ -212,6 +314,7 @@
 		
 		// Disable blending so that it doesn't affect other code
         gl.disable(gl.BLEND);
+		gl.enable(gl.DEPTH_TEST);
     };
 
     var bindTexturesForLightPass = function(prog) {
@@ -225,7 +328,7 @@
             gl.uniform1i(prog.u_gbufs[i], i);
         }
         gl.activeTexture(gl['TEXTURE' + R.NUM_GBUFFERS]);
-        gl.bindTexture(gl.TEXTURE_2D, R.pass_copy.depthTex);
+        gl.bindTexture(gl.TEXTURE_2D, R.pass_copyDepth.colorTex);
         gl.uniform1i(prog.u_depth, R.NUM_GBUFFERS);
     };
 
