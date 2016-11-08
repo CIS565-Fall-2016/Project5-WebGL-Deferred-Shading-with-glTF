@@ -9,7 +9,7 @@ WebGL Deferred Shading
 
 ### Live Online
 
-![](img/thumb.png)](http://159.203.88.91/WebGL-Deferred-Shading)
+[Try me live!](http://159.203.88.91/WebGL-Deferred-Shading)
 
 ### Demo Video/GIF
 
