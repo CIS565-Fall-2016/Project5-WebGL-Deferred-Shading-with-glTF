@@ -50,6 +50,7 @@ Similar to edge highlights, DoF is also applying a filter over the final fragmen
 ## Optimizations
 ### Scissor Test
 The scissor test is an optimization that discards fragments that fall outside of a rectangular region. This acceleration leverages light attenuation to allow for early termination when performing shading per light. Any region outside of the scissor rectangle doesn't need any light processing.
+<img src="img/deferred-1478639472121.png" width="400" height="300"/>
 
 ### G-Buffer Packing
 The baseline implementation uses 4 buffers for positions, normals, color maps, and normal maps. We can precompute the normals by applying the normal map in the copy pass. This way the memory bandwith is much less throughout the pipeline. 
