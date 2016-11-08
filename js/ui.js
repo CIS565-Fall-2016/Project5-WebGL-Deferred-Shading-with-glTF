@@ -6,8 +6,9 @@ var cfg;
     var Cfg = function() {
         // TODO: Define config fields and defaults here
         this.debugView = -1;
-        this.enableScissor = 0;
+        this.enableScissor = 1;
         this.enableBlur = 0;
+        this.enableMotionBlur = false;
     };
 
     var init = function() {
@@ -30,13 +31,14 @@ var cfg;
           'Yes (with debug view)': 2,
         });
 
-        var gaussBlur = gui.addFolder('Gaussian Blur');
+        var gaussBlur = gui.addFolder('Blur');
         gaussBlur.open();
         gaussBlur.add(cfg, 'enableBlur', {
           'None': 0,
           '2d kernel Gaussian blur': 1,
           '1d kernel Gaussian blur (x2, convolved)': 2,
         });
+        gaussBlur.add(cfg, 'enableMotionBlur');
     };
 
     window.handle_load.push(init);

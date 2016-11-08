@@ -6,12 +6,13 @@
     R.pass_debug = {};
     R.pass_deferred = {};
     R.pass_post1 = {};
+    R.pass_motionBlur = {};
     R.pass_postBlur2d = {};
     R.pass_postBlur1d = {};
     R.lights = [];
 
     R.NUM_GBUFFERS = 4;
-    R.USE_PACKED_GBUFFERS = true;
+    R.USE_PACKED_GBUFFERS = false;
 
     /**
      * Set up the deferred pipeline framebuffer objects and textures.
@@ -23,14 +24,26 @@
         R.pass_deferred.setup();
         R.pass_post1.setup();
         R.pass_postBlur1d.setup();
+
+        R.prevPos = [];
+        R.curPosIdx = 0;
+        R.fbo = [gl.createFramebuffer(), gl.createFramebuffer(), gl.createFramebuffer()];
+        R.tex = [
+          createAndBindColorTargetTexture(R.fbo[0], gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL),
+          createAndBindColorTargetTexture(R.fbo[1], gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL),
+        ];
+        R.curFbo = 0;
+        R.prevPos[0] = gl.createTexture();
+        configTexture(R.prevPos[0]);
+        R.prevPos[1] = gl.createTexture();
+        configTexture(R.prevPos[1]);
     };
 
-    // TODO: Edit if you want to change the light initial positions
     R.light_min = [-14, 0, -6];
     R.light_max = [14, 18, 6];
     R.light_dt = -0.03;
     R.LIGHT_RADIUS = 4.0;
-    R.NUM_LIGHTS = 25; // TODO: test with MORE lights!
+    R.NUM_LIGHTS = 25; 
     var setupLights = function() {
         Math.seedrandom(0);
 
@@ -112,6 +125,11 @@
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     }
 
+    R.pass_motionBlur.setup = function() {
+      R.pass_motionBlur.fbo = gl.createFramebuffer();
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    }
+
     R.pass_postBlur1d.setup = function() {
         R.pass_postBlur1d.fbo = gl.createFramebuffer();
         R.pass_postBlur1d.colorTex = createAndBindColorTargetTexture(
@@ -153,6 +171,14 @@
                 // Create an object to hold info about this shader program
                 R.progClear = { prog: prog };
             });
+        
+        loadShaderProgram(gl, 'glsl/quad.vert.glsl', 'glsl/clone.frag.glsl',
+            function(prog) {
+                // Create an object to hold info about this shader program
+                var p = { prog: prog };
+                p.u_in = gl.getUniformLocation(p.prog, 'u_in');
+                R.progClone = p;
+            });
 
         loadDeferredProgram('ambient', function(p) {
             // Save the object into this variable for access later
@@ -177,6 +203,13 @@
             p.u_color    = gl.getUniformLocation(p.prog, 'u_color');
             // Save the object into this variable for access later
             R.progPost1 = p;
+        });
+
+        loadPostProgram('motionblur', function(p) {
+          p.u_color = gl.getUniformLocation(p.prog, 'u_color');
+          p.u_oldpos = gl.getUniformLocation(p.prog, 'u_oldpos');
+          p.u_projMat = gl.getUniformLocation(p.prog, 'u_projMat');
+          R.progMotionBlur = p;
         });
 
         loadPostProgram('gaussian2d', function(p) {
@@ -248,6 +281,15 @@
 
     var createAndBindColorTargetTexture = function(fbo, attachment) {
         var tex = gl.createTexture();
+        configTexture(tex);
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, attachment, gl.TEXTURE_2D, tex, 0);
+
+        return tex;
+    };
+
+    var configTexture = function(tex) {
         gl.bindTexture(gl.TEXTURE_2D, tex);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
@@ -255,10 +297,5 @@
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.FLOAT, null);
         gl.bindTexture(gl.TEXTURE_2D, null);
-
-        gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
-        gl.framebufferTexture2D(gl.FRAMEBUFFER, attachment, gl.TEXTURE_2D, tex, 0);
-
-        return tex;
     };
 })();

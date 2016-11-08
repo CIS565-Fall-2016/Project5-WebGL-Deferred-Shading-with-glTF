@@ -17,7 +17,6 @@
 
         // Move the R.lights
         for (var i = 0; i < R.lights.length; i++) {
-            // OPTIONAL TODO: Edit if you want to change how lights move
             var mn = R.light_min[1];
             var mx = R.light_max[1];
             R.lights[i].pos[1] = (R.lights[i].pos[1] + R.light_dt - mn + mx) % mx + mn;
@@ -37,14 +36,25 @@
         } else {
             // * Deferred pass and postprocessing pass(es)
             R.pass_deferred.render(state);
-            R.pass_post1.render(state);
-            if (cfg.enableBlur == 1) {
-              R.pass_postBlur2d.render(state);
-            } else if (cfg.enableBlur == 2) {
-              R.pass_postBlur1d.render(state);
+            var doPostPasses = function(passes) {
+              for (var i = 0; i < passes.length; i++) {
+                var tex = (i == 0) ? R.pass_deferred.colorTex : R.tex[1 - R.curFbo];
+                var fbo = (i == passes.length - 1) ? null : R.fbo[R.curFbo];
+                passes[i].render(state, fbo, tex);
+                R.curFbo = 1 - R.curFbo;
+              }
+            };
+            var passes = [R.pass_post1];
+            if (cfg.enableMotionBlur) {
+              passes.push(R.pass_motionBlur);
             }
+            if (cfg.enableBlur == 1) {
+              passes.push(R.pass_postBlur2d);
+            } else if (cfg.enableBlur == 2) {
+              passes.push(R.pass_postBlur1d);
+            }
+            doPostPasses(passes);
         }
-    };
 
     /**
      * 'copy' pass: Render into g-buffers
@@ -71,6 +81,18 @@
 
         // * Draw the scene
         drawScene(state);
+
+        // Clone position into curPosIdx
+        gl.useProgram(R.progClone.prog);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, R.fbo[2]);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL, 
+                                gl.TEXTURE_2D, R.prevPos[R.curPosIdx], 0);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, R.pass_copy.gbufs[0]);
+        gl.uniform1i(R.progClone.u_in, 0);
+
+        renderFullScreenQuad(R.progClone);
+        R.curPosIdx = 1 - R.curPosIdx;
     };
 
     var drawScene = function(state) {
@@ -184,13 +206,9 @@
     /**
      * 'post1' pass: Perform (first) pass of post-processing
      */
-    R.pass_post1.render = function(state) {
+    R.pass_post1.render = function(state, fbo, tex) {
         // * Unbind any existing framebuffer (if there are no more passes)
-        if (cfg.enableBlur == 0) {
-          gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-        } else {
-          gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_post1.fbo);
-        }
+        gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
 
         // * Clear the framebuffer depth to 1.0
         gl.clearDepth(1.0);
@@ -204,7 +222,7 @@
         gl.activeTexture(gl.TEXTURE0);
 
         // Bind the TEXTURE_2D, R.pass_deferred.colorTex to the active texture unit
-        gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex);
+        gl.bindTexture(gl.TEXTURE_2D, tex);
 
         // Configure the R.progPost1.u_color uniform to point at texture unit 0
         gl.uniform1i(R.progPost1.u_color, 0);
@@ -212,15 +230,34 @@
         // * Render a fullscreen quad to perform shading on
         renderFullScreenQuad(R.progPost1);
     };
+
+    /**
+     * 'motionBlur' pass: Perform motion blur pass of post-processing
+     */
+    R.pass_motionBlur.render = function(state, fbo, tex) {
+      gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+      gl.useProgram(R.progMotionBlur.prog);
+
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, tex);
+      gl.activeTexture(gl.TEXTURE1);
+      gl.bindTexture(gl.TEXTURE_2D, R.prevPos[R.curPosIdx]);
+
+      gl.uniform1i(R.progMotionBlur.u_color, 0);
+      gl.uniform1i(R.progMotionBlur.u_oldpos, 1);
+      gl.uniformMatrix4fv(R.progMotionBlur.u_projMat, false, state.cameraMat.elements);
+      renderFullScreenQuad(R.progMotionBlur);
+    };
+
     /**
      * 'postBlur' pass: Perform gaussian blur pass of post-processing
      */
-    R.pass_postBlur2d.render = function(state) {
-      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    R.pass_postBlur2d.render = function(state, fbo, tex) {
+      gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
       gl.useProgram(R.progBlur2d.prog);
 
       gl.activeTexture(gl.TEXTURE0);
-      gl.bindTexture(gl.TEXTURE_2D, R.pass_post1.colorTex);
+      gl.bindTexture(gl.TEXTURE_2D, tex);
 
       gl.uniform1i(R.progBlur2d.u_color, 0);
       gl.uniform2fv(R.progBlur2d.u_pixWidthHeight, [1.0 / width, 1.0 / height]);
@@ -228,12 +265,12 @@
       renderFullScreenQuad(R.progBlur2d);
     }
 
-    R.pass_postBlur1d.render = function(state) {
+    R.pass_postBlur1d.render = function(state, fbo, tex) {
       gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_postBlur1d.fbo);
       gl.useProgram(R.progBlur1dconv.prog);
 
       gl.activeTexture(gl.TEXTURE0);
-      gl.bindTexture(gl.TEXTURE_2D, R.pass_post1.colorTex);
+      gl.bindTexture(gl.TEXTURE_2D, tex);
 
       gl.uniform1i(R.progBlur1dconv.u_color, 0);
       gl.uniform2fv(R.progBlur1dconv.u_pixWidthHeight, [1.0 / width, 1.0 / height]);
@@ -241,7 +278,7 @@
 
       renderFullScreenQuad(R.progBlur1dconv);
 
-      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
 
       gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_2D, R.pass_postBlur1d.colorTex);
@@ -281,7 +318,7 @@
             gl.bufferData(gl.ARRAY_BUFFER,positions,gl.STATIC_DRAW);
         };
 
-        return function(prog) {
+        return function(prog, postRender) {
             if (!vbo) {
                 // If the vbo hasn't been initialized, initialize it.
                 init();
@@ -303,6 +340,10 @@
 
             // Use gl.drawArrays (or gl.drawElements) to draw your quad.
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+            if (postRender) {
+              postRender();
+            }
 
             // Unbind the array buffer.
             gl.bindBuffer(gl.ARRAY_BUFFER, null);
