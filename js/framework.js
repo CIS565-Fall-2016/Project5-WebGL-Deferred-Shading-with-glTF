@@ -68,6 +68,7 @@ var width, height;
     var init = function() {
         // TODO: For performance measurements, disable debug mode!
         var debugMode = true;
+        //var debugMode = false;
 
         canvas = document.getElementById('canvas');
         renderer = new THREE.WebGLRenderer({
@@ -269,7 +270,7 @@ var width, height;
 
 
         resize();
-        // renderer.render(scene, camera);
+        //renderer.render(scene, camera);
 
         gl.clearColor(0.5, 0.5, 0.5, 0.5);
         gl.clearDepth(1.0);

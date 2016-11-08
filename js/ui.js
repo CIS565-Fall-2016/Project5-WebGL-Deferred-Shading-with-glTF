@@ -8,6 +8,7 @@ var cfg;
         this.debugView = -1;
         this.debugScissor = false;
         this.enableEffect0 = false;
+        this.numberOfLights = 20;
     };
 
     var init = function() {
@@ -25,6 +26,13 @@ var cfg;
             '5 Surface normal':  5
         });
         gui.add(cfg, 'debugScissor');
+        gui.add(cfg, 'numberOfLights', {
+            '20': 20,
+            '40': 40,
+            '60': 60,
+            '80': 80,
+            '100': 100
+        });
 
         var eff0 = gui.addFolder('EFFECT NAME HERE');
         eff0.open();
