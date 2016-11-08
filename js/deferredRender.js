@@ -55,6 +55,7 @@
             }
             doPostPasses(passes);
         }
+    }
 
     /**
      * 'copy' pass: Render into g-buffers
@@ -318,7 +319,7 @@
             gl.bufferData(gl.ARRAY_BUFFER,positions,gl.STATIC_DRAW);
         };
 
-        return function(prog, postRender) {
+        return function(prog) {
             if (!vbo) {
                 // If the vbo hasn't been initialized, initialize it.
                 init();
@@ -340,10 +341,6 @@
 
             // Use gl.drawArrays (or gl.drawElements) to draw your quad.
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-
-            if (postRender) {
-              postRender();
-            }
 
             // Unbind the array buffer.
             gl.bindBuffer(gl.ARRAY_BUFFER, null);
