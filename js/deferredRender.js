@@ -167,9 +167,9 @@
 
         renderFullScreenQuad(R.progEdges);
 
-        gl.uniformMatrix4fv(prog.u_view, state.viewMat);
-        gl.uniformMatrix4fv(prog.u_proj, state.projMat);
-        renderFullScreenQuad(R.progBlur);
+        // gl.uniformMatrix4fv(prog.u_view, state.viewMat);
+        // gl.uniformMatrix4fv(prog.u_proj, state.projMat);
+        // renderFullScreenQuad(R.progBlur);
 
         // TODO: In the lighting loop, use the scissor test optimization
         // Enable gl.SCISSOR_TEST, render all lights, then disable it.

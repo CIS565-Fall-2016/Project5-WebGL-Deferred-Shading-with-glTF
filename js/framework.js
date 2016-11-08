@@ -8,11 +8,22 @@ var width, height;
     var models = [];
 
     var cameraMat = new THREE.Matrix4();
+    var prevProjViewMatrixInverse = new THREE.Matrix4();
+
+    // from previous timestep: screen pos -> view pos
+    prevProjMatrixInverse.getInverse(cameraMat); //
 
     var render = function() {
+
+        // camera -> world pos
         camera.updateMatrixWorld();
+
+        // world pos -> view pos
         camera.matrixWorldInverse.getInverse(camera.matrixWorld);
+
+        // world pos -> view pos -> screen pos
         cameraMat.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+
         R.deferredRender({
             cameraMat: cameraMat,
             projMat: camera.projectionMatrix,
