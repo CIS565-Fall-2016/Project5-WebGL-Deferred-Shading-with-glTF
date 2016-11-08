@@ -10,7 +10,8 @@
             !R.prog_Ambient ||
             !R.prog_BlinnPhong_PointLight ||
             !R.prog_Debug ||
-            !R.progPost1)) {
+            !R.progPost1 ||
+            !R.progToon)) {
             console.log('waiting for programs to load...');
             return;
         }
@@ -108,7 +109,7 @@
         // TODO: uncomment
         bindTexturesForLightPass(R.prog_Debug);
         gl.uniform1i(R.prog_Debug.u_debug, cfg.debugView);
-
+        gl.uniform3f(R.prog_Debug.u_cameraPos, state.cameraPos[0], state.cameraPos[1], state.cameraPos[2]);
         // * Render a fullscreen quad to perform shading on
         // TODO: uncomment
         renderFullScreenQuad(R.prog_Debug);
@@ -142,13 +143,20 @@
         renderFullScreenQuad(R.prog_Ambient);
 
         // * Bind/setup the Blinn-Phong pass, and render using fullscreen quad
-        bindTexturesForLightPass(R.prog_BlinnPhong_PointLight);
+        
+
+        var deferredProg = null;
+        if (cfg.toon) {
+            deferredProg = R.progToon;
+        } else {
+            deferredProg = R.prog_BlinnPhong_PointLight;
+        }
+        bindTexturesForLightPass(deferredProg);
 
         // TODO: add a loop here, over the values in R.lights, which sets the
         //   uniforms R.prog_BlinnPhong_PointLight.u_lightPos/Col/Rad etc.,
         //   then does renderFullScreenQuad(R.prog_BlinnPhong_PointLight).
         gl.enable(gl.SCISSOR_TEST);
-
         for (var i = 0; i < R.lights.length; i++) {
             var sc = getScissorForLight(state.viewMat, state.projMat, R.lights[i]);
             
@@ -158,13 +166,13 @@
                     gl.blendFunc(gl.SRC_ALPHA, gl.DST_ALPHA);
                     renderFullScreenQuad(R.progRed);
                 } else {
-                    gl.uniform3f(R.prog_BlinnPhong_PointLight.u_lightPos, R.lights[i].pos[0], R.lights[i].pos[1], R.lights[i].pos[2]);
-                    gl.uniform3f(R.prog_BlinnPhong_PointLight.u_lightCol, R.lights[i].col[0], R.lights[i].col[1], R.lights[i].col[2]);
-                    gl.uniform1f(R.prog_BlinnPhong_PointLight.u_lightRad, R.lights[i].rad);
-
-                    gl.uniform3f(R.prog_BlinnPhong_PointLight.u_cameraPos, state.cameraPos[0], state.cameraPos[1], state.cameraPos[2]);
-                    renderFullScreenQuad(R.prog_BlinnPhong_PointLight);
-            }
+                    gl.uniform3fv(deferredProg.u_lightPos, R.lights[i].pos);
+                    gl.uniform3fv(deferredProg.u_lightCol, R.lights[i].col);
+                    gl.uniform1f(deferredProg.u_lightRad, R.lights[i].rad);
+                    // gl.uniform3f(deferredProg.u_cameraPos, state.cameraPos[0], state.cameraPos[1], state.cameraPos[2]);
+                    gl.uniform3fv(deferredProg.u_cameraPos, state.cameraPos.toArray());
+                    renderFullScreenQuad(deferredProg);
+                }
             }
 
             

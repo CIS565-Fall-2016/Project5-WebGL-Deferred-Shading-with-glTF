@@ -5,6 +5,7 @@ precision highp int;
 #define NUM_GBUFFERS 4
 
 uniform int u_debug;
+uniform vec3 u_cameraPos;
 uniform sampler2D u_gbufs[NUM_GBUFFERS];
 uniform sampler2D u_depth;
 

@@ -145,8 +145,18 @@
             R.prog_BlinnPhong_PointLight = p;
         });
 
+        loadDeferredProgram('toon', function(p) {
+            // Save the object into this variable for access later
+            p.u_lightPos = gl.getUniformLocation(p.prog, 'u_lightPos');
+            p.u_lightCol = gl.getUniformLocation(p.prog, 'u_lightCol');
+            p.u_lightRad = gl.getUniformLocation(p.prog, 'u_lightRad');
+            p.u_cameraPos = gl.getUniformLocation(p.prog, 'u_cameraPos');
+            R.progToon = p;
+        });
+
         loadDeferredProgram('debug', function(p) {
             p.u_debug = gl.getUniformLocation(p.prog, 'u_debug');
+            p.u_cameraPos = gl.getUniformLocation(p.prog, 'u_cameraPos');
             // Save the object into this variable for access later
             R.prog_Debug = p;
         });
