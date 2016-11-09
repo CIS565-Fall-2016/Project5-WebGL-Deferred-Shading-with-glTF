@@ -124,7 +124,7 @@ var width, height;
         });
 
         //var glTFURL = 'models/glTF-duck/duck.gltf';
-        var glTFURL = 'models/glTF-sponza-kai-fix/sponza.gltf';
+        var glTFURL = 'models/gltf-sponza-kai-fix/sponza.gltf';
         var glTFLoader = new MinimalGLTFLoader.glTFLoader(gl);
         glTFLoader.loadGLTF(glTFURL, function (glTF) {
             var curScene = glTF.scenes[glTF.defaultScene];
