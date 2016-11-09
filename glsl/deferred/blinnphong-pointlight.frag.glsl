@@ -38,7 +38,7 @@ void main()
     // postprocessing step can render the sky color.
     if (depth == 1.0)
 	{
-        gl_FragData[0] = vec4(0, 0, 0, 0);
+        gl_FragColor = vec4(0, 0, 0, 0);
         return;
     }
 
@@ -56,10 +56,10 @@ void main()
 		vec3 finalColor = 0.5 * albedo * max(0.0, dot(nrm, light)) +
 			0.5 * u_lightCol * pow(max(0.0, dot(nrm, h)), 20.0);
 		float attenuation = (u_lightRad - dist2Light) / u_lightRad;
-		gl_FragData[0] = vec4(attenuation * finalColor, 1.0);
+		gl_FragColor = vec4(attenuation * finalColor, 1.0);
 	}
 	else
 	{
-		gl_FragData[0] = vec4(0.0);
+		gl_FragColor = vec4(0.0);
 	}
 }

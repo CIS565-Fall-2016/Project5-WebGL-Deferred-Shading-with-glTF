@@ -250,9 +250,10 @@ var preViewProjMat = null;
 		gl.uniform3f(R.prog_BlinnPhong_PointLight.u_viewportInfo, 2.0 * Math.tan(22.5 * Math.PI / 180.0), width, height);
 		gl.uniformMatrix4fv(R.prog_BlinnPhong_PointLight.u_proj, false, state.projMat.elements);
 
-		gl.depthFunc(gl.GREATER);
+		var depthFunc = isLastStage ? gl.ALWAYS : gl.GREATER;
+		gl.depthFunc(depthFunc);
 		gl.depthMask(false);
-		gl.disable(gl.CULL_FACE);
+		gl.cullFace(gl.FRONT);
 		
 		for (var i = 0; i < R.lights.length; ++i)
 		{
@@ -265,7 +266,7 @@ var preViewProjMat = null;
 			drawSphereProxy(R.sphereModel);
 		}
 		
-		gl.enable(gl.CULL_FACE);
+		gl.cullFace(gl.BACK);
 		gl.depthMask(true);
 		gl.depthFunc(gl.LEQUAL);
 		
