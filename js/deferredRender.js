@@ -10,7 +10,11 @@
             !R.prog_Ambient ||
             !R.prog_BlinnPhong_PointLight ||
             !R.prog_Debug ||
-            !R.progPost1)) {
+            !R.progPost1 ||
+            !R.progToon ||
+            !R.progBloom || 
+            !R.progBloom_h || 
+            !R.progBloom_w)) {
             console.log('waiting for programs to load...');
             return;
         }
@@ -26,14 +30,14 @@
         // Execute deferred shading pipeline
 
         // CHECKITOUT: START HERE! You can even uncomment this:
-        //debugger;
+        // debugger;
 
-        { // TODO: this block should be removed after testing renderFullScreenQuad
-            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-            // TODO: Implement/test renderFullScreenQuad first
-            renderFullScreenQuad(R.progRed);
-            return;
-        }
+        // { // TODO: this block should be removed after testing renderFullScreenQuad
+        //     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        //     // TODO: Implement/test renderFullScreenQuad first
+        //     renderFullScreenQuad(R.progRed);
+        //     return;
+        // }
 
         R.pass_copy.render(state);
 
@@ -44,8 +48,16 @@
         } else {
             // * Deferred pass and postprocessing pass(es)
             // TODO: uncomment these
-            // R.pass_deferred.render(state);
-            // R.pass_post1.render(state);
+            R.pass_deferred.render(state);
+            if (cfg.optimizedBloom) {
+                R.pass_bloom_h.render(state);
+                R.pass_bloom_w.render(state);
+            }
+            else if (cfg.bloom) {
+                R.pass_bloom.render(state);
+            } else {
+                R.pass_post1.render(state);
+            }
 
             // OPTIONAL TODO: call more postprocessing passes, if any
         }
@@ -57,21 +69,21 @@
     R.pass_copy.render = function(state) {
         // * Bind the framebuffer R.pass_copy.fbo
         // TODO: uncomment
-        // gl.bindFramebuffer(gl.FRAMEBUFFER,R.pass_copy.fbo);
+        gl.bindFramebuffer(gl.FRAMEBUFFER,R.pass_copy.fbo);
 
 
         // * Clear screen using R.progClear
         // TODO: uncomment
-        // renderFullScreenQuad(R.progClear);
+        renderFullScreenQuad(R.progClear);
 
         // * Clear depth buffer to value 1.0 using gl.clearDepth and gl.clear
         // TODO: uncomment
-        // gl.clearDepth(1.0);
-        // gl.clear(gl.DEPTH_BUFFER_BIT);
+        gl.clearDepth(1.0);
+        gl.clear(gl.DEPTH_BUFFER_BIT);
 
         // * "Use" the program R.progCopy.prog
         // TODO: uncomment
-        // gl.useProgram(R.progCopy.prog);
+        gl.useProgram(R.progCopy.prog);
 
         // TODO: Go write code in glsl/copy.frag.glsl
 
@@ -79,11 +91,11 @@
         // * Upload the camera matrix m to the uniform R.progCopy.u_cameraMat
         //   using gl.uniformMatrix4fv
         // TODO: uncomment
-        // gl.uniformMatrix4fv(R.progCopy.u_cameraMat, false, m);
+        gl.uniformMatrix4fv(R.progCopy.u_cameraMat, false, m);
 
         // * Draw the scene
         // TODO: uncomment
-        // drawScene(state);
+        drawScene(state);
     };
 
     var drawScene = function(state) {
@@ -101,17 +113,17 @@
     R.pass_debug.render = function(state) {
         // * Unbind any framebuffer, so we can write to the screen
         // TODO: uncomment
-        // gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
         // * Bind/setup the debug "lighting" pass
         // * Tell shader which debug view to use
         // TODO: uncomment
-        // bindTexturesForLightPass(R.prog_Debug);
-        // gl.uniform1i(R.prog_Debug.u_debug, cfg.debugView);
-
+        bindTexturesForLightPass(R.prog_Debug);
+        gl.uniform1i(R.prog_Debug.u_debug, cfg.debugView);
+        gl.uniform3f(R.prog_Debug.u_cameraPos, state.cameraPos[0], state.cameraPos[1], state.cameraPos[2]);
         // * Render a fullscreen quad to perform shading on
         // TODO: uncomment
-        // renderFullScreenQuad(R.prog_Debug);
+        renderFullScreenQuad(R.prog_Debug);
     };
 
     /**
@@ -133,21 +145,51 @@
         // Here is a wonderful demo of showing how blend function works: 
         // http://mrdoob.github.io/webgl-blendfunctions/blendfunc.html
         // TODO: uncomment
-        // gl.enable(gl.BLEND);
-        // gl.blendEquation( gl.FUNC_ADD );
-        // gl.blendFunc(gl.ONE,gl.ONE);
+        gl.enable(gl.BLEND);
+        gl.blendEquation( gl.FUNC_ADD );
+        gl.blendFunc(gl.ONE,gl.ONE);
 
         // * Bind/setup the ambient pass, and render using fullscreen quad
         bindTexturesForLightPass(R.prog_Ambient);
         renderFullScreenQuad(R.prog_Ambient);
 
         // * Bind/setup the Blinn-Phong pass, and render using fullscreen quad
-        bindTexturesForLightPass(R.prog_BlinnPhong_PointLight);
+        
+
+        var deferredProg = null;
+        if (cfg.toon) {
+            deferredProg = R.progToon;
+        } else {
+            deferredProg = R.prog_BlinnPhong_PointLight;
+        }
+        bindTexturesForLightPass(deferredProg);
 
         // TODO: add a loop here, over the values in R.lights, which sets the
         //   uniforms R.prog_BlinnPhong_PointLight.u_lightPos/Col/Rad etc.,
         //   then does renderFullScreenQuad(R.prog_BlinnPhong_PointLight).
+        gl.enable(gl.SCISSOR_TEST);
+        for (var i = 0; i < R.lights.length; i++) {
+            var sc = getScissorForLight(state.viewMat, state.projMat, R.lights[i]);
+            
+            if (sc != null){
+                gl.scissor(sc[0],sc[1],sc[2],sc[3]);
+                if (cfg.debugScissor) {
+                    gl.blendFunc(gl.SRC_ALPHA, gl.DST_ALPHA);
+                    renderFullScreenQuad(R.progRed);
+                } else {
+                    gl.uniform3fv(deferredProg.u_lightPos, R.lights[i].pos);
+                    gl.uniform3fv(deferredProg.u_lightCol, R.lights[i].col);
+                    gl.uniform1f(deferredProg.u_lightRad, R.lights[i].rad);
+                    // gl.uniform3f(deferredProg.u_cameraPos, state.cameraPos[0], state.cameraPos[1], state.cameraPos[2]);
+                    gl.uniform3fv(deferredProg.u_cameraPos, state.cameraPos.toArray());
+                    renderFullScreenQuad(deferredProg);
+                }
+            }
 
+            
+        }
+
+        gl.disable(gl.SCISSOR_TEST);
         // TODO: In the lighting loop, use the scissor test optimization
         // Enable gl.SCISSOR_TEST, render all lights, then disable it.
         //
@@ -192,17 +234,112 @@
         // * Bind the deferred pass's color output as a texture input
         // Set gl.TEXTURE0 as the gl.activeTexture unit
         // TODO: uncomment
-        // gl.activeTexture(gl.TEXTURE0);
+        gl.activeTexture(gl.TEXTURE0);
 
         // Bind the TEXTURE_2D, R.pass_deferred.colorTex to the active texture unit
         // TODO: uncomment
-        // gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex);
+        gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex);
 
         // Configure the R.progPost1.u_color uniform to point at texture unit 0
         gl.uniform1i(R.progPost1.u_color, 0);
 
         // * Render a fullscreen quad to perform shading on
         renderFullScreenQuad(R.progPost1);
+    };
+
+    /**
+     * 'Bloom' pass: Perform naive bloom post process
+     */
+    R.pass_bloom.render = function(state) {
+        // * Unbind any existing framebuffer (if there are no more passes)
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+        // * Clear the framebuffer depth to 1.0
+        gl.clearDepth(1.0);
+        gl.clear(gl.DEPTH_BUFFER_BIT);
+
+        // * Bind the postprocessing shader program
+        gl.useProgram(R.progBloom.prog);
+
+        // * Bind the color buffer to texture 0
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex);
+        gl.uniform1i(R.progBloom.u_color, 0);
+
+        // * Bind the light buffer to texture 1
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.lightTex);
+        gl.uniform1i(R.progBloom.u_light, 1);
+
+        gl.uniform1f(R.progBloom.u_height, height);
+        gl.uniform1f(R.progBloom.u_width, width);
+
+        // * Render a fullscreen quad to perform shading on
+        renderFullScreenQuad(R.progBloom);
+    };
+
+    /**
+     * 'Bloom_h' pass: Perform optimized bloom post process. This does the
+     *                 horizontal blur.
+     */
+    R.pass_bloom_h.render = function(state) {
+        // * Unbind any existing framebuffer (if there are no more passes)
+        gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_bloom_h.fbo);
+
+        // * Clear the framebuffer depth to 1.0
+        gl.clearDepth(1.0);
+        gl.clear(gl.DEPTH_BUFFER_BIT);
+
+        // * Bind the postprocessing shader program
+        gl.useProgram(R.progBloom_h.prog);
+
+        // * Bind the color buffer to texture 0
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex);
+        gl.uniform1i(R.progBloom_h.u_color, 0);
+
+        // * Bind the light buffer to texture 1
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.lightTex);
+        gl.uniform1i(R.progBloom_h.u_light, 1);
+
+        gl.uniform1f(R.progBloom_h.u_height, height);
+        gl.uniform1f(R.progBloom_h.u_width, width);
+
+        // * Render a fullscreen quad to perform shading on
+        renderFullScreenQuad(R.progBloom_h);
+    };
+
+    /**
+     * 'Bloom_w' pass: Perform optimized bloom post process. This does the
+     *                 vertical blur.
+     */
+    R.pass_bloom_w.render = function(state) {
+        // * Unbind any existing framebuffer (if there are no more passes)
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+        // * Clear the framebuffer depth to 1.0
+        gl.clearDepth(1.0);
+        gl.clear(gl.DEPTH_BUFFER_BIT);
+
+        // * Bind the postprocessing shader program
+        gl.useProgram(R.progBloom_w.prog);
+
+        // * Bind the color buffer to texture 0
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, R.pass_bloom_h.colorTex);
+        gl.uniform1i(R.progBloom_w.u_color, 0);
+
+        // * Bind the light buffer to texture 1
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, R.pass_bloom_h.lightTex);
+        gl.uniform1i(R.progBloom_w.u_light, 1);
+
+        gl.uniform1f(R.progBloom_w.u_height, height);
+        gl.uniform1f(R.progBloom_w.u_width, width);
+
+        // * Render a fullscreen quad to perform shading on
+        renderFullScreenQuad(R.progBloom_w);
     };
 
     var renderFullScreenQuad = (function() {
@@ -230,12 +367,12 @@
 
             // Bind the VBO as the gl.ARRAY_BUFFER
             // TODO: uncomment
-            // gl.bindBuffer(gl.ARRAY_BUFFER,vbo);
+            gl.bindBuffer(gl.ARRAY_BUFFER,vbo);
 
             // Upload the positions array to the currently-bound array buffer
             // using gl.bufferData in static draw mode.
             // TODO: uncomment
-            // gl.bufferData(gl.ARRAY_BUFFER,positions,gl.STATIC_DRAW);
+            gl.bufferData(gl.ARRAY_BUFFER,positions,gl.STATIC_DRAW);
         };
 
         return function(prog) {
@@ -249,21 +386,21 @@
 
             // Bind the VBO as the gl.ARRAY_BUFFER
             // TODO: uncomment
-            // gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+            gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
 
             // Enable the bound buffer as the vertex attrib array for
             // prog.a_position, using gl.enableVertexAttribArray
             // TODO: uncomment
-            // gl.enableVertexAttribArray(prog.a_position);
+            gl.enableVertexAttribArray(prog.a_position);
 
             // Use gl.vertexAttribPointer to tell WebGL the type/layout for
             // prog.a_position's access pattern.
             // TODO: uncomment
-            // gl.vertexAttribPointer(prog.a_position, 3, gl.FLOAT, gl.FALSE, 0, 0);
+            gl.vertexAttribPointer(prog.a_position, 3, gl.FLOAT, gl.FALSE, 0, 0);
 
             // Use gl.drawArrays (or gl.drawElements) to draw your quad.
             // TODO: uncomment
-            // gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
             // Unbind the array buffer.
             gl.bindBuffer(gl.ARRAY_BUFFER, null);
