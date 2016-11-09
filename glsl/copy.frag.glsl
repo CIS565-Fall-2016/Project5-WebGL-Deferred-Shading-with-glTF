@@ -22,4 +22,5 @@ void main()
     gl_FragData[1] = vec4(v_normal, 0.0);  // Normals of the geometry as defined, without normal mapping
     gl_FragData[2] = texture2D(u_colmap, v_uv); // The color map - unlit "albedo" (surface color)
     gl_FragData[3] = texture2D(u_normap, v_uv); // The raw normal map (normals relative to the surface they're on)
+    // gl_FragData[4] = vec4(v_position.z); // Depth
 }

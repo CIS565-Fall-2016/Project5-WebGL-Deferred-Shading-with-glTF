@@ -11,7 +11,7 @@ uniform vec3 u_camPos;
 uniform sampler2D u_gbufs[NUM_GBUFFERS];
 uniform sampler2D u_depth;
 
-varying vec2 v_uv;
+//varying vec2 v_uv;
 
 vec3 applyNormalMap(vec3 geomnor, vec3 normap) {
     normap = normap * 2.0 - 1.0;
@@ -22,11 +22,14 @@ vec3 applyNormalMap(vec3 geomnor, vec3 normap) {
 }
 
 void main() {
-    vec4 gb0 = texture2D(u_gbufs[0], v_uv);
-    vec4 gb1 = texture2D(u_gbufs[1], v_uv);
-    vec4 gb2 = texture2D(u_gbufs[2], v_uv);
-    vec4 gb3 = texture2D(u_gbufs[3], v_uv);
-    float depth = texture2D(u_depth, v_uv).x;
+
+    vec2 uv = vec2(gl_FragCoord.x / 800.0 , gl_FragCoord.y / 600.0);
+
+    vec4 gb0 = texture2D(u_gbufs[0], uv);
+    vec4 gb1 = texture2D(u_gbufs[1], uv);
+    vec4 gb2 = texture2D(u_gbufs[2], uv);
+    vec4 gb3 = texture2D(u_gbufs[3], uv);
+    float depth = texture2D(u_depth, uv).x;
     // DONE: Extract needed properties from the g-buffers into local variables
     vec3 pos = gb0.xyz;     // World-space position
     vec3 colmap = gb2.rgb;  // The color map - unlit "albedo" (surface color)
@@ -39,7 +42,6 @@ void main() {
         return;
     }
 
-    // TODO?: ambient color
     vec3 lightDir = normalize(u_lightPos - pos);
     float lambertian = max(dot(lightDir, nor), 0.0);
     float specular = 0.0;
@@ -56,6 +58,6 @@ void main() {
     float att = clamp(1.0 - light_distance * light_distance / (u_lightRad * u_lightRad), 0.0, 1.0);
 
     vec3 color = (lambertian * colmap + specular) * u_lightCol * att;
-    // gl_FragColor = vec4(ambientColor + lambertian * diffuseColor + specular * specColor, 1.0);  // DONE: perform lighting calculations
     gl_FragColor = vec4(color, 1.0);  // DONE: perform lighting calculations
+    //gl_FragColor = vec4(v_uv, 0.0, 1.0);
 }

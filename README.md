@@ -7,6 +7,8 @@ WebGL Deferred Shading
 * Tested on: (TODO) **Google Chrome 222.2** on
   Windows 22, i7-2222 @ 2.22GHz 22GB, GTX 222 222MB (Moore 2222 Lab)
 
+__NOTE:__ my submission requires an additional WebGL extension - `EXT_frag_depth`, used in `defered/ambient.frag.glsl` to properly read depth data into lighting passes' frame buffer to do __inverted depth test__ with __front-face culling__
+
 ### Live Online
 
 [![](img/thumb.png)](https://windydarian.github.io/Project5-WebGL-Deferred-Shading-with-glTF/)
@@ -26,8 +28,12 @@ FIXME: glTF files returns 404 on GitHub Pages
   * Then do a __two-pass Gaussian blur__ using separable convolution (vertical then horizontal)
     * Use menu option to control blur size (which changes uniform variable `u_scale` passing to `bloom.frag.glsl`)
   * Finally combine the blurred image to the original output
-* __Scissor test optimization__: when accumulating shading from each point light source, only render in a rectangle around the light.
+* __Scissor test for lighting__: when accumulating shading from each point light source, only render in a rectangle around the light.
   * Use `debugScissor` option to toggle scissor visual, or select `6 Light scissors` to show scissor only.
+  * This is used to compare with my __light proxy__ implementation
+* __Light proxy__: instead of rendering a scissored full-screen quad for every light, I render __proxy geometry__ which covers the part of the screen affected by a light (using spheres for point lights), thus __reducing wasted fragments in lighting pass__.
+  * Using __inverted depth test__ with __front-face culling__ to avoid lighting geometries that are far behind the light, thus further reducing wasted fragments.
+  * This feature requires WebGL's `EXT_frag_depth` extension to write depth data into frame buffer at defered shading stage in order to do the depth test.
 
 *DO NOT* leave the README to the last minute! It is a crucial part of the
 project, and we will not be able to grade you without a good README.

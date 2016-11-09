@@ -91,6 +91,8 @@
         R.pass_deferred.colorTex = createAndBindColorTargetTexture(
             R.pass_deferred.fbo, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
 
+        R.pass_deferred.depthTex = createAndBindDepthTargetTexture(R.pass_deferred.fbo);
+
         // * Check for framebuffer errors
         abortIfFramebufferIncomplete(R.pass_deferred.fbo);
         // * Tell the WEBGL_draw_buffers extension which FBO attachments are
@@ -154,6 +156,20 @@
                 R.progRed = { prog: prog };
             });
 
+        loadShaderProgram(gl, 'glsl/sphere.vert.glsl', 'glsl/red.frag.glsl',
+            function(prog) {
+                // Create an object to hold info about this shader program
+                var p = { prog: prog };
+
+                // Retrieve the uniform and attribute locations
+                p.u_cameraMat = gl.getUniformLocation(p.prog, 'u_cameraMat');
+                p.u_worldMat    = gl.getUniformLocation(p.prog, 'u_worldMat');
+                p.a_position = gl.getAttribLocation(prog, 'a_position');
+
+                // Save the object into this variable for access later
+                R.progRed_sphere = p;
+            });
+
         loadShaderProgram(gl, 'glsl/quad.vert.glsl', 'glsl/clear.frag.glsl',
             function(prog) {
                 // Create an object to hold info about this shader program
@@ -173,6 +189,32 @@
             p.u_camPos = gl.getUniformLocation(p.prog, 'u_camPos');
             R.prog_BlinnPhong_PointLight = p;
         });
+
+
+
+        loadShaderProgram(gl, 'glsl/sphere.vert.glsl', 'glsl/deferred/blinnphong-pointlight.frag.glsl',
+            function(prog) {
+                // Create an object to hold info about this shader program
+                var p = { prog: prog };
+
+                // Retrieve the uniform and attribute locations
+                p.u_cameraMat = gl.getUniformLocation(p.prog, 'u_cameraMat');
+                p.u_worldMat    = gl.getUniformLocation(p.prog, 'u_worldMat');
+                p.a_position = gl.getAttribLocation(prog, 'a_position');
+
+                p.u_gbufs = [];
+                for (var i = 0; i < R.NUM_GBUFFERS; i++) {
+                    p.u_gbufs[i] = gl.getUniformLocation(prog, 'u_gbufs[' + i + ']');
+                }
+                p.u_depth    = gl.getUniformLocation(prog, 'u_depth');
+                p.u_lightPos = gl.getUniformLocation(p.prog, 'u_lightPos');
+                p.u_lightCol = gl.getUniformLocation(p.prog, 'u_lightCol');
+                p.u_lightRad = gl.getUniformLocation(p.prog, 'u_lightRad');
+                p.u_camPos = gl.getUniformLocation(p.prog, 'u_camPos');
+
+                // Save the object into this variable for access later
+                R.prog_BlinnPhong_PointLight_sphere = p;
+            });
 
         loadDeferredProgram('debug', function(p) {
             p.u_debug = gl.getUniformLocation(p.prog, 'u_debug');

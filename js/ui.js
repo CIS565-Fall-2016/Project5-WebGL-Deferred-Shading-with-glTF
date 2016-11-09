@@ -9,6 +9,7 @@ var cfg;
         this.debugScissor = false;
         this.enableBloom = true;
         this.bloomSize = 0.003;
+        this.useLightProxy = true;
     };
 
     var init = function() {
@@ -27,6 +28,7 @@ var cfg;
             '6 Light scissors':  6,
         });
         gui.add(cfg, 'debugScissor');
+        gui.add(cfg, 'useLightProxy')
 
         var eff0 = gui.addFolder('EFFECT NAME HERE');
         eff0.open();

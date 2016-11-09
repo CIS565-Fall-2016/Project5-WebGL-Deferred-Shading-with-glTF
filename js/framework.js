@@ -47,7 +47,8 @@ var width, height;
             'OES_texture_float',
             'OES_texture_float_linear',
             'WEBGL_depth_texture',
-            'WEBGL_draw_buffers'
+            'WEBGL_draw_buffers',
+            'EXT_frag_depth'
         ];
         for (var i = 0; i < reqd.length; i++) {
             var e = reqd[i];
@@ -63,6 +64,8 @@ var width, height;
         gl_draw_buffers = gl.getExtension('WEBGL_draw_buffers');
         var maxdb = gl.getParameter(gl_draw_buffers.MAX_DRAW_BUFFERS_WEBGL);
         console.log('MAX_DRAW_BUFFERS_WEBGL: ' + maxdb);
+
+        gl.getExtension('EXT_frag_depth');
     };
 
     var init = function() {
@@ -187,8 +190,8 @@ var width, height;
                 gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, magFilter);
                 gl.texParameteri(target, gl.TEXTURE_WRAP_S, wrapS);
                 gl.texParameteri(target, gl.TEXTURE_WRAP_T, wrapT);
-                if (minFilter == gl.NEAREST_MIPMAP_NEAREST || 
-                    minFilter == gl.NEAREST_MIPMAP_LINEAR || 
+                if (minFilter == gl.NEAREST_MIPMAP_NEAREST ||
+                    minFilter == gl.NEAREST_MIPMAP_LINEAR ||
                     minFilter == gl.LINEAR_MIPMAP_NEAREST ||
                     minFilter == gl.LINEAR_MIPMAP_LINEAR ) {
                         gl.generateMipmap(target);
@@ -245,7 +248,7 @@ var width, height;
                         uvInfo: {size: uvInfo.size, type: uvInfo.type, stride: uvInfo.stride, offset: uvInfo.offset},
 
                         // specific textures temp test
-                        colmap: webGLTextures[colorTextureName].texture, 
+                        colmap: webGLTextures[colorTextureName].texture,
                         normap: webGLTextures[normalTextureName].texture
                     });
 
@@ -254,7 +257,7 @@ var width, height;
             }
 
 
-            
+
         });
 
 

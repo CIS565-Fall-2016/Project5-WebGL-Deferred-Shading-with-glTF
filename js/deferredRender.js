@@ -106,6 +106,7 @@
 
             drawReadyModel(m);
         }
+
     };
 
     R.pass_debug.render = function(state) {
@@ -140,18 +141,40 @@
         // * Bind/setup the Blinn-Phong pass, and render using fullscreen quad
         //bindTexturesForLightPass(R.prog_BlinnPhong_PointLight);
 
-        gl.enable(gl.SCISSOR_TEST);
 
-        for (let light of R.lights)
+        if (cfg.useLightProxy)
         {
-            var sc = getScissorForLight(state.viewMat, state.projMat, light);
-            if (!sc){continue;}
-            gl.scissor(sc[0], sc[1], sc[2], sc[3]);
 
-            renderFullScreenQuad(R.progRed);
+            readyNonGltfModelForDraw(R.progRed_sphere, R.sphereModel);
+            for (let light of R.lights)
+            {
+                var m_scale = new THREE.Matrix4();
+                m_scale.makeScale(light.rad * 1.1,light.rad * 1.1,light.rad * 1.1); // edg
+                var m_translation = new THREE.Matrix4();
+                m_translation.makeTranslation(light.pos[0],light.pos[1],light.pos[2]);
+                var m_world = new THREE.Matrix4();
+                m_world.multiplyMatrices(m_translation,m_scale);
+
+                gl.uniformMatrix4fv(R.progRed_sphere.u_cameraMat,false,state.cameraMat.elements);
+                gl.uniformMatrix4fv(R.progRed_sphere.u_worldMat,false,m_world.elements);
+
+                drawReadyNonGltfModel(R.sphereModel);
+            }
+        }
+        else
+        {
+            gl.enable(gl.SCISSOR_TEST);
+            for (let light of R.lights)
+            {
+                var sc = getScissorForLight(state.viewMat, state.projMat, light);
+                if (!sc){continue;}
+                gl.scissor(sc[0], sc[1], sc[2], sc[3]);
+
+                renderFullScreenQuad(R.progRed);
+            }
+            gl.disable(gl.SCISSOR_TEST);
         }
 
-        gl.disable(gl.SCISSOR_TEST);
         gl.disable(gl.BLEND);
     }
 
@@ -182,44 +205,108 @@
         bindTexturesForLightPass(R.prog_Ambient);
         renderFullScreenQuad(R.prog_Ambient);
 
-        // * Bind/setup the Blinn-Phong pass, and render using fullscreen quad
-        bindTexturesForLightPass(R.prog_BlinnPhong_PointLight);
-
-        // Bind camera position
-        gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_camPos, state.cameraPos.toArray());
-
-        gl.enable(gl.SCISSOR_TEST);
-
-        // DONE: add a loop here, over the values in R.lights, which sets the
-        //   uniforms R.prog_BlinnPhong_PointLight.u_lightPos/Col/Rad etc.,
-        //   then does renderFullScreenQuad(R.prog_BlinnPhong_PointLight).
-        for (let light of R.lights)
+        if (cfg.useLightProxy)
         {
-            var sc = getScissorForLight(state.viewMat, state.projMat, light);
-            if (!sc){continue;}
-            gl.scissor(sc[0], sc[1], sc[2], sc[3]);
 
-            gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_lightCol, light.col);
-            gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_lightPos, light.pos);
-            gl.uniform1f(R.prog_BlinnPhong_PointLight.u_lightRad, light.rad);
-            renderFullScreenQuad(R.prog_BlinnPhong_PointLight);
+            gl.cullFace(gl.FRONT);
+            gl.depthFunc(gl.GREATER);
+            gl.depthMask(false);
+
+            // * Bind/setup the Blinn-Phong pass, and render using fullscreen quad
+            bindTexturesForLightPass(R.prog_BlinnPhong_PointLight_sphere);
+
+            // Bind camera position
+            gl.uniform3fv(R.prog_BlinnPhong_PointLight_sphere.u_camPos, state.cameraPos.toArray());
+
+            readyNonGltfModelForDraw(R.prog_BlinnPhong_PointLight_sphere, R.sphereModel);
+            for (let light of R.lights)
+            {
+                var m_scale = new THREE.Matrix4();
+                m_scale.makeScale(light.rad * 1.1,light.rad * 1.1,light.rad * 1.1); // edg
+                var m_translation = new THREE.Matrix4();
+                m_translation.makeTranslation(light.pos[0],light.pos[1],light.pos[2]);
+                var m_world = new THREE.Matrix4();
+                m_world.multiplyMatrices(m_translation,m_scale);
+
+                gl.uniformMatrix4fv(R.prog_BlinnPhong_PointLight_sphere.u_cameraMat,false,state.cameraMat.elements);
+                gl.uniformMatrix4fv(R.prog_BlinnPhong_PointLight_sphere.u_worldMat,false,m_world.elements);
+
+                gl.uniform3fv(R.prog_BlinnPhong_PointLight_sphere.u_lightCol, light.col);
+                gl.uniform3fv(R.prog_BlinnPhong_PointLight_sphere.u_lightPos, light.pos);
+                gl.uniform1f(R.prog_BlinnPhong_PointLight_sphere.u_lightRad, light.rad);
+                drawReadyNonGltfModel(R.sphereModel);
+            }
+
+            if (cfg.debugScissor)
+            {
+                readyNonGltfModelForDraw(R.progRed_sphere, R.sphereModel);
+                gl.blendEquation( gl.FUNC_ADD );
+                gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+                for (let light of R.lights)
+                {
+                    var m_scale = new THREE.Matrix4();
+                    m_scale.makeScale(light.rad * 1.1,light.rad * 1.1,light.rad * 1.1); // edg
+                    var m_translation = new THREE.Matrix4();
+                    m_translation.makeTranslation(light.pos[0],light.pos[1],light.pos[2]);
+                    var m_world = new THREE.Matrix4();
+                    m_world.multiplyMatrices(m_translation,m_scale);
+
+                    gl.uniformMatrix4fv(R.progRed_sphere.u_cameraMat,false,state.cameraMat.elements);
+                    gl.uniformMatrix4fv(R.progRed_sphere.u_worldMat,false,m_world.elements);
+
+                    drawReadyNonGltfModel(R.sphereModel);
+                }
+            }
+
+            gl.cullFace(gl.BACK);
+            gl.depthFunc(gl.LESS);
+            gl.depthMask(true);
         }
-
-        if (cfg.debugScissor)
+        else
         {
-            gl.blendEquation( gl.FUNC_ADD );
-            gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+            // * Bind/setup the Blinn-Phong pass, and render using fullscreen quad
+            bindTexturesForLightPass(R.prog_BlinnPhong_PointLight);
+
+            // Bind camera position
+            gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_camPos, state.cameraPos.toArray());
+
+
+            // use scissors
+            gl.disable(gl.DEPTH_TEST);
+            gl.enable(gl.SCISSOR_TEST);
+
+            // DONE: add a loop here, over the values in R.lights, which sets the
+            //   uniforms R.prog_BlinnPhong_PointLight.u_lightPos/Col/Rad etc.,
+            //   then does renderFullScreenQuad(R.prog_BlinnPhong_PointLight).
             for (let light of R.lights)
             {
                 var sc = getScissorForLight(state.viewMat, state.projMat, light);
                 if (!sc){continue;}
                 gl.scissor(sc[0], sc[1], sc[2], sc[3]);
 
-                renderFullScreenQuad(R.progRed);
+                gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_lightCol, light.col);
+                gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_lightPos, light.pos);
+                gl.uniform1f(R.prog_BlinnPhong_PointLight.u_lightRad, light.rad);
+                renderFullScreenQuad(R.prog_BlinnPhong_PointLight);
             }
-        }
 
-        gl.disable(gl.SCISSOR_TEST);
+            if (cfg.debugScissor)
+            {
+                gl.blendEquation( gl.FUNC_ADD );
+                gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+                for (let light of R.lights)
+                {
+                    var sc = getScissorForLight(state.viewMat, state.projMat, light);
+                    if (!sc){continue;}
+                    gl.scissor(sc[0], sc[1], sc[2], sc[3]);
+
+                    renderFullScreenQuad(R.progRed);
+                }
+            }
+
+            gl.disable(gl.SCISSOR_TEST);
+            gl.enable(gl.DEPTH_TEST);
+        }
 
         // DONE: In the lighting loop, use the scissor test optimization
         // Enable gl.SCISSOR_TEST, render all lights, then disable it.
@@ -231,6 +318,7 @@
 
         // Disable blending so that it doesn't affect other code
         gl.disable(gl.BLEND);
+
         R.previous_pass_tex_output = R.pass_deferred.colorTex;
     };
 

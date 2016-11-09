@@ -1,5 +1,5 @@
-
 #version 100
+#extension GL_EXT_frag_depth : enable
 precision highp float;
 precision highp int;
 
@@ -22,6 +22,8 @@ void main() {
     float depth = texture2D(u_depth, v_uv).x;
     // TODO: Extract needed properties from the g-buffers into local variables
 
+    gl_FragDepthEXT = depth; // for use in light proxy
+
     if (depth == 1.0) {
         //gl_FragColor = vec4(0, 0, 0, 0); // set alpha to 0
         gl_FragColor = SKY_COLOR;
@@ -29,5 +31,6 @@ void main() {
     }
 
     vec3 colmap = gb2.rgb;
+    //gl_FragColor = vec4(vec3(depth),1.0);  
     gl_FragColor = vec4(colmap * ambient_color, 1);  // DONE: replace this
 }
