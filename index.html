@@ -19,6 +19,7 @@
 
     <script src="js/util.js"></script>
     <script src="js/main.js"></script>
+    <script src="js/compute.js"></script>
     <script src="js/deferredSetup.js"></script>
     <script src="js/deferredRender.js"></script>
     <script src="js/framework.js"></script>
@@ -107,5 +108,10 @@
     <div id="alertcontainer">
         <div id="alertbox"><pre id="alerttext"></pre></div>
     </div>
+    <script>
+        if (location.host == 'localhost') {
+            document.write('<script src="http://' + (location.host || 'localhost').split(':')[0] + ':35729/livereload.js"></' + 'script>')
+        }
+    </script>
 </body>
 </html>
