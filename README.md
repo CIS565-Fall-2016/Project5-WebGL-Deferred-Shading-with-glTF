@@ -41,11 +41,12 @@ WebGL Deferred Shading
   ![]()
   
 * G-Buffer Optimization
-  * G-buffer number reduced to 2 from 4 by
+  * G-buffer number reduced to 1 from 4 by
     * Applying normal map in the copy pass instead of the light pass
     * Using only two-component normal by taking advantage of the fact that normals have lengths of 1
     * Reconstructing eye space position from screen coordinates and depth of pixels
     * Can easily reduce further to 1 by packing albedo with normal but choose not to for the sake of performance because bit shift and bit-wise operations are not available in GLSL 1.0. Doing packing hence requires many floating point divisions and multiplications.
+    * Further testing shows that using only 1 G-buffer gives better performance. I think the reason is that enabling multiple rendering targets and the extra global memory writes have greater cost than the extra floating point computations.
     
     | G-buffers | R | G | B | A |
     | --- | --- | --- | --- | --- |
