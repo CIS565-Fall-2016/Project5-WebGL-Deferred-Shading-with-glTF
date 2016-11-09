@@ -44,7 +44,7 @@ void main()
     else
     {
         two_comp_normal = normal.yz/normal.x;
-        colmap.x *= sign(normal.x); 
+        colmap.x *= sign(normal.x);
     }
 
     gl_FragData[0] = vec4(v_position,  two_comp_normal.x); // world-space position
