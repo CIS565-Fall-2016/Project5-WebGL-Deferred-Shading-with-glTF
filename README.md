@@ -13,7 +13,7 @@ WebGL Deferred Shading
 
 ### Demo Video/GIF
 
-![](http://puu.sh/sbpzl/2e12408b5d.gif)
+![](img/small.gif)
 
 ## Deferred Shading
 In deferred shading, the lighting step is postponed to a later step. Instead, in the first pass through, all geometry data is accumulated into texture buffers known as G-buffers. This is then later on used in more complex lighting operations. The benefit of doing this is that all the fragments that are in the G-buffers will ultimately be used in a single lighting pass (the depth-test has already been applied to these fragments). This ensures that we dont run multiple lighting passes over objects that might never make it to a pixel.
