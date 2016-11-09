@@ -12,7 +12,7 @@ WebGL Deferred Shading
 
 ### Demo Video/GIF
 
-[![](img/Demo.gif)]
+![](img/Demo.gif)
 
 ### Intro
 
@@ -50,6 +50,19 @@ The Blinn-Phong shader is the default in this repository. It combines a diffuse 
 
 The Bloom optimizations turn out to not be too great. It could possibly be because the filter is too small (9x9) or perhaps that it is because the first pass now needs to allocate a framebuffer so that its results can be saved and sent to the second pass.
 
+#### Toon Shader
+![](img/toon.PNG)
+
+#### Bloom Post Process
+![](img/Bloom.PNG)
+
+### Debug Views
+#### Depth
+![](img/Depth.PNG)
+#### Normals
+![](img/Normals.PNG)
+#### Albedo
+![](img/Albedo.PNG)
 
 ### Credits
 
