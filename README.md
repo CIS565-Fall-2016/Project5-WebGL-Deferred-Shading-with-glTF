@@ -8,7 +8,7 @@ WebGL Deferred Shading
   Windows 10, i7-6700k @ 4.00GHz 64GB, GTX 980M 8GB (Personal Laptop)
 
 ### Live Online
-[Live Demo](http://www.3dde.com/webgl/Project5-WebGL-Deferred-Shading-with-glTF/index.html)
+[Live Demo](https://reddeupenn.github.io/Project5-WebGL-Deferred-Shading-with-glTF/)
 
 ### Demo Video/GIF
 ![fov1](./img/layers.gif)
