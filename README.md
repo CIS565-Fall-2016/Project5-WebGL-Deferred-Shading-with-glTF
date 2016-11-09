@@ -13,11 +13,12 @@ __NOTE:__ my submission requires an additional WebGL extension - `EXT_frag_depth
 
 [![](img/thumb.png)](https://windydarian.github.io/Project5-WebGL-Deferred-Shading-with-glTF/)
 
-FIXME: glTF files returns 404 on GitHub Pages
+[Click Me!](https://windydarian.github.io/Project5-WebGL-Deferred-Shading-with-glTF/)
 
-### Demo Video/GIF
+#### Demo Video/GIF
 
-[![](img/video.png)](TODO)
+Uploading
+
 
 ### Work Done
 
@@ -36,6 +37,26 @@ FIXME: glTF files returns 404 on GitHub Pages
   * This feature requires WebGL's `EXT_frag_depth` extension to write depth data into frame buffer at defered shading stage in order to do the depth test
   * Use `useLightProxy` option to toggle on/off and use `useInvertedDepthTestForLightProxy` option to toggle depth test and front face culling for lighting pass
 * __Optimized g-buffer__ from 4*vec4 to 2*vec4 by compressing normal to two floats, increasing framerate to __167%__, see below for details
+
+#### Light Proxy:
+
+| Render           | With quad scissor test|
+|------------------|------------------|
+| ![](sreeenshots/proxy1.png) | ![](sreeenshots/proxy2.png) |
+
+| With light proxy (no depth test) | light proxy + depth test + front-face culling|
+|------------------|------------------|
+| ![](sreeenshots/proxy3.png) | ![](sreeenshots/proxy4.png) |
+
+#### Bloom:
+
+| No bloom          | Bloom (size 0.003)|
+|------------------|------------------|
+| ![](sreeenshots/nobloom.png) | ![](sreeenshots/bloom1.png) |
+
+| Bloom (size 0.01) | Bloom (size 0.05)|
+|------------------|------------------|
+| ![](sreeenshots/bloom2.png) | ![](sreeenshots/bloom3.png) |
 
 ### Optimizing G-Buffer
 
@@ -66,7 +87,7 @@ What is `normal sign` and `normal axis`? Well, they are just a sign (+/-). Since
 
 Here is how I compress the normal
 
-```
+```glsl
 // BLACK MAGIC: use color map signs to represent which axis is seen as 1 in normal map
 vec2 two_comp_normal;
 if (abs(normal.z) > 0.33)
@@ -90,7 +111,7 @@ else
 
 And here is how I restore the normal:
 
-```
+```glsl
 vec3 extractNormal(float nor_x, float nor_y, vec3 colmap)
 {
     // Black magic: I colmap sign to prevent normal losing too much precision on a particular axis
@@ -123,6 +144,44 @@ And here is the comparison for them
 
 We can see drastic performance boost here. But this is not a completely correct comparison - I migrated the combination of geometry normal and normal map from lighting stage to copy-to-g-buffer stage. So part of the performance bonus may come from not combining normals for every light.
 
+### Light proxy
+
+instead of rendering a scissored full-screen quad for every light, I render __proxy geometry__ which covers the part of the screen affected by a light (using spheres for point lights), thus __reducing wasted fragments in lighting pass__.
+* Using __inverted depth test__ with __front-face culling__ to avoid lighting geometries that are far behind the light, thus further reducing wasted fragments
+* This feature requires WebGL's `EXT_frag_depth` extension to write depth data into frame buffer at defered shading stage in order to do the depth test
+* Use `useLightProxy` option to toggle on/off and use `useInvertedDepthTestForLightProxy` option to toggle depth test and front face culling for lighting pass
+
+Here are images for comparison (bloom off, 20 lights):
+
+| Render           | With quad scissor test|
+|------------------|------------------|
+| ![](sreeenshots/proxy1.png) | ![](sreeenshots/proxy2.png) |
+
+| With light proxy (no depth test) | light proxy + depth test + front-face culling|
+|------------------|------------------|
+| ![](sreeenshots/proxy3.png) | ![](sreeenshots/proxy4.png) |
+
+Given 200 lights and bloom off, these are performance comparison:
+
+| Quad scissor | Light proxy | Light proxy with depth test |
+|--------------|-------------|-----------------------------|
+| 76.9ms       | 66.7ms      | 43.5ms                      |
+
+![](img/chart_proxy.png)
+
+### Bloom
+
+I implemented 2-pass Gaussian Blur with adjustable size.
+
+Please refer to `glsl/post/bloom.frag.glsl`!
+
+| No bloom          | Bloom (size 0.003)|
+|------------------|------------------|
+| ![](sreeenshots/nobloom.png) | ![](sreeenshots/bloom1.png) |
+
+| Bloom (size 0.01) | Bloom (size 0.05)|
+|------------------|------------------|
+| ![](sreeenshots/bloom2.png) | ![](sreeenshots/bloom3.png) |
 
 ### Credits
 
