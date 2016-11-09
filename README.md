@@ -13,7 +13,7 @@ WebGL Deferred Shading
 
 ### Demo Video/GIF
 
-![](img/demo.gif)
+![](img/small.gif)
 
 ## Deferred Shading
 In deferred shading, the lighting step is postponed to a later step. Instead, in the first pass through, all geometry data is accumulated into texture buffers known as G-buffers. This is then later on used in more complex lighting operations. The benefit of doing this is that all the fragments that are in the G-buffers will ultimately be used in a single lighting pass (the depth-test has already been applied to these fragments). This ensures that we dont run multiple lighting passes over objects that might never make it to a pixel.
@@ -25,6 +25,7 @@ The default lighting is simply a product of the attenuation and the color from t
 
 ### Blinn-Phong
 Blinn-phong is the standard baseline shader. https://www.wikiwand.com/en/Blinn%E2%80%93Phong_shading_model
+
 ![](img/deferred-1478498011215.png)
 
 ### Ramp-Shading
@@ -32,7 +33,6 @@ Ramp shading is a non-photorealistic shader that "bands" together colors of simi
 ![](img/deferred-1478638975696.png)
 
 ## Post Process Effects
-
 
 ### Ramp-Shading (Post-process)
 In this version of the Ramp-shading, we are directly looking at the final result of the fragments and band the color values independently through their components.
@@ -51,10 +51,41 @@ Similar to edge highlights, DoF is also applying a filter over the final fragmen
 ### Scissor Test
 The scissor test is an optimization that discards fragments that fall outside of a rectangular region. This acceleration leverages light attenuation to allow for early termination when performing shading per light. Any region outside of the scissor rectangle doesn't need any light processing.
 
+| Scissor Test           | B-P w/o Scissor | B-P w/ Scissor |
+|------------------------|-----------------|----------------|
+| Milliseconds per frame | 13              | 12             |
+
 <img src="img/deferred-1478639472121.png" width="400" height="300"/>
 
 ### G-Buffer Packing
 The baseline implementation uses 4 buffers for positions, normals, color maps, and normal maps. We can precompute the normals by applying the normal map in the copy pass. This way the memory bandwith is much less throughout the pipeline. 
+
+| G-Buffer Optimization  | B-P w/o Opt | B-P w/ Opt |
+|------------------------|-------------|------------|
+| Milliseconds per frame | 13          | 13         |
+| Bandwith in MB         | 11          | 11         |
+
+Though it seems like the optimization didn't do much :|.
+## Performance Factors
+### Deferred pipeline
+
+|Deferred Shader vs Time/Frame| Default | Blinn-Phong | Ramp Shading |
+|------------------------|---------|-------------|--------------|
+| Milliseconds per frame | 13      | 13          | 13           |
+
+### Post Process pipeline
+
+|Post Process vs Time/Frame| Baseline | Ramp Shading (Post) | Edge Highlights (One) | Edge Highlights (Two) |
+|------------------------|----------|---------------------|-----------------------|-----------------------|
+| Milliseconds per frame | 13       | 13                  | 14                    | 15                    |
+
+### Depth of Field Blur
+
+|Kernel Size vs Time/Frame| 3  | 5  | 10 | 20 | 30 | 40 |
+|------------------------|----|----|----|----|----|----|
+| Milliseconds per frame | 14 | 14 | 15 | 20 | 34 | 90 |
+
+It seems that after 10, the quadratic nature of generating gaussian kernels on the fly seems to take its toll. As a result, I think a kernel of size 10 works best visually and performance-wise.
 
 ## Kernel Experiments
 Here were some odd images that I got by using different 3x3 kernels without thresholding–you need to threshold the value obtained from the convolution in order to get the highlighted edges. 
