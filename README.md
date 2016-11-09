@@ -18,7 +18,7 @@ WebGL Deferred Shading
 
 ### Live Online
 
-[![](img/thumb.png)](http://TODO.github.io/Project5B-WebGL-Deferred-Shading)
+[![](result/without-toon-shading.gif)](https://vimeo.com/190819701)
 
 ## Showcase My Result
 ### Part One
@@ -109,15 +109,19 @@ When read through the code, I found that
 ```
 We can see in the code above, we have gb1 and gb3 contain two vectors related to normal : geometry normal and raw normal map. Since at last we need to apply Normal map to Geometry normal and finally get a surface normal, we could save the spaces and do the computation in between, and then directly pass Surface normal to gbuffer. It definitely won't affect the correctness of the result but SAVE SPACE and IMPROVE TIME EFFICIENCY.
 
-
- 
-
-*DO NOT* leave the README to the last minute! It is a crucial part of the
-project, and we will not be able to grade you without a good README.
-
-This assignment has a considerable amount of performance analysis compared
-to implementation work. Complete the implementation early to leave time!
-
+Now the code chaged to 
+```javascript
+    vec4 gb0 = texture2D(u_gbufs[0], v_uv);
+    vec4 gb1 = texture2D(u_gbufs[1], v_uv);
+    vec4 gb2 = texture2D(u_gbufs[2], v_uv);
+    float depth = texture2D(u_depth, v_uv).x;
+    vec3 pos = gb0.xyz;     // World-space position
+    vec3 nor = normalize(gb1.xyz); // Combine
+    vec3 colmap = gb2.rgb;  // The color map - unlit "albedo" (surface color)
+```
+And the optimization results are in the chart below.
+![alt text](https://github.com/xueyinw/Project5-WebGL-Deferred-Shading-with-glTF/blob/master/result/GBuffer%20charts.PNG "G-Buffer Optimization")
+We can see, when we increased light numbers, when we still has gb0 - gb3, the time to render one frame is 35ms, 50ms, 66ms. When we reduced the number of GBuffer and has only gb0 - gb2, the time to render one frame is 27ms, 38ms, 52ms. With such results we can say that the time efficiency has been improved about 1.3 times.
 
 ### Credits
 
