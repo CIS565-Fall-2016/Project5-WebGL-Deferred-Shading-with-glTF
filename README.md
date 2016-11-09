@@ -7,9 +7,9 @@ WebGL Deferred Shading
 * Tested on: **54.0.2840.87 m (64-bit)** on
   Windows 10, i7-6700HQ @ 2.6GHz 8GB, GTX 960 (Personal Laptop)
 
-[//]: # "### Live Online"
+### Live Online
 
-[//]: # "[![](img/dummy.jpg)](http://itoupeter.github.io/Project5-WebGL-Deferred-Shading-with-glTF/)"
+[Click Me!](http://itoupeter.github.io/Project5-WebGL-Deferred-Shading-with-glTF/)
 
 ### Demo Video/GIF
 
