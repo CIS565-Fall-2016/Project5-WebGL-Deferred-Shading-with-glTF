@@ -42,13 +42,13 @@ Effects
 
 This does not include the optimizations to the shading pass. With all the optimizations, the bloom runs at 34ms.
 
-  | Deferred pass | Bloom with 2-pass blur |
-  | ------------- | ---------------------- |
-  | runs @ 38ms | runs @ 40ms |
+| Deferred pass | Bloom with 2-pass blur |
+| ------------- | ---------------------- |
+| runs @ 38ms | runs @ 40ms |
 
-  | Bloom without optimizations | Bloom with Optimizations |
-  | --------------------------- | ------------------------ |
-  | runs @ 40ms | runs @ 34ms |
+| Bloom without optimizations | Bloom with Optimizations |
+| --------------------------- | ------------------------ |
+| runs @ 40ms | runs @ 34ms |
 
   The bloom pass added 7.91% to the total computation which was only a ~2.8ms of the render time.
 
