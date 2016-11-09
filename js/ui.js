@@ -10,6 +10,7 @@ var cfg;
         this.enableEffect0 = false;
         this.bloom = false;
         this.toon = false;
+        this.motion = false;
     };
 
     var init = function() {
@@ -22,7 +23,7 @@ var cfg;
             '0 Depth':           0,
             '1 Position':        1,
             '2 Surface normal':  2,
-            '3 Color map':       3
+            '3 Color map':       3,
             // '2 Geometry normal': 2,
             // '3 Color map':       3,
             // '4 Normal map':      4,
@@ -35,6 +36,7 @@ var cfg;
         eff0.open();
         eff0.add(cfg, 'bloom');
         eff0.add(cfg, 'toon');
+        eff0.add(cfg, 'motion');
         // TODO: add more effects toggles and parameters here
     };
 

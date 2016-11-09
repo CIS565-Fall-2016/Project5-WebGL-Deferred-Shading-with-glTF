@@ -10,7 +10,8 @@ uniform sampler2D u_color;
 
 varying vec2 v_uv;
 
-#define NUM_GBUFFERS 4
+#define NUM_GBUFFERS 3
+
 uniform mat4 u_prevProj;
 uniform mat4 u_invMat;
 uniform sampler2D u_depth;
@@ -48,5 +49,5 @@ void main() {
 		texCoords += velocity;
 	}
 	gl_FragColor = color / 8.0;
-	
+
 }

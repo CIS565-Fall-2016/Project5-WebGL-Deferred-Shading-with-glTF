@@ -6,6 +6,7 @@
     R.pass_debug = {};
     R.pass_deferred = {};
     R.pass_post1 = {};
+    R.pass_motion = {};
     R.pass_toon = {};
     R.pass_bloomextract = {};
     R.pass_bloomblur = {};
@@ -213,6 +214,16 @@
         });
 
       //  TODO: If you add more passes, load and set up their shader programs.
+        loadPostProgram('motion', function(p) {
+            p.u_color = gl.getUniformLocation(p.prog, 'u_color');
+            p.u_prevProj = gl.getUniformLocation(p.prog,'u_prevProj');
+            p.u_invMat = gl.getUniformLocation(p.prog, 'u_invMat');
+            p.u_worldPos = gl.getUniformLocation(p.prog, 'u_worldPos');
+            p.u_depth = gl.getUniformLocation(p.prog, 'u_depth');
+            p.u_camPos = gl.getUniformLocation(p.prog, 'u_camPos');
+            R.progMotion = p;
+        });
+
         loadPostProgram('toon', function(p) {
              p.u_color = gl.getUniformLocation(p.prog, 'u_color');
              p.u_size = gl.getUniformLocation(p.prog, 'u_size');

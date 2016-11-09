@@ -1,6 +1,7 @@
 (function() {
     'use strict';
     // deferredSetup.js must be loaded first
+    var prev_matrix;
 
     R.deferredRender = function(state) {
         if (!aborted && (
@@ -13,6 +14,7 @@
             !R.progPost1 ||
             !R.progScissor||
             !R.progToon||
+            !R.progMotion||
             !R.progbloomextract||
             !R.progbloomblur||
             !R.progbloomblurtwice)) {
@@ -57,6 +59,8 @@
                 R.pass_bloomblurtwice.render(state);
             } else if(cfg.toon == true) {
                 R.pass_toon.render(state);
+            } else if(cfg.motion == true) {
+                R.pass_motion.render(state);
             } else {
                 R.pass_post1.render(state);
             }
@@ -126,8 +130,7 @@
         // TODO: uncomment
          bindTexturesForLightPass(R.prog_Debug);
          gl.uniform1i(R.prog_Debug.u_debug, cfg.debugView);
-
-        // * Render a fullscreen quad to perform shading on
+        // // * Render a fullscreen quad to perform shading on
         // TODO: uncomment
          renderFullScreenQuad(R.prog_Debug);
     };
@@ -262,6 +265,34 @@
         // * Render a fullscreen quad to perform shading on
         renderFullScreenQuad(R.progPost1);
     };
+
+    R.pass_motion.render = function(state) {
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.clearDepth(1.0);
+        gl.clear(gl.DEPTH_BUFFER_BIT);
+          // * Bind the postprocessing shader program
+        gl.useProgram(R.progMotion.prog);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex);
+        gl.uniform1i(R.progMotion.u_color, 0);
+
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, R.pass_copy.gbufs[0]);
+        gl.uniform1i(R.progMotion.u_worldPos, 1);
+
+        gl.activeTexture(gl.TEXTURE2);
+        gl.bindTexture(gl.TEXTURE_2D, R.pass_copy.depthTex);
+        gl.uniform1i(R.progMotion.u_depth, 2);
+
+       if (prev_matrix !== undefined) {
+        gl.uniformMatrix4fv(R.progMotion.u_prevProj, gl.FALSE, prev_matrix.elements);}
+        var inverse_camMatrix = new THREE.Matrix4();
+        inverse_camMatrix = inverse_camMatrix.getInverse(state.cameraMat);
+        gl.uniform3f(R.progMotion.u_camPos, state.cameraPos[0], state.cameraPos[1], state.cameraPos[2]);
+        gl.uniformMatrix4fv(R.progMotion.u_invMat, gl.FALSE, inverse_camMatrix.elements);
+        prev_matrix = state.cameraMat.clone();
+        renderFullScreenQuad(R.progMotion);
+  }
 
     R.pass_toon.render = function(state) {
       // * Unbind any existing framebuffer (if there are no more passes)
