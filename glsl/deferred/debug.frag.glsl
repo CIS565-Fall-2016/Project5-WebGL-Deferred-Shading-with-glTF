@@ -2,7 +2,7 @@
 precision highp float;
 precision highp int;
 
-#define NUM_GBUFFERS 2
+#define NUM_GBUFFERS 1
 
 uniform vec3 u_viewportInfo; // (2_times_tan_halfFovy, width, height)
 uniform int u_debug;
@@ -35,17 +35,31 @@ vec3 recoverEyePos(float depth)
 	return viewVec * eyeDepth;
 }
 
+vec4 unpackRGBA(float packedColor)
+{
+	float tmp1 = packedColor;
+	float tmp2 = floor(tmp1 * 0.00390625);
+	float a = tmp1 - tmp2 * 256.0;
+	tmp1 = floor(tmp2 * 0.00390625);
+	float b = tmp2 - tmp1 * 256.0;
+	tmp2 = floor(tmp1 * 0.00390625);
+	float g = tmp1 - tmp2 * 256.0;
+	tmp1 = floor(tmp2 * 0.00390625);
+	float r = tmp2 - tmp1 * 256.0;
+	
+	return vec4(r, g, b, a) * 0.0039215686274509803921568627451;
+}
+
 void main()
 {
     vec4 gb0 = texture2D(u_gbufs[0], v_uv);
-    vec4 gb1 = texture2D(u_gbufs[1], v_uv);
     float depth = texture2D(u_depth, v_uv).x;
     
 	// TODO: Extract needed properties from the g-buffers into local variables
     // These definitions are suggested for starting out, but you will probably want to change them.
     vec3 pos = recoverEyePos(depth);     // World-space position
     vec3 nrm = vec3(gb0.xy, sqrt(1.0 - dot(gb0.xy, gb0.xy)));  // Normals of the geometry as defined, without normal mapping
-	vec3 colmap = gb1.rgb;  // The color map - unlit "albedo" (surface color)
+	vec3 colmap = unpackRGBA(gb0.z).rgb;
 	
     // TODO: uncomment
     if (u_debug == 0)

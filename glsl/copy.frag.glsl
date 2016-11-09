@@ -1,5 +1,5 @@
 #version 100
-#extension GL_EXT_draw_buffers: enable
+// #extension GL_EXT_draw_buffers: enable
 precision highp float;
 precision highp int;
 
@@ -9,6 +9,12 @@ uniform sampler2D u_normap;
 // varying vec3 v_position;
 varying vec3 v_normal;
 varying vec2 v_uv;
+
+float packRGBA(vec4 color)
+{
+	color = floor(color * 255.0 + 0.5);
+	return color.r * 16777216.0 + color.g * 65536.0 + color.b * 256.0 + color.a;
+}
 
 vec3 applyNormalMap(vec3 geomnor, vec3 normap)
 {
@@ -30,6 +36,6 @@ void main()
 	vec3 nrm = applyNormalMap(v_normal, mapnrm);
 	
     // this gives you the idea
-	gl_FragData[0] = vec4(nrm.xy, 0.0, 1.0);
-	gl_FragData[1] = albedo;
+	// gl_FragData[0] = vec4(nrm.xy, packRGBA(albedo), 1.0);
+	gl_FragColor = vec4(nrm.xy, packRGBA(albedo), 1.0);
 }

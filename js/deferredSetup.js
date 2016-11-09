@@ -12,7 +12,7 @@
 	R.pass_sphereProxyDebug = {};
     R.lights = [];
 
-    R.NUM_GBUFFERS = 2;
+    R.NUM_GBUFFERS = 1;
 
     /**
      * Set up the deferred pipeline framebuffer objects and textures.
@@ -49,9 +49,9 @@
             R.lights.push({
                 pos: posfn(),
                 col: [
-                    1 + Math.random(),
-                    1 + Math.random(),
-                    1 + Math.random()],
+                    0 + Math.random(),
+                    0 + Math.random(),
+                    0 + Math.random()],
                 rad: R.LIGHT_RADIUS
             });
         }
