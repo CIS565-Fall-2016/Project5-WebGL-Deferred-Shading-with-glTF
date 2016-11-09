@@ -161,7 +161,7 @@
         });
 
 //+
-         loadDeferredSphereProgram('blinnphong-pointlight', function(p) {
+         loadDeferredProgram('blinnphong-pointlight', function(p) {
             // Save the object into this variable for access later
             p.u_lightPos = gl.getUniformLocation(p.prog, 'u_lightPos');
             p.u_lightCol = gl.getUniformLocation(p.prog, 'u_lightCol');

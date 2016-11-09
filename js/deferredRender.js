@@ -9,6 +9,7 @@
             !R.progClear ||
             !R.prog_Ambient ||
             !R.prog_BlinnPhong_PointLight ||
+            !R.prog_BlinnPhong_PointLight_Sphere ||
             !R.prog_Debug ||
             !R.progPost1) ||
             !R.prog_Sphere_Red) {//+
@@ -196,8 +197,8 @@
 
             gl.disable(gl.SCISSOR_TEST);
         }
-        else if (cfg && cfg.enableSphere) {
-
+        else if (cfg && cfg.enableSphere) { 
+            
             for (var i = 0; i < R.lights.length; i++) {
 
                 var light = R.lights[i];
@@ -212,6 +213,17 @@
                     }
 
                     else {
+                        readyModelForDraw(R.prog_BlinnPhong_PointLight_Sphere, R.sphereModel);
+                        gl.uniform3fv(R.prog_BlinnPhong_PointLight_Sphere.u_lightPos, curlight.pos);
+                        gl.uniform3fv(R.prog_BlinnPhong_PointLight_Sphere.u_lightCol, curlight.col);
+                        gl.uniform1f(R.prog_BlinnPhong_PointLight_Sphere.u_lightRad, curlight.rad);
+                        gl.uniform1f(R.prog_BlinnPhong_PointLight_Sphere.u_width, width);
+                        gl.uniform1f(R.prog_BlinnPhong_PointLight_Sphere.u_height, height);
+                        var campos = [state.cameraPos.x, state.cameraPos.y, state.cameraPos.z];
+                        gl.uniform3fv(R.prog_BlinnPhong_PointLight_Sphere.u_camPos, campos);
+
+                        gl.uniform3fv(R.prog_BlinnPhong_PointLight_Sphere.u_effects, [cfg.enableToon, 0, 0]);
+                        drawReadyModel(R.sphereModel);
 
 
                     }
