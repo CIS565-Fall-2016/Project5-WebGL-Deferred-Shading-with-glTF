@@ -10,9 +10,9 @@ WebGL Deferred Shading
 
 ![](img/scissor.gif) 
 
-With toon |  No toon | Edge Highlint
-:-------------------------:|:-------------------------:  |:-------------------------:
-![](img/toon.JPG) | ![](img/notoon.JPG) |![](img/edge.JPG)
+With toon |  No toon 
+:-------------------------:|:-------------------------:  
+![](img/toon.JPG) | ![](img/notoon.JPG) 
 
 ![](img/scissordebug.JPG) 
 
