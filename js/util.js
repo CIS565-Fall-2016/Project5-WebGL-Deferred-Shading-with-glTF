@@ -92,11 +92,56 @@ window.readyModelForDraw = function(prog, m) {
         gl.uniform1i(prog.u_normap, 1);
     }
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, m.attributes);
+    if (m.interleaved) {
+        gl.bindBuffer(gl.ARRAY_BUFFER, m.attributes);
     
-    gl.enableVertexAttribArray(prog.a_position);
-    gl.vertexAttribPointer(prog.a_position, m.posInfo.size, m.posInfo.type, false, m.posInfo.stride, m.posInfo.offset);
+        gl.enableVertexAttribArray(prog.a_position);
+        gl.vertexAttribPointer(prog.a_position, m.posInfo.size, m.posInfo.type, false, m.posInfo.stride, m.posInfo.offset);
 
+        gl.enableVertexAttribArray(prog.a_normal);
+        gl.vertexAttribPointer(prog.a_normal, m.norInfo.size, m.norInfo.type, false, m.norInfo.stride, m.norInfo.offset);
+
+        gl.enableVertexAttribArray(prog.a_uv);
+        gl.vertexAttribPointer(prog.a_uv, m.uvInfo.size, m.uvInfo.type, false, m.uvInfo.stride, m.uvInfo.offset);
+    } else {
+        gl.enableVertexAttribArray(prog.a_position);
+        gl.bindBuffer(gl.ARRAY_BUFFER, m.position);
+        gl.vertexAttribPointer(prog.a_position, 3, gl.FLOAT, false, 0, 0);
+
+        if (prog.a_normal >= 0 && m.normal) {
+            gl.enableVertexAttribArray(prog.a_normal);
+            gl.bindBuffer(gl.ARRAY_BUFFER, m.normal);
+            gl.vertexAttribPointer(prog.a_normal, 3, gl.FLOAT, false, 0, 0);
+        }
+
+        if (prog.a_uv >= 0 && m.uv) {
+            gl.enableVertexAttribArray(prog.a_uv);
+            gl.bindBuffer(gl.ARRAY_BUFFER, m.uv);
+            gl.vertexAttribPointer(prog.a_uv, 2, gl.FLOAT, false, 0, 0);
+        }
+    }
+    
+
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, m.idx);
+};
+
+
+window.readySphereForDraw = function(prog, m) {
+    gl.useProgram(prog.prog);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, m.position);
+    gl.enableVertexAttribArray(prog.a_position);
+    gl.vertexAttribPointer(prog.a_position, 3, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, m.normal);
+    gl.enableVertexAttribArray(prog.a_normal);
+    gl.vertexAttribPointer(prog.a_normal, 3, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, m.idx);
+
+    
+    /*
+    
     gl.enableVertexAttribArray(prog.a_normal);
     gl.vertexAttribPointer(prog.a_normal, m.norInfo.size, m.norInfo.type, false, m.norInfo.stride, m.norInfo.offset);
 
@@ -104,46 +149,61 @@ window.readyModelForDraw = function(prog, m) {
     gl.vertexAttribPointer(prog.a_uv, m.uvInfo.size, m.uvInfo.type, false, m.uvInfo.stride, m.uvInfo.offset);
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, m.idx);
+    */
 };
 
 window.drawReadyModel = function(m) {
     // TODO for TA in future: matrix transform for multiple hierachy gltf models
     // reference: https://github.com/CIS565-Fall-2016/Project5A-WebGL-Forward-Plus-Shading-with-glTF/blob/master/js/forwardPlusRenderer/forwardPlusRenderer.js#L201
 
-    gl.drawElements(m.gltf.mode, m.gltf.indices.length, m.gltf.indicesComponentType, 0);
+    if(m.gltf)
+        gl.drawElements(m.gltf.mode, m.gltf.indices.length, m.gltf.indicesComponentType, 0);
+    else
+        gl.drawElements(gl.TRIANGLES, m.elemCount, gl.UNSIGNED_INT, 0);
 };
 
 window.getScissorForLight = (function() {
     // Pre-allocate for performance - avoids additional allocation
     var a = new THREE.Vector4(0, 0, 0, 0);
     var b = new THREE.Vector4(0, 0, 0, 0);
-    var minpt = new THREE.Vector2(0, 0);
-    var maxpt = new THREE.Vector2(0, 0);
+    const neg_one = new THREE.Vector2(-1, -1);
+    const pos_one = new THREE.Vector2(1, 1);
     var ret = [0, 0, 0, 0];
 
-    return function(view, proj, l) {
-        // front bottom-left corner of sphere's bounding cube
-        a.fromArray(l.pos);
-        a.w = 1;
-        a.applyMatrix4(view);
-        a.x -= l.rad;
-        a.y -= l.rad;
-        a.z += l.rad;
-        a.applyMatrix4(proj);
-        a.divideScalar(a.w);
+    const n_cube_vertices = 8;
+    var offsets = Array(n_cube_vertices);
+    var pos = new THREE.Vector4(0, 0, 0, 0);
 
+    return function(view, proj, light) {
         // front bottom-left corner of sphere's bounding cube
-        b.fromArray(l.pos);
-        b.w = 1;
-        b.applyMatrix4(view);
-        b.x += l.rad;
-        b.y += l.rad;
-        b.z += l.rad;
-        b.applyMatrix4(proj);
-        b.divideScalar(b.w);
 
-        minpt.set(Math.max(-1, a.x), Math.max(-1, a.y));
-        maxpt.set(Math.min( 1, b.x), Math.min( 1, b.y));
+        // The following results in:
+        //     [ -1, -1, -1,  0 ] <== back upper left corner of cube
+        //     [ -1, -1,  1,  0 ] <== front upper left corner ...
+        //     [ -1,  1, -1,  0 ]
+        //     ...
+        var index = 0;
+        for (var i = -1; i <= 1;  i += 2) {
+            for (var j = -1; j <= 1;  j += 2) {
+                for (var k = -1; k <= 1;  k += 2) {
+                    offsets[index] = new THREE.Vector4(i, j, k, 0);
+                    index += 1;
+                }
+            }
+        }
+
+        var minpt = new THREE.Vector2(1, 1);
+        var maxpt = new THREE.Vector2(-1, -1);
+        for (var i in offsets) {
+            pos.fromArray(light.pos);
+            pos.w = 1;
+            pos.applyMatrix4(view); // project light into view space
+            pos.addScaledVector(offsets[i], light.rad); // offset from light
+            pos.applyMatrix4(proj); // project onto screen
+            pos.divideScalar(pos.w);
+            minpt.clamp(neg_one, pos); // update min point with pos
+            maxpt.clamp(pos, pos_one); // update max point with pos
+        }
 
         if (maxpt.x < -1 || 1 < minpt.x ||
             maxpt.y < -1 || 1 < minpt.y) {

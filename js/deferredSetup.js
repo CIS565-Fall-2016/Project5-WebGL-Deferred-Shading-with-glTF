@@ -6,9 +6,14 @@
     R.pass_debug = {};
     R.pass_deferred = {};
     R.pass_post1 = {};
+    R.pass_bloom = {};
+    R.pass_moblur = {};
     R.lights = [];
-
-    R.NUM_GBUFFERS = 4;
+    R.lastCamPos = new THREE.Matrix4();
+    R.camMatDiff = new THREE.Matrix4();
+    	
+    
+    R.NUM_GBUFFERS = 5;
 
     /**
      * Set up the deferred pipeline framebuffer objects and textures.
@@ -25,7 +30,7 @@
     R.light_max = [14, 18, 6];
     R.light_dt = -0.03;
     R.LIGHT_RADIUS = 4.0;
-    R.NUM_LIGHTS = 20; // TODO: test with MORE lights!
+    R.NUM_LIGHTS = 200; // TODO: test with MORE lights!
     var setupLights = function() {
         Math.seedrandom(0);
 
@@ -124,7 +129,25 @@
                 // Create an object to hold info about this shader program
                 R.progRed = { prog: prog };
             });
+        
+        loadShaderProgram(gl, 'glsl/sphere.vert.glsl', 'glsl/sphere.frag.glsl',
+                function(prog) {
+        	
+        			var p = { prog: prog };
+        			// Retrieve the uniform and attribute locations
+            		p.u_cameraMat = gl.getUniformLocation(prog, 'u_cameraMat');
+            		p.u_colmap    = gl.getUniformLocation(prog, 'u_colmap');
+            		p.u_normap    = gl.getUniformLocation(prog, 'u_normap');
+            		p.a_position  = gl.getAttribLocation(prog, 'a_position');
+            		p.a_normal    = gl.getAttribLocation(prog, 'a_normal');
+            		p.a_uv        = gl.getAttribLocation(prog, 'a_uv');
+            		p.u_offsetpos = gl.getUniformLocation(prog, 'u_offsetpos');
+            		p.u_rad       = gl.getUniformLocation(prog, 'u_rad');
+                    // Create an object to hold info about this shader program
+                    R.progSphere = p;
+                });
 
+        
         loadShaderProgram(gl, 'glsl/quad.vert.glsl', 'glsl/clear.frag.glsl',
             function(prog) {
                 // Create an object to hold info about this shader program
@@ -141,9 +164,28 @@
             p.u_lightPos = gl.getUniformLocation(p.prog, 'u_lightPos');
             p.u_lightCol = gl.getUniformLocation(p.prog, 'u_lightCol');
             p.u_lightRad = gl.getUniformLocation(p.prog, 'u_lightRad');
+            p.u_cameraPos = gl.getUniformLocation(p.prog, 'u_cameraPos');
             R.prog_BlinnPhong_PointLight = p;
         });
 
+        loadDeferredProgram('toon', function(p) {
+            // Save the object into this variable for access later
+            p.u_lightPos = gl.getUniformLocation(p.prog, 'u_lightPos');
+            p.u_lightCol = gl.getUniformLocation(p.prog, 'u_lightCol');
+            p.u_lightRad = gl.getUniformLocation(p.prog, 'u_lightRad');
+            p.u_cameraPos = gl.getUniformLocation(p.prog, 'u_cameraPos');
+            R.prog_Toon = p;
+        });
+        /*
+        loadDeferredProgram('sphere', function(p) {
+            // Save the object into this variable for access later
+            p.u_lightPos = gl.getUniformLocation(p.prog, 'u_lightPos');
+            p.u_lightCol = gl.getUniformLocation(p.prog, 'u_lightCol');
+            p.u_lightRad = gl.getUniformLocation(p.prog, 'u_lightRad');
+            p.u_cameraPos = gl.getUniformLocation(p.prog, 'u_cameraPos');
+            R.prog_Sphere = p;
+        });
+        */
         loadDeferredProgram('debug', function(p) {
             p.u_debug = gl.getUniformLocation(p.prog, 'u_debug');
             // Save the object into this variable for access later
@@ -157,6 +199,22 @@
         });
 
         // TODO: If you add more passes, load and set up their shader programs.
+        
+        loadPostProgram('bloom', function(p) {
+        	p.u_color    = gl.getUniformLocation(p.prog, 'u_color');
+        	p.u_gauss    = gl.getUniformLocation(p.prog, 'u_gauss');
+            // Save the object into this variable for access later
+            R.progBloom = p;
+        });
+        
+        loadPostProgram('moblur', function(p) {
+        	p.u_cameraMat = gl.getUniformLocation(p.prog, 'u_cameraMat');
+        	p.u_color    = gl.getUniformLocation(p.prog, 'u_color');
+        	p.u_matdiff  = gl.getUniformLocation(p.prog, 'u_matdiff');
+        	p.u_gbufs    = gl.getUniformLocation(p.prog, 'u_gbufs');
+            // Save the object into this variable for access later
+            R.progMoblur = p;
+        });
     };
 
     var loadDeferredProgram = function(name, callback) {

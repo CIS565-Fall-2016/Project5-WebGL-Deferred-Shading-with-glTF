@@ -18,4 +18,5 @@ void main() {
     v_position = a_position;
     v_normal = a_normal;
     v_uv = a_uv;
+
 }

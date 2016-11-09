@@ -67,7 +67,8 @@ var width, height;
 
     var init = function() {
         // TODO: For performance measurements, disable debug mode!
-        var debugMode = true;
+    	//var debugMode = true;
+    	var debugMode = false;
 
         canvas = document.getElementById('canvas');
         renderer = new THREE.WebGLRenderer({
@@ -122,7 +123,7 @@ var width, height;
             R.sphereModel = m;
         });
 
-        // var glTFURL = 'models/glTF-duck/duck.gltf';
+        //var glTFURL = 'models/glTF-duck/duck.gltf';
         var glTFURL = 'models/glTF-sponza-kai-fix/sponza.gltf';
         var glTFLoader = new MinimalGLTFLoader.glTFLoader(gl);
         glTFLoader.loadGLTF(glTFURL, function (glTF) {
@@ -238,6 +239,8 @@ var width, height;
                         gltf: primitive,
 
                         idx: indicesBuffer,
+                        
+                        interleaved: true,
 
                         attributes: vertexBuffer,
                         posInfo: {size: posInfo.size, type: posInfo.type, stride: posInfo.stride, offset: posInfo.offset},
@@ -318,6 +321,7 @@ var width, height;
             var m = {
                 idx: gidx,
                 elemCount: idx.length,
+                interleaved: false,
                 position: gposition,
                 normal: gnormal,
                 uv: guv
