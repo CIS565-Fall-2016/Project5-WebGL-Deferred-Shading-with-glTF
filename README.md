@@ -4,7 +4,7 @@ WebGL Deferred Shading
 **University of Pennsylvania, CIS 565: GPU Programming and Architecture, Project 5**
 
 * Xueyin Wan
-* Platform: *FireFox 49.0.2* on Windows 10 x64, i7-6700K @ 4.00GHz 16GB, GTX 970 4096MB (Personal Desktop)
+* Platform: *FireFox 49.0.2* on: Windows 10, i7-4870 @ 2.50GHz 16GB, NVIDIA GeForce GT 750M 2GB (Personal Laptop)
 
 ###Features I Implemented
 
@@ -94,6 +94,9 @@ We could get the blur vector between two frames, and simply divide by 2 to get t
 |------|------|
 |![alt text](https://github.com/xueyinw/Project5-WebGL-Deferred-Shading-with-glTF/blob/master/result/debug_scissor.gif "Debug Scissor Test") | ![alt text](https://github.com/xueyinw/Project5-WebGL-Deferred-Shading-with-glTF/blob/master/result/debug_scissor2.gif "Debug Scissor Test") |
 With scissor test, we do not need to render the full image. We only need to render a rectangle area around the light. This will definitely shorten the time of rendering.
+Let's see a chart to judge the performance of Scissor test.
+![alt text](https://github.com/xueyinw/Project5-WebGL-Deferred-Shading-with-glTF/blob/master/result/Scissor%20charts.PNG "Scissor Charts")
+We could clearly see that, with scissor test, the render procedure each frame reaches up to 3 times when scissor test off.
 
 ### 2. Decrease the size of the G-Buffer
 When read through the code, I found that
@@ -105,6 +108,8 @@ When read through the code, I found that
     vec3 nor = applyNormalMap (geomnor, normap); // Surface normal   
 ```
 We can see in the code above, we have gb1 and gb3 contain two vectors related to normal : geometry normal and raw normal map. Since at last we need to apply Normal map to Geometry normal and finally get a surface normal, we could save the spaces and do the computation in between, and then directly pass Surface normal to gbuffer. It definitely won't affect the correctness of the result but SAVE SPACE and IMPROVE TIME EFFICIENCY.
+
+
  
 
 *DO NOT* leave the README to the last minute! It is a crucial part of the
