@@ -26,7 +26,7 @@
     R.light_max = [14, 18, 6];
     R.light_dt = -0.03;
     R.LIGHT_RADIUS = 4.0;
-    R.NUM_LIGHTS = 20; // TODO: test with MORE lights!
+    R.NUM_LIGHTS = 50; // TODO: test with MORE lights!
     var setupLights = function() {
         Math.seedrandom(0);
 
@@ -134,6 +134,10 @@
 
         loadDeferredProgram('ambient', function(p) {
             // Save the object into this variable for access later
+            p.u_lightPos = gl.getUniformLocation(p.prog, 'u_lightPos');
+            p.u_lightCol = gl.getUniformLocation(p.prog, 'u_lightCol');
+            p.u_lightRad = gl.getUniformLocation(p.prog, 'u_lightRad');
+            p.u_cameraPos = gl.getUniformLocation(p.prog, 'u_cameraPos');
             R.prog_Ambient = p;
         });
 

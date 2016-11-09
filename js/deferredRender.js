@@ -140,7 +140,18 @@
         // * Bind/setup the ambient pass, and render using fullscreen quad
         if (R.toon) {
             bindTexturesForLightPass(R.prog_Ambient);
-            renderFullScreenQuad(R.prog_Ambient);
+
+            gl.uniform3fv(R.prog_Ambient.u_cameraPos, state.cameraPos.toArray());
+
+            for (var i = 0; i < R.lights.length; i++) {
+                
+                gl.uniform3fv(R.prog_Ambient.u_lightCol, R.lights[i].col);
+                gl.uniform3fv(R.prog_Ambient.u_lightPos, R.lights[i].pos);
+                gl.uniform1f(R.prog_Ambient.u_lightRad, R.lights[i].rad);
+
+                renderFullScreenQuad(R.prog_Ambient);
+            }
+            
         }
         else {
             // * Bind/setup the Blinn-Phong pass, and render using fullscreen quad
@@ -155,14 +166,26 @@
             debugger;
             gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_cameraPos, state.cameraPos.toArray());
 
+            gl.enable(gl.SCISSOR_TEST);
             for (var i = 0; i < R.lights.length; i++) {
-                
+                var sc = getScissorForLight(state.viewMat, state.projMat, R.lights[i]);
+                if (sc == null) {
+                    continue;
+                }
+
                 gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_lightCol, R.lights[i].col);
                 gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_lightPos, R.lights[i].pos);
                 gl.uniform1f(R.prog_BlinnPhong_PointLight.u_lightRad, R.lights[i].rad);
+                
+                gl.scissor(sc[0], sc[1], sc[2], sc[3]);
 
+                if (cfg.debugScissor) {
+                    debugger;
+                    renderFullScreenQuad(R.progRed);
+                }
                 renderFullScreenQuad(R.prog_BlinnPhong_PointLight);
             }
+            gl.disable(gl.SCISSOR_TEST);
         }
 
         // TODO: In the lighting loop, use the scissor test optimization

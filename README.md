@@ -24,6 +24,9 @@ This assignment has a considerable amount of performance analysis compared
 to implementation work. Complete the implementation early to leave time!
 
 
+    R.toon = true; 
+
+
 ### Credits
 
 * [Three.js](https://github.com/mrdoob/three.js) by [@mrdoob](https://github.com/mrdoob) and contributors
