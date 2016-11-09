@@ -60,13 +60,21 @@ A bloom shader was used for light glow effects. In this, a filter is applied to 
 
 From left to right: Original image, brightness filter, Gaussian blurred, Image with glow
 
-This was further optimized by using two separate convolutions (horizontal and vertical) using a 1D Gaussian kernel, rather than using a 2D kernel.
-
-TODO: performance
+This was further optimized by using two separate convolutions (horizontal and vertical) using a 1D Gaussian kernel, rather than using a 2D kernel. However, there was no observable difference in rendering time between the two. Also, the extra overhead of the Bloom shader only became apparent at 1600x1200 screen resolution, and even then it only slowed the rendering time from 40 to 45 ms. This suggests that the main performance bottleneck of the deferred renderer is not in the post-processing steps.
 
 ### Screen space motion blur
 
-TODO: write about motion blur
+Screen space motion blur was achieved by copying the computed world space positions of the previous frame for each fragment, and projecting it using the current camera matrix instead. From these, we can obtain the new screen space position of the old fragment, and blur the rendered image between those two points. The debug view for motion vectors is shown below; the R and G values are determined by the X and Y difference between the previous position and current position in screen space.
+
+![](img/motion_vectors.gif)
+
+Debug view for motion vectors, note the slight color changes indicating the motion vectors as the image moves
+
+![](img/motion_blur.gif)
+
+Motion blur
+
+Motion blur causes a similar slowdown in performance as Bloom glow; it does not cause slowdown unless the screen resolution is high, as it is a post-processing step that is implemented in a similar fashion. 
 
 ### Credits
 
