@@ -21,6 +21,7 @@ WebGL Deferred Shading
   * [x] Render to G-Buffer
   * [x] Deferred Shading
 * [x] Scissor Test
+  * [x] Scissor Mask Visualization
 * [x] Post Effect
   * [x] Sky Color
   * [x] Bloom Effect
@@ -43,6 +44,10 @@ Ambient Lighting | Blinn-Phong Lighting
 Bloom OFF | Bloom ON
 --- | ---
 ![](img/bloom_off.gif) | ![](img/bloom_on.gif)
+
+__Scissor Mask Visualization__
+
+![](img/scissor_mask.gif)
 
 ### Performance Analysis
 
