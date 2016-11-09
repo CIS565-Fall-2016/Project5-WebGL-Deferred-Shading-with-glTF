@@ -53,7 +53,7 @@ The scissor test is an optimization that discards fragments that fall outside of
 
 | Scissor Test           | B-P w/o Scissor | B-P w/ Scissor |
 |------------------------|-----------------|----------------|
-| Milliseconds per frame | 13              | 12             |
+| Milliseconds per frame | 6               | 6             |
 
 <img src="img/deferred-1478639472121.png" width="400" height="300"/>
 
@@ -62,7 +62,7 @@ The baseline implementation uses 4 buffers for positions, normals, color maps, a
 
 | G-Buffer Optimization  | B-P w/o Opt | B-P w/ Opt |
 |------------------------|-------------|------------|
-| Milliseconds per frame | 13          | 13         |
+| Milliseconds per frame | 6           | 6         |
 | Bandwith in MB         | 11          | 11         |
 
 Though it seems like the optimization didn't do much :|.
@@ -71,19 +71,19 @@ Though it seems like the optimization didn't do much :|.
 
 |Deferred Shader vs Time/Frame| Default | Blinn-Phong | Ramp Shading |
 |------------------------|---------|-------------|--------------|
-| Milliseconds per frame | 13      | 13          | 13           |
+| Milliseconds per frame | 6      | 6          | 6           |
 
 ### Post Process pipeline
 
 |Post Process vs Time/Frame| Baseline | Ramp Shading (Post) | Edge Highlights (One) | Edge Highlights (Two) |
 |------------------------|----------|---------------------|-----------------------|-----------------------|
-| Milliseconds per frame | 13       | 13                  | 14                    | 15                    |
+| Milliseconds per frame | 6       | 6                  |7                    | 7                   |
 
 ### Depth of Field Blur
 
 |Kernel Size vs Time/Frame| 3  | 5  | 10 | 20 | 30 | 40 |
 |------------------------|----|----|----|----|----|----|
-| Milliseconds per frame | 14 | 14 | 15 | 20 | 34 | 90 |
+| Milliseconds per frame | 6 | 6 | 6 | 13 | 34 | 90 |
 
 It seems that after 10, the quadratic nature of generating gaussian kernels on the fly seems to take its toll. As a result, I think a kernel of size 10 works best visually and performance-wise.
 
