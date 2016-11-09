@@ -25,6 +25,8 @@ WebGL Deferred Shading
 [![](img/video.png)](TODO)
 
 ## Showcase My Result
+### Part One
+
 ### 1. Deferred Blinn-Phong shading
 |  Depth Map  | Position Map |
 |------|------|
@@ -51,7 +53,15 @@ WebGL Deferred Shading
 ### 4. Motion Blur
 | Without Motion Blur | With Motion Blur |
 |------|------|
-|![alt text](https://github.com/xueyinw/Project5-WebGL-Deferred-Shading-with-glTF/blob/master/result/without-toon-shading.gif "Without Motion Blur") | ![alt text](https://github.com/xueyinw/Project5-WebGL-Deferred-Shading-with-glTF/blob/master/result/toon-shading.gif " With Motion Blur") |
+|![alt text](https://github.com/xueyinw/Project5-WebGL-Deferred-Shading-with-glTF/blob/master/result/without_motion_blur.gif "Without Motion Blur") | ![alt text](https://github.com/xueyinw/Project5-WebGL-Deferred-Shading-with-glTF/blob/master/result/motion_blur_correct2.gif "With Motion Blur") |
+
+### Part Two: Optimization
+### 1. Scissor Test
+| Debug View Of Scissor Test | Debug View Of Scissor Test |
+|------|------|
+|![alt text](https://github.com/xueyinw/Project5-WebGL-Deferred-Shading-with-glTF/blob/master/result/debug_scissor.gif "Debug Scissor Test") | ![alt text](https://github.com/xueyinw/Project5-WebGL-Deferred-Shading-with-glTF/blob/master/result/debug_scissor2.gif "Debug Scissor Test") |
+
+
 
 
 
