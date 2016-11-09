@@ -163,6 +163,12 @@ Simple edge detection with ramp shader
 - [x] Implemented a sobel edge filter
 ![](img/sobel_edge.PNG)
 
+GPU tracing on Chrome
+---------------------
+
+Trying to make heads and tails of the gpu tracing in chrome.
+![](img/gputrace.PNG)
+
 ### References
 
 * [Three.js](https://github.com/mrdoob/three.js) by [@mrdoob](https://github.com/mrdoob) and contributors
