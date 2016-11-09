@@ -15,14 +15,14 @@ __NOTE:__ my submission requires an additional WebGL extension - `EXT_frag_depth
 
 [Click Me!](https://windydarian.github.io/Project5-WebGL-Deferred-Shading-with-glTF/)
 
-#### Demo Video/GIF
+#### Demo GIF
 
-Uploading
-
+![](screenshots/preview.gif)
 
 ### Work Done
 
-* Deferred __Blinn-Phong shading__ with normal mapping
+* Basic __Deferred Shading__ pipeline
+* __Blinn-Phong shading__ with normal mapping
   * Using `clamp(1.0 - light_distance * light_distance / (u_lightRad * u_lightRad), 0.0, 1.0) ` as attenuation model for point lights
 * __Bloom__ post-processing effect with __two-pass Gaussian blur__ using three steps:
   * First extract bright areas with a threshold
