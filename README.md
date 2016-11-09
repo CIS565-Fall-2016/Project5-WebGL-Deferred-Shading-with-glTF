@@ -59,18 +59,22 @@ The scissor test is an optimization that discards fragments that fall outside of
 
 ### G-Buffer Packing
 The baseline implementation uses 4 buffers for positions, normals, color maps, and normal maps. We can precompute the normals by applying the normal map in the copy pass. This way the memory bandwith is much less throughout the pipeline. 
+
 | G-Buffer Optimization  | B-P w/o Opt | B-P w/ Opt |
 |------------------------|-------------|------------|
 | Milliseconds per frame | 13          | 13         |
 | Bandwith in MB         | 11          | 11         |
+
 Though it seems like the optimization didn't do much :|.
 ## Performance Factors
 ### Deferred pipeline
+
 |Deferred Shader vs Time/Frame| Default | Blinn-Phong | Ramp Shading |
 |------------------------|---------|-------------|--------------|
 | Milliseconds per frame | 13      | 13          | 13           |
 
 ### Post Process pipeline
+
 |Post Process vs Time/Frame| Baseline | Ramp Shading (Post) | Edge Highlights (One) | Edge Highlights (Two) |
 |------------------------|----------|---------------------|-----------------------|-----------------------|
 | Milliseconds per frame | 13       | 13                  | 14                    | 15                    |
