@@ -6,6 +6,7 @@ var cfg;
     var Cfg = function() {
         // TODO: Define config fields and defaults here
         this.debugView = -1;
+        this.showAllLayers = false;
         this.debugScissor = false;
         this.debugTiledShading = false;
 
@@ -30,6 +31,7 @@ var cfg;
             '4 Normal map':      4,
             '5 Surface normal':  5
         });
+        gui.add(cfg, 'showAllLayers');
 
         var optimization = gui.addFolder("OPTIMIZATION");
         optimization.open();
@@ -38,7 +40,7 @@ var cfg;
         optimization.add(cfg, 'tiledShading');
         optimization.add(cfg, 'debugTiledShading');
 
-        var eff0 = gui.addFolder('EFFECT NAME HERE');
+        var eff0 = gui.addFolder('EFFECTS');
         eff0.open();
         eff0.add(cfg, 'bloomEffect');
         eff0.add(cfg, 'pixelateEffect');

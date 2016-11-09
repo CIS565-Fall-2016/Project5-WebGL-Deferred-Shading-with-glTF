@@ -33,7 +33,7 @@
 
         R.pass_copy.render(state);
 
-        if (cfg && cfg.debugView >= 0) {
+        if (cfg && (cfg.debugView >= 0 || cfg.showAllLayers)) {
             // Do a debug render instead of a regular render
             // Don't do any post-processing in debug mode
             R.pass_debug.render(state);
@@ -113,11 +113,24 @@
         // * Tell shader which debug view to use
         // TODO: uncomment
         bindTexturesForLightPass(R.prog_Debug);
-        gl.uniform1i(R.prog_Debug.u_debug, cfg.debugView);
 
-        // * Render a fullscreen quad to perform shading on
-        // TODO: uncomment
-        renderFullScreenQuad(R.prog_Debug);
+        if (cfg.showAllLayers) {
+            gl.enable(gl.SCISSOR_TEST);
+            // Render all maps
+            var scWidth = state.width / 5;
+            for (var i = 0; i < 5; ++i) {
+                gl.scissor(scWidth * i, 0, scWidth, state.height);
+                gl.uniform1i(R.prog_Debug.u_debug, i);
+                renderFullScreenQuad(R.prog_Debug);
+            }
+            gl.disable(gl.SCISSOR_TEST);
+        } else {
+            gl.uniform1i(R.prog_Debug.u_debug, cfg.debugView);
+
+            // * Render a fullscreen quad to perform shading on
+            // TODO: uncomment
+            renderFullScreenQuad(R.prog_Debug);
+        }
     };
 
     /**
@@ -234,7 +247,7 @@
         }
         var texTileLightIndicesWidth = nearestPow2(Math.ceil(Math.sqrt(tileLightIndices.length)));
         var texTileLightIndicesArea = texTileLightIndicesWidth * texTileLightIndicesWidth
-        var tileLightIndicesData = new Uint8Array(texTileLightIndicesArea);
+        var tileLightIndicesData = new Float32Array(texTileLightIndicesArea);
         // Copy over the grid array
         for (var i = 0; i < tileLightIndices.length; ++i) {
             tileLightIndicesData[i] = tileLightIndices[i];
@@ -402,7 +415,7 @@
             width,
             0,              // border
             gl.ALPHA,         // format
-            gl.UNSIGNED_BYTE,       // type
+            gl.FLOAT,       // type
             ints
             );
 
