@@ -3,9 +3,8 @@ WebGL Deferred Shading
 
 **University of Pennsylvania, CIS 565: GPU Programming and Architecture, Project 5**
 
-* (TODO) YOUR NAME HERE
-* Tested on: (TODO) **Google Chrome 222.2** on
-  Windows 22, i7-2222 @ 2.22GHz 22GB, GTX 222 222MB (Moore 2222 Lab)
+* Xiaomao Ding
+* Tested on: Windows 8.1, i7-4700MQ @ 2.40GHz 8.00GB, GT 750M 2047MB (Personal Computer)
 
 ### Live Online
 
@@ -15,13 +14,33 @@ WebGL Deferred Shading
 
 [![](img/video.png)](TODO)
 
-### (TODO: Your README)
+### Intro
 
-*DO NOT* leave the README to the last minute! It is a crucial part of the
-project, and we will not be able to grade you without a good README.
+This repository implements a WebGL based deferred shader. The concept behind deferred shading is to store the geometry information in a GBuffer. Then, further lighting and post-processing passes are executed on this buffer. This organization of shading will allow us to render multiple lights with a lower performance hit. This is because we no longer need to calculate the geometry for each additional light.  
 
-This assignment has a considerable amount of performance analysis compared
-to implementation work. Complete the implementation early to leave time!
+#### Features
+The deferred shader in this repository has the following features:
+* Blinn-Phong shading
+* Toon shading
+* Bloom shading
+* 2x 1D Gaussian Bloom shading optimization
+* GBuffer packing optimizations
+
+### Performance Analysis
+#### GBuffer Optimization
+The GBuffer is where we store information relevant to our geometry during the single pass through the scene. The naive implementation stores the color, position, normal, and normal map for each fragment in our shader. We can first optimize this by calculating the modified normal during the GBuffer copy pass, which reduces the number of vectors we need to store from 4 to 3.  Furthermore, the GBuffers are vec4's but both color and position are only vec3's. Since the normals are normalized, we can be clever and store just 2 values of the normal (calculating the third on the fly).  This allows us to further reduce the number of vec4's we need down to 2. The following is the organization of our buffers, where P stands for position, C for color, and N for normals:
+
+[Px][Py][Pz][Nx]
+
+[Cr][Cg][Cb][Ny]
+
+As expected, reducing the size of the GBuffer improves performance. 
+
+#### Shaders
+The Blinn-Phong shader is the default in this repository. It combines a diffuse and specular component of the light color in order to fill in the fragments. The toon shader applies a ramp to the color of the fragments. In this implementation, the ramp is only applied to the diffuse color while a hard threshold is set for the specular. Finally, the bloom shader is a post-processing effect that adds blur to the lights in a scene. The result is that lights in a scene now appear to glow.  This can be achieve by applied a 2D Gaussian filter. Using Multiple Rendering Targets, we create a separate color buffer that contains only the lights, selected as fragments that have a brightness exceeding some threshold. Because this buffer contains only the lights, applying the Gaussian filter will not blur the rest of the scene. This repository contains two implementations of the Gaussian filter. The first implementation calculates the entire filter in 1 shader. The second optimizes the process by applying two shaders, one horizontal and the other vertical. The addition of the post-process step is expected to decrease performance, while the optimization should improve it.
+
+
+
 
 
 ### Credits
