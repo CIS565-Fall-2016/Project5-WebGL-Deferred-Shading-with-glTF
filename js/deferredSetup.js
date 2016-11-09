@@ -9,7 +9,7 @@
     R.pass_post1 = {};
     R.lights = [];
 
-    R.NUM_GBUFFERS = 4;
+    R.NUM_GBUFFERS = 2;
 
     /**
      * Set up the deferred pipeline framebuffer objects and textures.

@@ -8,8 +8,8 @@ var cfg;
         this.pause = false;
         this.debugView = -1;
         this.debugScissor = false;
-        this.enableBloom = true;
-        this.bloomSize = 0.003;
+        this.enableBloom = false;
+        this.bloomSize = 0.01;
         this.useLightProxy = true;
         this.useInvertedDepthTestForLightProxy = true;
     };
@@ -24,11 +24,9 @@ var cfg;
             'None':             -1,
             '0 Depth':           0,
             '1 Position':        1,
-            '2 Geometry normal': 2,
-            '3 Color map':       3,
-            '4 Normal map':      4,
-            '5 Surface normal':  5,
-            '6 Light scissors':  6,
+            '2 Color map':       2,
+            '3 Normal':          3,
+            '4 Light scissors':  4,
         });
         gui.add(cfg, 'debugScissor');
         gui.add(cfg, 'useLightProxy');

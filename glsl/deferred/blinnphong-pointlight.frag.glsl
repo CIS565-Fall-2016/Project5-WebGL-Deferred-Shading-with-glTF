@@ -2,7 +2,7 @@
 precision highp float;
 precision highp int;
 
-#define NUM_GBUFFERS 4
+#define NUM_GBUFFERS 2
 
 uniform vec3 u_lightCol;
 uniform vec3 u_lightPos;
@@ -13,12 +13,21 @@ uniform sampler2D u_depth;
 
 //varying vec2 v_uv;
 
-vec3 applyNormalMap(vec3 geomnor, vec3 normap) {
-    normap = normap * 2.0 - 1.0;
-    vec3 up = normalize(vec3(0.001, 1, 0.001));
-    vec3 surftan = normalize(cross(geomnor, up));
-    vec3 surfbinor = cross(geomnor, surftan);
-    return normap.y * surftan + normap.x * surfbinor + normap.z * geomnor;
+vec3 extractNormal(float nor_x, float nor_y, vec3 colmap)
+{
+    // Black magic: I colmap sign to prevent normal losing too much precision on a particular axis
+    if (colmap.z < 0.0)
+    {
+        return normalize(vec3(nor_x, nor_y, 1.0)) * sign(colmap.x);
+    }
+    else if(colmap.y < 0.0)
+    {
+        return normalize(vec3(nor_x, 1.0, nor_y)) * sign(colmap.x);
+    }
+    else
+    {
+        return normalize(vec3(1.0, nor_x, nor_y)) * sign(colmap.x);
+    }
 }
 
 void main() {
@@ -27,20 +36,19 @@ void main() {
 
     vec4 gb0 = texture2D(u_gbufs[0], uv);
     vec4 gb1 = texture2D(u_gbufs[1], uv);
-    vec4 gb2 = texture2D(u_gbufs[2], uv);
-    vec4 gb3 = texture2D(u_gbufs[3], uv);
     float depth = texture2D(u_depth, uv).x;
     // DONE: Extract needed properties from the g-buffers into local variables
     vec3 pos = gb0.xyz;     // World-space position
-    vec3 colmap = gb2.rgb;  // The color map - unlit "albedo" (surface color)
-    vec3 nor = applyNormalMap (gb1.xyz, gb3.xyz);   // gb1: geometry normal; gb3: raw normal map
+    vec3 colmap = gb1.rgb;  // The color map - unlit "albedo" (surface color)
+    vec3 nor = extractNormal (gb0.w, gb1.w, colmap);   // gb1: geometry normal; gb3: raw normal map
+    colmap = abs(colmap);
 
-    // If nothing was rendered to this pixel, set alpha to 0 so that the
-    // postprocessing step can render the sky color.
-    if (depth == 1.0) {
-        gl_FragColor = vec4(0, 0, 0, 0);
-        return;
-    }
+    // // If nothing was rendered to this pixel, set alpha to 0 so that the
+    // // postprocessing step can render the sky color.
+    // if (depth == 1.0) {
+    //     gl_FragColor = vec4(0, 0, 0, 0);
+    //     return;
+    // }
 
     vec3 lightDir = normalize(u_lightPos - pos);
     float lambertian = max(dot(lightDir, nor), 0.0);
@@ -50,7 +58,7 @@ void main() {
         vec3 viewDir = normalize(u_camPos - pos);
         vec3 halfDir = normalize(lightDir + viewDir);
         float specAngle = max(dot(halfDir, nor), 0.0);
-        specular = pow(specAngle, 16.0); // TODO?: spec color & power in g-buffer?
+        specular = pow(specAngle, 32.0); // TODO?: spec color & power in g-buffer?
     }
 
     // square falloff

@@ -40,11 +40,11 @@
         {
             // Do a debug render instead of a regular render
             // Don't do any post-processing in debug mode
-            if (cfg.debugView <= 5)
+            if (cfg.debugView <= 3)
             {
                 R.pass_debug.render(state);
             }
-            else if (cfg.debugView == 6) // TODO: maybe use dicts instead of numbers
+            else if (cfg.debugView == 4) // TODO: maybe use dicts instead of numbers
             {
                 R.pass_debug.render_scissor(state);
             }
@@ -203,10 +203,11 @@
         gl.enable(gl.BLEND);
         gl.blendEquation( gl.FUNC_ADD );
         gl.blendFunc(gl.ONE,gl.ONE);
-
+        gl.depthFunc(gl.ALWAYS);
         // * Bind/setup the ambient pass, and render using fullscreen quad
         bindTexturesForLightPass(R.prog_Ambient);
         renderFullScreenQuad(R.prog_Ambient);
+        gl.depthFunc(gl.LEQUAL);
 
         if (cfg.useLightProxy)
         {
@@ -270,7 +271,7 @@
             if (cfg.useInvertedDepthTestForLightProxy)
             {
                 gl.cullFace(gl.BACK);
-                gl.depthFunc(gl.LESS);
+                gl.depthFunc(gl.LEQUAL);
                 gl.depthMask(true);
             }
             else
