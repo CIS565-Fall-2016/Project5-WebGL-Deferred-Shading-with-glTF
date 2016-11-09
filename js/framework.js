@@ -123,7 +123,7 @@ var width, height;
         });
 
         var duckURL = 'models/glTF-duck/duck.gltf';
-        var sponzaURL = 'models/glTF-sponza-kai-fix/sponza.gltf';
+        var sponzaURL = 'models/gltf-sponza-kai-fix/sponza.gltf';
         var glTFLoader = new MinimalGLTFLoader.glTFLoader(gl);
         glTFLoader.loadGLTF(sponzaURL, function (glTF) {
             var curScene = glTF.scenes[glTF.defaultScene];
