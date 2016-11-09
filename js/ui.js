@@ -7,9 +7,11 @@ var cfg;
         // TODO: Define config fields and defaults here
         this.debugView = -1;
         this.debugScissor = false;
+		this.sphereProxy = true;
         this.enableBloom = true;
 		this.bloomThreshold = 0.2;
-		this.sphereProxy = true;
+		this.enableMotionBlur = true;
+		this.motionBlurScale = 0.5;
     };
 
     var init = function() {
@@ -30,11 +32,17 @@ var cfg;
 
         var eff = gui.addFolder('EFFECT NAME HERE');
         eff.open();
+		
 		var eff0 = eff.addFolder('Bloom');
         eff0.add(cfg, 'enableBloom');
         // TODO: add more effects toggles and parameters here
 		eff0.add(cfg, 'bloomThreshold', 0.0, 1.0);
 		eff0.open();
+		
+		var eff1 = eff.addFolder('Motion Blur');
+		eff1.add(cfg, 'enableMotionBlur');
+		eff1.add(cfg, 'motionBlurScale', 0.1, 2.0);
+		eff1.open();
     };
 
     window.handle_load.push(init);

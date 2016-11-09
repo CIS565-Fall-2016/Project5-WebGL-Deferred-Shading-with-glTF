@@ -6,9 +6,8 @@
 	R.pass_copyDepth = {};
     R.pass_debug = {};
     R.pass_deferred = {};
-    R.pass_post1 = {}; // generate brightness buffer
-	R.pass_post2 = {}; // bloom
-	R.pass_output = {}; // output to screen
+	R.pass_bloom = {}; // bloom
+	R.pass_motionblur = {};
 	R.pass_scissorTestDebug = {};
 	R.pass_sphereProxyDebug = {};
     R.lights = [];
@@ -24,7 +23,7 @@
         R.pass_copy.setup();
 		R.pass_copyDepth.setup();
         R.pass_deferred.setup();
-		R.pass_post2.setup();
+		R.pass_bloom.setup();
     };
 
     // TODO: Edit if you want to change the light initial positions
@@ -119,19 +118,19 @@
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     };
 	
-	R.pass_post2.setup = function()
+	R.pass_bloom.setup = function()
 	{
 		// ping-pong buffers for blur filerting
-        R.pass_post2.fbo0 = gl.createFramebuffer();
-        R.pass_post2.colorTex0 = createAndBindColorTargetTexture(
-            R.pass_post2.fbo0, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
-        abortIfFramebufferIncomplete(R.pass_post2.fbo0);
+        R.pass_bloom.fbo0 = gl.createFramebuffer();
+        R.pass_bloom.colorTex0 = createAndBindColorTargetTexture(
+            R.pass_bloom.fbo0, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+        abortIfFramebufferIncomplete(R.pass_bloom.fbo0);
 		gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
 		
-		R.pass_post2.fbo1 = gl.createFramebuffer();
-        R.pass_post2.colorTex1 = createAndBindColorTargetTexture(
-            R.pass_post2.fbo1, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
-        abortIfFramebufferIncomplete(R.pass_post2.fbo1);
+		R.pass_bloom.fbo1 = gl.createFramebuffer();
+        R.pass_bloom.colorTex1 = createAndBindColorTargetTexture(
+            R.pass_bloom.fbo1, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+        abortIfFramebufferIncomplete(R.pass_bloom.fbo1);
         gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
 		
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -223,12 +222,12 @@
             // Save the object into this variable for access later
             R.prog_Debug = p;
         });
-
-        loadPostProgram('one', function(p) {
+		
+        loadPostProgram('thresholdbrightness', function(p) {
 			p.u_threshold = gl.getUniformLocation(p.prog, 'u_threshold');
             p.u_color    = gl.getUniformLocation(p.prog, 'u_color');
             // Save the object into this variable for access later
-            R.progPost1 = p;
+            R.progPostThresholdBrightness = p;
         });
 
         // TODO: If you add more passes, load and set up their shader programs.
@@ -237,15 +236,25 @@
 			p.u_isHorizontal = gl.getUniformLocation(p.prog, 'u_isHorizontal');
             p.u_color    = gl.getUniformLocation(p.prog, 'u_color');
             // Save the object into this variable for access later
-            R.progPost2 = p;
+            R.progPostGaussianBlur = p;
         });
 		
-		loadPostProgram('output', function(p) {
+		loadPostProgram('bloomgather', function(p) {
             p.u_color    = gl.getUniformLocation(p.prog, 'u_color');
 			p.u_bloomEnabled = gl.getUniformLocation(p.prog, 'u_bloomEnabled');
 			p.u_brightness = gl.getUniformLocation(p.prog, 'u_brightness');
             // Save the object into this variable for access later
-            R.progOutput = p;
+            R.progPostBloomGather = p;
+        });
+		
+		loadPostProgram('motionblur', function(p) {
+			p.u_scale = gl.getUniformLocation(p.prog, 'u_scale');
+            p.u_color = gl.getUniformLocation(p.prog, 'u_color');
+			p.u_depth = gl.getUniformLocation(p.prog, 'u_depth');
+			p.u_preViewProj = gl.getUniformLocation(p.prog, 'u_preViewProj');
+			p.u_viewProjInverse = gl.getUniformLocation(p.prog, 'u_viewProjInverse');
+            // Save the object into this variable for access later
+            R.progPostMotionBlur = p;
         });
     };
 

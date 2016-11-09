@@ -1,3 +1,5 @@
+var preViewProjMat = null;
+
 (function() {
     'use strict';
     // deferredSetup.js must be loaded first
@@ -12,9 +14,10 @@
             !R.prog_Ambient ||
             !R.prog_BlinnPhong_PointLight ||
             !R.prog_Debug ||
-            !R.progPost1 ||
-			!R.progOutput ||
-			!R.progPost2)) {
+			!R.progPostMotionBlur ||
+            !R.progPostGaussianBlur ||
+			!R.progPostBloomGather ||
+			!R.progPostThresholdBrightness)) {
             console.log('waiting for programs to load...');
             return;
         }
@@ -60,13 +63,24 @@
         } else {
             // * Deferred pass and postprocessing pass(es)
             // TODO: uncomment these
+			var isFirstPost;
+			var isLastStage = !cfg.enableBloom && !cfg.enableMotionBlur;
 			R.pass_deferred.render = cfg.sphereProxy ? sphereProxyLighting : scissorTestLighting;
-            R.pass_deferred.render(state);
-            R.pass_post1.render(state);
+            R.pass_deferred.render(state, isLastStage);
 
             // OPTIONAL TODO: call more postprocessing passes, if any
-			R.pass_post2.render(state);
-			R.pass_output.render(state);
+			if (cfg.enableBloom)
+			{
+				isFirstPost = true;
+				isLastStage = !cfg.enableMotionBlur;
+				R.pass_bloom.render(state, isFirstPost, isLastStage);
+			}
+			if (cfg.enableMotionBlur)
+			{
+				isFirstPost = !cfg.enableBloom;
+				isLastStage = true;
+				R.pass_motionblur.render(state, isFirstPost, isLastStage);
+			}
         }
     };
 
@@ -212,9 +226,10 @@
     /**
      * 'deferred' pass: Add lighting results for each individual light
      */
-	var sphereProxyLighting = function(state)
+	var sphereProxyLighting = function(state, isLastStage = false)
 	{
-        gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_deferred.fbo);
+		var renderTarget = isLastStage ? null : R.pass_deferred.fbo;
+        gl.bindFramebuffer(gl.FRAMEBUFFER, renderTarget);
 
         gl.clearColor(0.0, 0.0, 0.0, 0.0);
 		gl.clear(gl.COLOR_BUFFER_BIT);
@@ -257,9 +272,10 @@
         gl.disable(gl.BLEND);
     };
 	
-	var scissorTestLighting = function(state) {
+	var scissorTestLighting = function(state, isLastStage = false) {
         // * Bind R.pass_deferred.fbo to write into for later postprocessing
-        gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_deferred.fbo);
+		var renderTarget = isLastStage ? null : R.pass_deferred.fbo;
+        gl.bindFramebuffer(gl.FRAMEBUFFER, renderTarget);
 
         gl.clearColor(0.0, 0.0, 0.0, 0.0);
 		gl.clear(gl.COLOR_BUFFER_BIT);
@@ -331,80 +347,107 @@
         gl.bindTexture(gl.TEXTURE_2D, R.pass_copyDepth.colorTex);
         gl.uniform1i(prog.u_depth, R.NUM_GBUFFERS);
     };
-
-    /**
-     * 'post1' pass: Generate brightness texture
-     */
-    R.pass_post1.render = function(state)
+	
+	R.pass_bloom.render = function(state, isFirstPost = false, isLastStage = false)
 	{
 		gl.disable(gl.DEPTH_TEST);
-        gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_post2.fbo0);
+		
+		// Generate brightness map
+		gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_bloom.fbo1);
 
         gl.clearColor(0.0, 0.0, 0.0, 0.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
 
-        gl.useProgram(R.progPost1.prog);
+        gl.useProgram(R.progPostThresholdBrightness.prog);
 
         gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex);
+		var srcTex = isFirstPost ? R.pass_deferred.colorTex : R.pass_bloom.colorTex0;
+        gl.bindTexture(gl.TEXTURE_2D, srcTex);
 
-        gl.uniform1i(R.progPost1.u_color, 0);
-		gl.uniform1f(R.progPost1.u_threshold, cfg.bloomThreshold);
+        gl.uniform1i(R.progPostThresholdBrightness.u_color, 0);
+		gl.uniform1f(R.progPostThresholdBrightness.u_threshold, cfg.bloomThreshold);
 
-        renderFullScreenQuad(R.progPost1);
-		gl.enable(gl.DEPTH_TEST);
-    };
-	
-	/**
-	 * Two-pass Gaussian blur
-	 */
-	R.pass_post2.render = function(state)
-	{
-		gl.disable(gl.DEPTH_TEST);
+        renderFullScreenQuad(R.progPostThresholdBrightness);
 		
-		gl.useProgram(R.progPost2.prog);
+		// 2-pass Gaussian blur
+		gl.useProgram(R.progPostGaussianBlur.prog);
 		gl.activeTexture(gl.TEXTURE0);
 		
-		gl.uniform2f(R.progPost2.u_imgDim, width, height);
-		gl.uniform1i(R.progPost2.u_color, 0);
+		gl.uniform2f(R.progPostGaussianBlur.u_imgDim, width, height);
+		gl.uniform1i(R.progPostGaussianBlur.u_color, 0);
 		
 		for (var i = 0; i < 5; ++i)
 		{
-			gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_post2.fbo1);
-			gl.bindTexture(gl.TEXTURE_2D, R.pass_post2.colorTex0);
-			gl.uniform1i(R.progPost2.u_isHorizontal, true);
-			renderFullScreenQuad(R.progPost2);
+			gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_bloom.fbo0);
+			gl.bindTexture(gl.TEXTURE_2D, R.pass_bloom.colorTex1);
+			gl.uniform1i(R.progPostGaussianBlur.u_isHorizontal, true);
+			renderFullScreenQuad(R.progPostGaussianBlur);
 			
-			gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_post2.fbo0);
-			gl.bindTexture(gl.TEXTURE_2D, R.pass_post2.colorTex1);
-			gl.uniform1i(R.progPost2.u_isHorizontal, false);
-			renderFullScreenQuad(R.progPost2);
+			gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_bloom.fbo1);
+			gl.bindTexture(gl.TEXTURE_2D, R.pass_bloom.colorTex0);
+			gl.uniform1i(R.progPostGaussianBlur.u_isHorizontal, false);
+			renderFullScreenQuad(R.progPostGaussianBlur);
 		}
 		
-		gl.enable(gl.DEPTH_TEST);
-	}
-	
-	R.pass_output.render = function(state)
-	{
-		gl.disable(gl.DEPTH_TEST);
+		// Add blurred brightness back to original lighting result
+		var renderTarget = isLastStage ? null : R.pass_bloom.fbo0;
+		gl.bindFramebuffer(gl.FRAMEBUFFER, renderTarget);
 		
-		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-		
-		gl.useProgram(R.progOutput.prog);
+		gl.useProgram(R.progPostBloomGather.prog);
 
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex);
 		gl.activeTexture(gl.TEXTURE1);
-		gl.bindTexture(gl.TEXTURE_2D, R.pass_post2.colorTex0)
+		gl.bindTexture(gl.TEXTURE_2D, R.pass_bloom.colorTex1)
 
-        gl.uniform1i(R.progOutput.u_color, 0);
-		gl.uniform1i(R.progOutput.u_brightness, 1);
-		gl.uniform1i(R.progOutput.u_bloomEnabled, cfg.enableBloom);
+        gl.uniform1i(R.progPostBloomGather.u_color, 0);
+		gl.uniform1i(R.progPostBloomGather.u_brightness, 1);
 
-        renderFullScreenQuad(R.progOutput);
+        renderFullScreenQuad(R.progPostBloomGather);
 		
 		gl.enable(gl.DEPTH_TEST);
 	}
+	
+	R.pass_motionblur.render = function(state, isFirstPost = false, isLastStage = false)
+	{
+		gl.disable(gl.DEPTH_TEST);
+		
+		var renderTarget = isLastStage ? null : R.pass_bloom.fbo1;
+        gl.bindFramebuffer(gl.FRAMEBUFFER, renderTarget);
+
+        gl.clearColor(0.0, 0.0, 0.0, 0.0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+
+        gl.useProgram(R.progPostMotionBlur.prog);
+
+        gl.activeTexture(gl.TEXTURE0);
+		var srcColorTex = isFirstPost ? R.pass_deferred.colorTex : R.pass_bloom.colorTex0;
+        gl.bindTexture(gl.TEXTURE_2D, srcColorTex);
+		gl.activeTexture(gl.TEXTURE1);
+		gl.bindTexture(gl.TEXTURE_2D, R.pass_copyDepth.colorTex);
+
+		gl.uniform1f(R.progPostMotionBlur.u_scale, cfg.motionBlurScale);
+        gl.uniform1i(R.progPostMotionBlur.u_color, 0);
+		gl.uniform1i(R.progPostMotionBlur.u_depth, 1);
+		if (preViewProjMat == null)
+		{
+			preViewProjMat = new THREE.Matrix4();
+			preViewProjMat.copy(state.cameraMat);
+		}
+		gl.uniformMatrix4fv(R.progPostMotionBlur.u_preViewProj, false, preViewProjMat.elements);
+		var viewProjInverse = new THREE.Matrix4();
+		viewProjInverse.getInverse(state.cameraMat);
+		gl.uniformMatrix4fv(R.progPostMotionBlur.u_viewProjInverse, false, viewProjInverse.elements);
+
+        renderFullScreenQuad(R.progPostMotionBlur);
+		
+		preViewProjMat.copy(state.cameraMat);
+		gl.enable(gl.DEPTH_TEST);
+		
+		// R.pass_bloom.colorTex0 will always be the input to next stage
+		R.pass_bloom.fbo0 = [R.pass_bloom.fbo1, R.pass_bloom.fbo1 = R.pass_bloom.fbo0][0];
+		R.pass_bloom.colorTex0 = [R.pass_bloom.colorTex1, R.pass_bloom.colorTex1 = R.pass_bloom.colorTex0][0];
+	};
 
     var renderFullScreenQuad = (function() {
         // The variables in this function are private to the implementation of
