@@ -36,7 +36,7 @@ var cfg;
 		var eff0 = eff.addFolder('Bloom');
         eff0.add(cfg, 'enableBloom');
         // TODO: add more effects toggles and parameters here
-		eff0.add(cfg, 'bloomThreshold', 0.0, 1.0);
+		eff0.add(cfg, 'bloomThreshold', 0.0, 2.0);
 		eff0.open();
 		
 		var eff1 = eff.addFolder('Motion Blur');
