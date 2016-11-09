@@ -48,7 +48,7 @@ The Blinn-Phong shader is the default in this repository. It combines a diffuse 
   <img src="https://github.com/xnieamo/Project5-WebGL-Deferred-Shading-with-glTF/blob/master/img/Shaders.png?raw=true">
 </p>
 
-The Bloom optimizations turn out to not be too great. It could possibly be because the filter is too small (9x9) or perhaps that it is because the first pass now needs to allocate a framebuffer so that its results can be saved and sent to the second pass.
+The Bloom optimizations turn out to not be too great. It could possibly be because the filter is too small (9x9) or perhaps that it is because the first pass now needs to allocate a framebuffer so that its results can be saved and sent to the second pass. Furthermore, it may be due to the fact that I kept the weights the same for the Gaussian blurs, but the 2x 1D pass is slightly dimmer than the 2D pass.
 
 #### Toon Shader
 ![](img/toon.PNG)
