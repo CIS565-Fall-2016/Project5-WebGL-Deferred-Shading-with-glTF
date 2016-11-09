@@ -42,21 +42,21 @@ Uploading
 
 | Render           | With quad scissor test|
 |------------------|------------------|
-| ![](sreenshots/proxy1.png) | ![](sreenshots/proxy2.png) |
+| ![](screenshots/proxy1.png) | ![](screenshots/proxy2.png) |
 
 | With light proxy (no depth test) | light proxy + depth test + front-face culling|
 |------------------|------------------|
-| ![](sreenshots/proxy3.png) | ![](sreenshots/proxy4.png) |
+| ![](screenshots/proxy3.png) | ![](screenshots/proxy4.png) |
 
 #### Bloom:
 
 | No bloom          | Bloom (size 0.003)|
 |------------------|------------------|
-| ![](sreenshots/nobloom.png) | ![](sreenshots/bloom1.png) |
+| ![](screenshots/nobloom.png) | ![](screenshots/bloom1.png) |
 
 | Bloom (size 0.01) | Bloom (size 0.05)|
 |------------------|------------------|
-| ![](sreenshots/bloom2.png) | ![](sreenshots/bloom3.png) |
+| ![](screenshots/bloom2.png) | ![](screenshots/bloom3.png) |
 
 ### Optimizing G-Buffer
 
@@ -155,11 +155,11 @@ Here are images for comparison (bloom off, 20 lights):
 
 | Render           | With quad scissor test|
 |------------------|------------------|
-| ![](sreenshots/proxy1.png) | ![](sreenshots/proxy2.png) |
+| ![](screenshots/proxy1.png) | ![](screenshots/proxy2.png) |
 
 | With light proxy (no depth test) | light proxy + depth test + front-face culling|
 |------------------|------------------|
-| ![](sreenshots/proxy3.png) | ![](sreenshots/proxy4.png) |
+| ![](screenshots/proxy3.png) | ![](screenshots/proxy4.png) |
 
 Given 200 lights and bloom off, these are performance comparison:
 
@@ -177,11 +177,11 @@ Please refer to `glsl/post/bloom.frag.glsl`!
 
 | No bloom          | Bloom (size 0.003)|
 |------------------|------------------|
-| ![](sreenshots/nobloom.png) | ![](sreenshots/bloom1.png) |
+| ![](screenshots/nobloom.png) | ![](screenshots/bloom1.png) |
 
 | Bloom (size 0.01) | Bloom (size 0.05)|
 |------------------|------------------|
-| ![](sreenshots/bloom2.png) | ![](sreenshots/bloom3.png) |
+| ![](screenshots/bloom2.png) | ![](screenshots/bloom3.png) |
 
 ### Credits
 
