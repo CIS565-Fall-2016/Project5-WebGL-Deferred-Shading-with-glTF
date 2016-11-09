@@ -12,7 +12,7 @@ varying vec2 v_uv;
 #define PI 3.1415926535897932384626433
 #define E 2.7182818284590452353602874
 #define INV2PI 0.159154943
-#define SIZE 10
+#define SIZE 40
 
 float intensity(vec4 color) {
   return (color.x + color.y + color.z) / 3.0;
