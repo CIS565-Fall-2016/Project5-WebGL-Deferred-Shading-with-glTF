@@ -9,7 +9,7 @@ WebGL Deferred Shading
 
 # Live Online
 
-[![](img/thumb.png)](http://TODO.github.io/Project5B-WebGL-Deferred-Shading)
+[![](img/100_lights.png)](https://trungtle.github.io/Project5-WebGL-Deferred-Shading-with-glTF/)
 
 # Demo Video/GIF
 
@@ -19,9 +19,9 @@ WebGL Deferred Shading
 
 #### Bloom filter
 
-| **Bloom ON ** | **Bloom OFF**|
+| **Bloom ON** | **Bloom OFF**|
 |---|---|
-|![](img/100_lights_bloom.png)||![](img/100_lights_no_bloom.png)|
+|![](img/100_lights_bloom.png)|![](img/100_lights_no_bloom.png)|
 
 _Bloom filter can be enabled under the "EFFECTS" tab of the control panel._
 
@@ -39,7 +39,7 @@ The effect is adapted from [learnopengl](http://learnopengl.com/#!Advanced-Light
 
 | **Pixelate ON** | **Pixelate OFF**|
 |---|---|
-|![](img/100_light_pixelate.png)|![](img/100_light.png)|
+|![](img/100_lights_pixelate.png)|![](img/100_lights.png)|
 
 _'Pixelate' effect can be enabled under the 'EFFECTS' tab of the control panel._
 
