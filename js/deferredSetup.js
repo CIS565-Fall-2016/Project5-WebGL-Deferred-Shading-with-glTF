@@ -6,6 +6,10 @@
     R.pass_debug = {};
     R.pass_deferred = {};
     R.pass_post1 = {};
+    R.pass_edge = {};
+    R.pass_toon = {};
+    R.pass_scissor = {};
+    R.pass_box = {};
     R.lights = [];
 
     R.NUM_GBUFFERS = 4;
@@ -18,6 +22,11 @@
         loadAllShaderPrograms();
         R.pass_copy.setup();
         R.pass_deferred.setup();
+        R.pass_post1.setup();
+        R.pass_edge.setup();
+        R.pass_toon.setup();
+        R.pass_scissor.setup();
+        R.pass_box.setup();
     };
 
     // TODO: Edit if you want to change the light initial positions
@@ -55,12 +64,8 @@
      * Create/configure framebuffer between "copy" and "deferred" stages
      */
     R.pass_copy.setup = function() {
-        // * Create the FBO
         R.pass_copy.fbo = gl.createFramebuffer();
-        // * Create, bind, and store a depth target texture for the FBO
         R.pass_copy.depthTex = createAndBindDepthTargetTexture(R.pass_copy.fbo);
-
-        // * Create, bind, and store "color" target textures for the FBO
         R.pass_copy.gbufs = [];
         var attachments = [];
         for (var i = 0; i < R.NUM_GBUFFERS; i++) {
@@ -69,34 +74,64 @@
             R.pass_copy.gbufs.push(tex);
             attachments.push(attachment);
         }
-
-        // * Check for framebuffer errors
         abortIfFramebufferIncomplete(R.pass_copy.fbo);
-        // * Tell the WEBGL_draw_buffers extension which FBO attachments are
-        //   being used. (This extension allows for multiple render targets.)
         gl_draw_buffers.drawBuffersWEBGL(attachments);
-
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     };
 
-    /**
-     * Create/configure framebuffer between "deferred" and "post1" stages
-     */
     R.pass_deferred.setup = function() {
         // * Create the FBO
         R.pass_deferred.fbo = gl.createFramebuffer();
-        // * Create, bind, and store a single color target texture for the FBO
         R.pass_deferred.colorTex = createAndBindColorTargetTexture(
             R.pass_deferred.fbo, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
-
-        // * Check for framebuffer errors
         abortIfFramebufferIncomplete(R.pass_deferred.fbo);
-        // * Tell the WEBGL_draw_buffers extension which FBO attachments are
-        //   being used. (This extension allows for multiple render targets.)
         gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
-
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     };
+    R.pass_scissor.setup = function() {
+        // * Create the FBO
+        R.pass_scissor.fbo = gl.createFramebuffer();
+        R.pass_scissor.colorTex = createAndBindColorTargetTexture(
+            R.pass_scissor.fbo, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+        abortIfFramebufferIncomplete(R.pass_scissor.fbo);
+        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    };
+
+    R.pass_post1.setup = function() {
+        R.pass_post1.fbo = gl.createFramebuffer();
+        R.pass_post1.colorTex = createAndBindColorTargetTexture(
+            R.pass_post1.fbo, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+        abortIfFramebufferIncomplete(R.pass_post1.fbo);
+        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    };
+    R.pass_toon.setup = function() {
+        R.pass_toon.fbo = gl.createFramebuffer();
+        R.pass_toon.colorTex = createAndBindColorTargetTexture(
+            R.pass_toon.fbo, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+        abortIfFramebufferIncomplete(R.pass_toon.fbo);
+        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    };
+    R.pass_edge.setup = function() {
+        R.pass_edge.fbo = gl.createFramebuffer();
+        R.pass_edge.colorTex = createAndBindColorTargetTexture(
+            R.pass_edge.fbo, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+        abortIfFramebufferIncomplete(R.pass_edge.fbo);
+        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    };
+    R.pass_box.setup = function() {
+        R.pass_box.fbo = gl.createFramebuffer();
+        R.pass_box.colorTex = createAndBindColorTargetTexture(
+            R.pass_box.fbo, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+        abortIfFramebufferIncomplete(R.pass_box.fbo);
+        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    };
+
+
 
     /**
      * Loads all of the shader programs used in the pipeline.
@@ -115,14 +150,7 @@
                 p.a_normal    = gl.getAttribLocation(prog, 'a_normal');
                 p.a_uv        = gl.getAttribLocation(prog, 'a_uv');
 
-                // Save the object into this variable for access later
-                R.progCopy = p;
-            });
-
-        loadShaderProgram(gl, 'glsl/quad.vert.glsl', 'glsl/red.frag.glsl',
-            function(prog) {
-                // Create an object to hold info about this shader program
-                R.progRed = { prog: prog };
+                    R.progCopy = p;
             });
 
         loadShaderProgram(gl, 'glsl/quad.vert.glsl', 'glsl/clear.frag.glsl',
@@ -132,27 +160,69 @@
             });
 
         loadDeferredProgram('ambient', function(p) {
-            // Save the object into this variable for access later
             R.prog_Ambient = p;
         });
+        loadDeferredProgram('red', function(p) {
+            p.u_bounds = gl.getUniformLocation(p.prog, 'u_bounds');
+            R.progRed = p;
+        });
+
+        loadDeferredProgram('default', function(p) {
+          p.u_lightPos = gl.getUniformLocation(p.prog, 'u_lightPos');
+          p.u_lightCol = gl.getUniformLocation(p.prog, 'u_lightCol');
+          p.u_lightRad = gl.getUniformLocation(p.prog, 'u_lightRad');
+          R.prog_Default = p;
+        })
 
         loadDeferredProgram('blinnphong-pointlight', function(p) {
-            // Save the object into this variable for access later
             p.u_lightPos = gl.getUniformLocation(p.prog, 'u_lightPos');
             p.u_lightCol = gl.getUniformLocation(p.prog, 'u_lightCol');
             p.u_lightRad = gl.getUniformLocation(p.prog, 'u_lightRad');
+            p.u_viewPos = gl.getUniformLocation(p.prog, 'u_viewPos');
             R.prog_BlinnPhong_PointLight = p;
         });
 
+        loadDeferredProgram('toon-rampshading', function (p) {
+          p.u_lightPos = gl.getUniformLocation(p.prog, 'u_lightPos');
+          p.u_lightCol = gl.getUniformLocation(p.prog, 'u_lightCol');
+          p.u_lightRad = gl.getUniformLocation(p.prog, 'u_lightRad');
+          p.u_viewPos = gl.getUniformLocation(p.prog, 'u_viewPos');
+          p.u_bands = gl.getUniformLocation(p.prog, 'u_bands');
+          R.prog_RampShading = p;
+        })
+
         loadDeferredProgram('debug', function(p) {
             p.u_debug = gl.getUniformLocation(p.prog, 'u_debug');
-            // Save the object into this variable for access later
             R.prog_Debug = p;
         });
 
+        loadPostProgram('edge', function(p) {
+            p.u_color = gl.getUniformLocation(p.prog, 'u_color');
+            p.u_pixSize = gl.getUniformLocation(p.prog, 'u_pixSize');
+            p.u_kernel = gl.getUniformLocation(p.prog, 'u_kernel');
+
+            R.prog_Edge = p;
+        });
+        loadPostProgram('blur', function(p) {
+            p.u_color = gl.getUniformLocation(p.prog, 'u_color');
+            p.u_depth = gl.getUniformLocation(p.prog, 'u_depth');
+            p.u_pixSize = gl.getUniformLocation(p.prog, 'u_pixSize');
+            p.u_kernel = gl.getUniformLocation(p.prog, 'u_kernel');
+            p.u_focus = gl.getUniformLocation(p.prog, 'u_focus');
+
+            R.prog_Blur = p;
+        });
+        loadPostProgram('toon', function(p) {
+            p.u_color = gl.getUniformLocation(p.prog, 'u_color');
+            p.u_pixSize = gl.getUniformLocation(p.prog, 'u_pixSize');
+            p.u_kernel = gl.getUniformLocation(p.prog, 'u_kernel');
+            p.u_bands = gl.getUniformLocation(p.prog, 'u_bands');
+
+            R.prog_Toon = p;
+        });
+
         loadPostProgram('one', function(p) {
-            p.u_color    = gl.getUniformLocation(p.prog, 'u_color');
-            // Save the object into this variable for access later
+            p.u_color = gl.getUniformLocation(p.prog, 'u_color');
             R.progPost1 = p;
         });
 
