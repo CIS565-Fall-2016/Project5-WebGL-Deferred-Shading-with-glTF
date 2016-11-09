@@ -17,8 +17,9 @@ WebGL Deferred Shading
 * G-Buffer Optimization
 
 ### Live Online
-
-[![](result/without-toon-shading.gif)](https://vimeo.com/190819701)
+####Press the .png file below and you may find my demo for this project!! Hope you enjoy :)
+[![](result/intro_to_video.PNG)](https://vimeo.com/190819701)
+Link: https://vimeo.com/190819701
 
 ## Showcase My Result
 ### Part One
@@ -36,7 +37,7 @@ WebGL Deferred Shading
 |------|------|
 |![alt text](https://github.com/xueyinw/Project5-WebGL-Deferred-Shading-with-glTF/blob/master/result/deferred-1478436585799.png "Surface Normal") | ![alt text](https://github.com/xueyinw/Project5-WebGL-Deferred-Shading-with-glTF/blob/master/result/deferred-1478436575930.png "Color Map") |
 
-Above pictures show the whole procudure of deferred shading. In our code base, Blinn-Phong shading was the first basic feature. We do not contain any post processing fancy effects. Just applied Blinn-Phong lighting in blinnphong-pointlight.frag.glsl and render with this shader.
+Above pictures show the whole procudure of deferred shading. In our code base, Blinn-Phong shading was the first basic feature. We do not contain any post processing (fancy) effects. Just applied Blinn-Phong lighting in blinnphong-pointlight.frag.glsl and render with this shader.
 
 ### 2. Two-pass Gaussian blur Bloom Effect
 |  Without Bloom Effect | With Bloom Effect |
@@ -61,9 +62,9 @@ In this step, we toggle to the vertically blur mode.
 With these two steps, we simply finish the Two-pass Gaussian blur and we can save current image to next step.
 
 `Fourth: Combine`
-We combine the result we derived after above three steps with our original picture. Then we could get the bloom effect.
+We combine the result derived after above three steps with our original picture. Then we could get the bloom effect.
 
-By the way I think two pass blur is really clever since we deduplicate a lot of repeated I/O and calculations.
+By the way, I think two pass blur is really clever since we deduplicate a lot of repeated I/Os and calculations.
 
 ### 3. Toon Shading
 |  Without Toon Shading | With Toon Shading |
@@ -73,19 +74,19 @@ By the way I think two pass blur is really clever since we deduplicate a lot of 
 Toon shading contains two steps: ramp shading + edge detection.
 In ramp shading procedure, what we need to think about is that: the diffuse and specular values in the blinn-phong shading should be calculated based on step functions, rather than continous functions. So we use step function to classify the fragments with different lambert and specular terms.
 
-After we finish ramp shading, we come to the edge detection stage. Luckily I've using opencv during 2014-2015, so I have some basic image processing concepts about this. Basically here, we select our contour based on depth information of the fragment itself and surrounding pixels.
-
+After we finish ramp shading, we come to the edge detection stage. Luckily I've using opencv during the year 2014 and 2015, so I have some basic image processing concepts about this. Basically here, we select our contour based on depth information of the fragment itself and surrounding pixels.
 
 ### 4. Motion Blur
 | Without Motion Blur | With Motion Blur |
 |------|------|
 |![alt text](https://github.com/xueyinw/Project5-WebGL-Deferred-Shading-with-glTF/blob/master/result/without_motion_blur.gif "Without Motion Blur") | ![alt text](https://github.com/xueyinw/Project5-WebGL-Deferred-Shading-with-glTF/blob/master/result/motion_blur_correct2.gif "With Motion Blur") |
 
-Here, we need to take advantage of camera's projection matrix since in our scene, in fact it is the camera always moving, not the geometry in the scene. We then need the previous frame's camera projection matrix(we could save it as a global variable). Then we come into next frame, we first pass this to camera's prev_matrix property, then using current frame's camera projection matrix to update this global previous projection matrix. This method works fine!
+Here, we need to take advantage of camera's projection matrix since in our scene, in fact here it is the camera always moving, not the geometry in the scene. We then need the previous frame's camera projection matrix(we could save it as a global variable). Then we come into next frame, we first pass this to camera's prev_matrix property, then using current frame's camera projection matrix to update this global previous projection matrix. This method works fine!
 
 How do I think out this idea? Thanks to this very very very useful tutorial: http://http.developer.nvidia.com/GPUGems3/gpugems3_ch27.html
 
 In this tutorial, we could see that we need the previous camera projection matrix information. Then I just follow the formula in the code provided in this tutorial to get the correct result.
+
 We could get the blur vector between two frames, and simply divide by 2 to get the velocity.(blur along velocity direction)
 
 ### Part Two: Optimization
