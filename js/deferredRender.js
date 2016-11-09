@@ -239,7 +239,7 @@
         for (var i = 0; i < tileLightIndices.length; ++i) {
             tileLightIndicesData[i] = tileLightIndices[i];
         }
-        var tileLightIndicesTex = texture2DFromUint8(texTileLightIndicesArea, tileLightIndicesData);
+        var tileLightIndicesTex = texture2DFromUint8(texTileLightIndicesWidth, tileLightIndicesData);
 
         // --- Compute light count and offsets for each light
         for (var i = 0; i < R.tileLightIndices.length; ++i) {
@@ -280,7 +280,7 @@
         gl.enable(gl.SCISSOR_TEST);
 
         gl.uniform1i(R.prog_Tiled_BlinnPhong_PointLight.u_lightTexWidth, lightTexArea);
-        gl.uniform1i(R.prog_Tiled_BlinnPhong_PointLight.u_tileLightIndicesTexWidth, texTileLightIndicesArea);
+        gl.uniform1i(R.prog_Tiled_BlinnPhong_PointLight.u_tileLightIndicesTexWidth, texTileLightIndicesWidth);
         for (var t = 0; t < tileCount; ++t) {
 
             var lightCount = R.tileLightCounts[t];
@@ -318,7 +318,7 @@
         gl.uniform1i(prog.u_depth, R.NUM_GBUFFERS);
     };
 
-    var bindTexturesForTiledLightPass = function(prog, lightPositionTex, lightColTex, lightRadTex, tileLightIndices) {
+    var bindTexturesForTiledLightPass = function(prog, lightPositionTex, lightColTex, lightRadTex, tileLightIndicesTex) {
         gl.useProgram(prog.prog);
 
         // * Bind all of the g-buffers and depth buffer as texture uniform
@@ -349,7 +349,7 @@
 
         texId++;
         gl.activeTexture(gl['TEXTURE' + texId]);
-        gl.bindTexture(gl.TEXTURE_2D, tileLightIndices);
+        gl.bindTexture(gl.TEXTURE_2D, tileLightIndicesTex);
         gl.uniform1i(prog.u_tileLightIndices, texId);
 
     };
@@ -389,20 +389,23 @@
         var texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
 
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
         gl.texImage2D(
             gl.TEXTURE_2D,  // target
             0,              // level
             gl.ALPHA,        // internalformat
             width,
-            1,
+            width,
             0,              // border
             gl.ALPHA,         // format
             gl.UNSIGNED_BYTE,       // type
             ints
             );
 
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
         gl.bindTexture(gl.TEXTURE_2D, null);
 
         gl.activeTexture(oldActiveTexture);

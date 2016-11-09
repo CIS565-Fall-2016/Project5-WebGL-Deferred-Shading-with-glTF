@@ -98,41 +98,43 @@ void main() {
         vec4 color = vec4(0,0,0,1);
         vec4 hdrColor = vec4(0,0,0,1);
 
-        vec2 uv = gl_FragCoord.xy / u_tileLightIndicesTexWidth;
         for (int i = 0; i < 100; ++i) {
             if (i >= u_lightCount) {
                 break;
             }
 
             // Extract light info
-            float lightId = texture2D(u_tileLightIndices, vec2(float(u_lightOffset + i) / float(u_tileLightIndicesTexWidth), 0.0)).g;
-            vec2 lightIdVec = vec2(float(lightId) / float(u_lightTexWidth), 0.0);
-            vec3 lightPos = texture2D(u_lightPos, lightIdVec).rgb;
-            vec3 lightCol = texture2D(u_lightCol, lightIdVec).rgb;
-            float lightRad = texture2D(u_lightRad, lightIdVec).a;
-            color += vec4(float(lightId), 0, 0, 1);
-            // return;
+            int offset = u_lightOffset + i;
+            int offsetY = offset / u_tileLightIndicesTexWidth;
+            int offsetX = u_tileLightIndicesTexWidth - (offsetY * u_tileLightIndicesTexWidth);
+            vec2 tile_uv = vec2(float(offsetX) / float(u_tileLightIndicesTexWidth), float(offsetY) / float(u_tileLightIndicesTexWidth));
+            float lightId = texture2D(u_tileLightIndices, tile_uv).b;
+            
+            vec2 light_uv = vec2(float(lightId) / float(u_lightTexWidth), 0.0);
+            vec3 lightPos = texture2D(u_lightPos, light_uv).rgb;
+            vec3 lightCol = texture2D(u_lightCol, light_uv).rgb;
+            float lightRad = texture2D(u_lightRad, light_uv).a;
 
-            // // Shading
-            // vec3 lightDir = normalize(lightPos - pos);
-            // float dis = distance(lightPos, pos);
-            // if (dis < lightRad) {
+            // Shading
+            vec3 lightDir = normalize(lightPos - pos);
+            float dis = distance(lightPos, pos);
+            if (dis < lightRad) {
 
-            //     // Write out to colorTex
-            //     float attenuation = max(0.0, lightRad - dis);
-            //     vec4 colorFromThisLight = vec4(
-            //         diffuseLighting(nor, colmap, lightCol, lightDir) * attenuation +
-            //         specularLighting(colmap, pos, nor, lightDir) * 0.0,
-            //         1.0);
+                // Write out to colorTex
+                float attenuation = max(0.0, lightRad - dis);
+                vec4 colorFromThisLight = vec4(
+                    diffuseLighting(nor, colmap, lightCol, lightDir) * attenuation +
+                    specularLighting(colmap, pos, nor, lightDir) * 0.0,
+                    1.0);
 
-            //     color += colorFromThisLight;
+                color += colorFromThisLight;
 
-            //     // Write out to hdrTex
-            //     float brightness = dot(color.rgb, vec3(0.2126, 0.7152, 0.0722));
-            //     if (brightness > 0.7) {
-            //         hdrColor += vec4(color.rgb, 1.0);
-            //     }
-            // }
+                // Write out to hdrTex
+                float brightness = dot(color.rgb, vec3(0.2126, 0.7152, 0.0722));
+                if (brightness > 0.7) {
+                    hdrColor += vec4(color.rgb, 1.0);
+                }
+            }
         }
         gl_FragData[0] = color;
         gl_FragData[1] = hdrColor;
