@@ -14,7 +14,7 @@
     R.lights = [];
     R.old_colorTex;
 
-    R.NUM_GBUFFERS = 4;
+    R.NUM_GBUFFERS = 3;
 
     /**
      * Set up the deferred pipeline framebuffer objects and textures.

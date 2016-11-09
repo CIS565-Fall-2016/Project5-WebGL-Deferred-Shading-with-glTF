@@ -161,7 +161,7 @@
 
           if (cfg.debugScissor) {
                 //scissor test
-                var sc = getBetterScissorForLight(state.viewMat, state.projMat, R.lights[i]);
+                var sc = getScissorForLight(state.viewMat, state.projMat, R.lights[i]);
                 if (sc) {
                     gl.scissor(sc[0], sc[1], sc[2], sc[3]);
                     renderFullScreenQuad(R.prog_BlinnPhong_PointLight);

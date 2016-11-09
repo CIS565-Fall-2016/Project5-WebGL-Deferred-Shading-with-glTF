@@ -3,9 +3,8 @@ WebGL Deferred Shading
 
 **University of Pennsylvania, CIS 565: GPU Programming and Architecture, Project 5**
 
-* (TODO) YOUR NAME HERE
-* Tested on: (TODO) **Google Chrome 222.2** on
-  Windows 22, i7-2222 @ 2.22GHz 22GB, GTX 222 222MB (Moore 2222 Lab)
+* Akshay Shah
+* Tested on: **Google Chrome 54.0.2840.87 m** on Windows 10, i7-5700HQ @ 2.70GHz 16GB, GTX 970M 6GB (Personal Computer)
 
 ### Live Online
 
@@ -22,5 +21,3 @@ project, and we will not be able to grade you without a good README.
 
 This assignment has a considerable amount of performance analysis compared
 to implementation work. Complete the implementation early to leave time!
-
-
