@@ -6,6 +6,7 @@
     R.pass_debug = {};
     R.pass_deferred = {};
     R.pass_post1 = {};
+	R.pass_scissor = {};
     R.lights = [];
 
     R.NUM_GBUFFERS = 4;
@@ -162,7 +163,10 @@
         loadShaderProgram(gl, 'glsl/quad.vert.glsl', 'glsl/red.frag.glsl',
             function(prog) {
                 // Create an object to hold info about this shader program
-                R.progRed = { prog: prog };
+				var p = { prog: prog };
+
+				p.u_color = gl.getUniformLocation(prog, 'u_color');
+                R.progRed = p;
             });
 
         loadShaderProgram(gl, 'glsl/quad.vert.glsl', 'glsl/clear.frag.glsl',

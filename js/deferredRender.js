@@ -32,7 +32,8 @@
 
         // { // TODO: test rendering red screen
         //     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-        //     // TODO: Implement/test renderFullScreenQuad first
+		// 	gl.useProgram(R.progRed.prog);
+		// 	gl.uniform4fv(R.progRed.u_color, [1., 0., 0., 1.]);
         //     renderFullScreenQuad(R.progRed);
         //     return;
         // }
@@ -40,7 +41,7 @@
         R.pass_copy.render(state);
 
         if (cfg && cfg.debugView >= 0) {
-            // Do a debug render instead of a regular render
+            // Do a debug render in stead of a regular render
             // Don't do any post-processing in debug mode
             R.pass_debug.render(state);
         } else {
@@ -48,6 +49,7 @@
             // TODO: uncomment these
             R.pass_deferred.render(state);
             R.pass_post1.render(state);
+			R.pass_scissor.render(state);
 
             // OPTIONAL TODO: call more postprocessing passes, if any
         }
@@ -230,6 +232,35 @@
 		renderFullScreenQuad(R.progPost1_3);
     };
 
+	R.pass_scissor.render = function(state) {
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		gl.useProgram(R.progRed.prog);
+		gl.enable(gl.BLEND);
+        gl.blendEquation(gl.FUNC_ADD);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+		for (var i = 0; i < R.NUM_LIGHTS; ++i) {
+			var sc = getScissorForLight(state.viewMat, state.projMat, R.lights[i]);
+
+			if (!sc) continue;
+
+			var minX = sc[0] / R.width * 2. - 1.;
+			var maxX = (sc[0] + sc[2]) / R.width * 2. - 1.;
+			var minY = sc[1] / R.height * 2. - 1.;
+			var maxY = (sc[1] + sc[3]) / R.height * 2. - 1.;
+			var rect = new Float32Array([
+				minX, minY, 0.,
+				maxX, minY, 0.,
+				minX, maxY, 0.,
+				maxX, maxY, 0.
+			]);
+
+			gl.useProgram(R.progRed.prog);
+			gl.uniform4fv(R.progRed.u_color, [1., 0., 0., .05]);
+			renderFullScreenQuad(R.progRed, rect);
+		}
+		gl.disable(gl.BLEND);
+	};
+
     var renderFullScreenQuad = (function() {
         // The variables in this function are private to the implementation of
         // renderFullScreenQuad. They work like static local variables in C++.
@@ -263,8 +294,8 @@
             gl.bufferData(gl.ARRAY_BUFFER,positions,gl.STATIC_DRAW);
         };
 
-        return function(prog) {
-            if (!vbo) {
+        return function(prog, rect = null) {
+			if (!vbo) {
                 // If the vbo hasn't been initialized, initialize it.
                 init();
             }
@@ -273,8 +304,16 @@
             gl.useProgram(prog.prog);
 
             // Bind the VBO as the gl.ARRAY_BUFFER
-            // TODO: uncomment
-            gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+            // TODO: uncommentif (rect) {
+			if (rect) {
+				var vbo_rect = gl.createBuffer();
+
+				gl.bindBuffer(gl.ARRAY_BUFFER, vbo_rect);
+				gl.bufferData(gl.ARRAY_BUFFER, rect, gl.STATIC_DRAW);
+	            gl.bindBuffer(gl.ARRAY_BUFFER, vbo_rect);
+			} else {
+				gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+			}
 
             // Enable the bound buffer as the vertex attrib array for
             // prog.a_position, using gl.enableVertexAttribArray
