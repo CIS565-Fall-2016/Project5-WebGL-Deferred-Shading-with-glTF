@@ -18,12 +18,15 @@
             return;
         }
 
-        // Move the R.lights
-        for (var i = 0; i < R.lights.length; i++) {
-            // OPTIONAL TODO: Edit if you want to change how lights move
-            var mn = R.light_min[1];
-            var mx = R.light_max[1];
-            R.lights[i].pos[1] = (R.lights[i].pos[1] + R.light_dt - mn + mx) % mx + mn;
+        if (!cfg.pause)
+        {
+            // Move the R.lights
+            for (var i = 0; i < R.lights.length; i++) {
+                // OPTIONAL TODO: Edit if you want to change how lights move
+                var mn = R.light_min[1];
+                var mx = R.light_max[1];
+                R.lights[i].pos[1] = (R.lights[i].pos[1] + R.light_dt - mn + mx) % mx + mn;
+            }
         }
 
         // Execute deferred shading pipeline
@@ -207,10 +210,16 @@
 
         if (cfg.useLightProxy)
         {
-
-            gl.cullFace(gl.FRONT);
-            gl.depthFunc(gl.GREATER);
-            gl.depthMask(false);
+            if (cfg.useInvertedDepthTestForLightProxy)
+            {
+                gl.cullFace(gl.FRONT);
+                gl.depthFunc(gl.GREATER);
+                gl.depthMask(false);
+            }
+            else
+            {
+                gl.disable(gl.DEPTH_TEST);
+            }
 
             // * Bind/setup the Blinn-Phong pass, and render using fullscreen quad
             bindTexturesForLightPass(R.prog_BlinnPhong_PointLight_sphere);
@@ -258,9 +267,16 @@
                 }
             }
 
-            gl.cullFace(gl.BACK);
-            gl.depthFunc(gl.LESS);
-            gl.depthMask(true);
+            if (cfg.useInvertedDepthTestForLightProxy)
+            {
+                gl.cullFace(gl.BACK);
+                gl.depthFunc(gl.LESS);
+                gl.depthMask(true);
+            }
+            else
+            {
+                gl.enable(gl.DEPTH_TEST);
+            }
         }
         else
         {

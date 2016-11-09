@@ -31,6 +31,6 @@ void main() {
     }
 
     vec3 colmap = gb2.rgb;
-    //gl_FragColor = vec4(vec3(depth),1.0);  
+    //gl_FragColor = vec4(vec3(depth),1.0);
     gl_FragColor = vec4(colmap * ambient_color, 1);  // DONE: replace this
 }

@@ -5,17 +5,20 @@ var cfg;
 
     var Cfg = function() {
         // TODO: Define config fields and defaults here
+        this.pause = false;
         this.debugView = -1;
         this.debugScissor = false;
         this.enableBloom = true;
         this.bloomSize = 0.003;
         this.useLightProxy = true;
+        this.useInvertedDepthTestForLightProxy = true;
     };
 
     var init = function() {
         cfg = new Cfg();
 
         var gui = new dat.GUI();
+        gui.add(cfg, 'pause');
         // TODO: Define any other possible config values
         gui.add(cfg, 'debugView', {
             'None':             -1,
@@ -28,7 +31,8 @@ var cfg;
             '6 Light scissors':  6,
         });
         gui.add(cfg, 'debugScissor');
-        gui.add(cfg, 'useLightProxy')
+        gui.add(cfg, 'useLightProxy');
+        gui.add(cfg, 'useInvertedDepthTestForLightProxy')
 
         var eff0 = gui.addFolder('EFFECT NAME HERE');
         eff0.open();
@@ -39,6 +43,7 @@ var cfg;
             '0.003':      0.003,
             '0.005':      0.005,
             '0.01':       0.01,
+            '0.05':       0.05,
         });
     };
 

@@ -26,6 +26,7 @@ void main()
     vec3 result = texture2D(u_color, v_uv).rgb * cent_coeff; // current fragment's contribution
     float offset;
     float weight;
+    float weight_sum = cent_coeff;
     if(u_horizontal)
     {
         for(int i = 1; i < 100; ++i)
@@ -35,6 +36,7 @@ void main()
             if (weight < 0.01) break;
             result += texture2D(u_color, v_uv + vec2(offset, 0.0)).rgb * weight;
             result += texture2D(u_color, v_uv - vec2(offset, 0.0)).rgb * weight;
+            weight_sum += weight;
         }
     }
     else
@@ -46,7 +48,8 @@ void main()
             if (weight < 0.01) break;
             result += texture2D(u_color, v_uv + vec2(0.0, offset)).rgb * weight;
             result += texture2D(u_color, v_uv - vec2(0.0, offset)).rgb * weight;
+            weight_sum += weight;
         }
     }
-    gl_FragColor = vec4(result, texture2D(u_color, v_uv).a);
+    gl_FragColor = vec4(result, texture2D(u_color, v_uv).a) / weight_sum;
 }

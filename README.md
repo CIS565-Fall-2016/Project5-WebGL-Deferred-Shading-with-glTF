@@ -4,10 +4,10 @@ WebGL Deferred Shading
 **University of Pennsylvania, CIS 565: GPU Programming and Architecture, Project 5**
 
 * Ruoyu Fan
-* Tested on: (TODO) **Google Chrome 222.2** on
-  Windows 22, i7-2222 @ 2.22GHz 22GB, GTX 222 222MB (Moore 2222 Lab)
+* Tested on: (TODO) **Google Chrome 54.0.2840.87** on
+  * Windows 10 x64, i7-4720HQ @ 2.60GHz, 16GB Memory, GTX 970M 3072MB (personal laptop)
 
-__NOTE:__ my submission requires an additional WebGL extension - `EXT_frag_depth`, used in `defered/ambient.frag.glsl` to properly read depth data into lighting passes' frame buffer to do __inverted depth test__ with __front-face culling__
+__NOTE:__ my submission requires an additional WebGL extension - `EXT_frag_depth`, used in `defered/ambient.frag.glsl` to properly write depth data into lighting passes' frame buffer to do __inverted depth test__ with __front-face culling__
 
 ### Live Online
 
@@ -34,6 +34,7 @@ FIXME: glTF files returns 404 on GitHub Pages
 * __Light proxy__: instead of rendering a scissored full-screen quad for every light, I render __proxy geometry__ which covers the part of the screen affected by a light (using spheres for point lights), thus __reducing wasted fragments in lighting pass__.
   * Using __inverted depth test__ with __front-face culling__ to avoid lighting geometries that are far behind the light, thus further reducing wasted fragments.
   * This feature requires WebGL's `EXT_frag_depth` extension to write depth data into frame buffer at defered shading stage in order to do the depth test.
+  * Use `useLightProxy` option to toggle on/off and use `useInvertedDepthTestForLightProxy` option to toggle depth test and front face culling for lighting pass.
 
 *DO NOT* leave the README to the last minute! It is a crucial part of the
 project, and we will not be able to grade you without a good README.
