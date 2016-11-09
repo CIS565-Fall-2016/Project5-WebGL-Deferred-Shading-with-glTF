@@ -52,6 +52,8 @@ void main()
     {
         for(int i = 1; i < 3; ++i)
         {
+            // result += texture2D(u_color, v_uv + vec2(u_tex_offset.y * float(i), 0.0)).rgb * weight[i];
+            // result += texture2D(u_color, v_uv - vec2(u_tex_offset.y * float(i), 0.0)).rgb * weight[i];
             result += texture2D(u_color, v_uv + vec2(0.0, u_tex_offset.y * offset[i])).rgb * weight[i];
             result += texture2D(u_color, v_uv - vec2(0.0, u_tex_offset.y * offset[i])).rgb * weight[i];
         }

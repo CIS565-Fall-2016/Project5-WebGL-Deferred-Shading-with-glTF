@@ -37,20 +37,35 @@ Effects
 - [x] Implemented deferred Blinn-Phong shading (diffuse + specular) for point lights
   - With normal mapping
 - [x] Bloom using post-process blur
-[![](img/bloom.PNG)](https://vimeo.com/190890932)
   - [x] Two-pass Gaussian blur using separable convolution using a second postprocess render pass) to improve bloom or other 2D blur performance
+
+![](img/bloomunopt.PNG)
+There are also some undesired blurring artifacts visible.
 
 This does not include the optimizations to the shading pass. With all the optimizations, the bloom runs at 34ms.
 
 | Deferred pass | Bloom with 2-pass blur |
 | ------------- | ---------------------- |
-| runs @ 38ms | runs @ 40ms |
+| runs @ 35ms | runs @ 40ms |
 
 | Bloom without optimizations | Bloom with Optimizations |
 | --------------------------- | ------------------------ |
-| runs @ 40ms | runs @ 34ms |
+| runs @ 40ms | runs @ 32ms |
 
-  The bloom pass added 7.91% to the total computation which was only a ~2.8ms of the render time.
+  The bloom pass added 7.91% to the total computation which was only a ~4.8ms of the render time.
+
+- [x] implemented efficient gaussian blur with linear sampling
+
+| Bloom unoptimized | Bloom optimized with efficient linear sampling |
+| ----------------- | ---------------------------------------------- |
+| runs @ 40ms | runs @ 31ms |
+
+There wasn't a very significant improvement in the performance as noted by [this][1] article.
+
+![](img/bloomopt.PNG)
+No more artifacts.
+
+[![](img/bloom.PNG)](https://vimeo.com/190890932)
 
 Optimizations
 -------------
@@ -145,6 +160,8 @@ Simple edge detection with ramp shader
 
 - [x] Improved screen-space AABB for scissor test
 - [x] Two-pass Gaussian blur using separable convolution (using a second postprocess render pass) to improve bloom or other 2D blur performance
+- [x] Implemented a sobel edge filter
+![](img/sobel_edge.PNG)
 
 ### References
 
@@ -153,3 +170,8 @@ Simple edge detection with ramp shader
 * [webgl-debug](https://github.com/KhronosGroup/WebGLDeveloperTools) by Khronos Group Inc.
 * [glMatrix](https://github.com/toji/gl-matrix) by [@toji](https://github.com/toji) and contributors
 * [minimal-gltf-loader](https://github.com/shrekshao/minimal-gltf-loader) by [@shrekshao](https://github.com/shrekshao)
+* [Toon shader](http://in2gpu.com/2014/06/23/toon-shading-effect-and-simple-contour-detection/) by Sergiu Craitoiu
+* [Silhouette Extraction](http://prideout.net/blog/?p=54) by Philip Rideout
+* [Bloom effect](http://learnopengl.com/#!Advanced-Lighting/Bloom) by Joey de Vries
+* [Sobel and Frei-Chen edge detector](http://rastergrid.com/blog/2011/01/frei-chen-edge-detector/) by Daniel Rákos
+[1]: http://rastergrid.com/blog/2010/09/efficient-gaussian-blur-with-linear-sampling/ "Efficient Gaussian blur with linear sampling"

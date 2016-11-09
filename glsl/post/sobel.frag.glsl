@@ -10,6 +10,7 @@ mat3 G[2];
 
 void main(void)
 {
+	/*Reference: http://rastergrid.com/blog/2011/01/frei-chen-edge-detector/ by Daniel Rákos */
 	G[0] = mat3( 1.0, 2.0, 1.0, 0.0, 0.0, 0.0, -1.0, -2.0, -1.0 );
 
 	G[1] = mat3( 1.0, 0.0, -1.0, 2.0, 0.0, -2.0, 1.0, 0.0, -1.0 );
