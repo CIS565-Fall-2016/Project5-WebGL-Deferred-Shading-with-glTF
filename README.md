@@ -4,19 +4,17 @@ WebGL Deferred Shading
 **University of Pennsylvania, CIS 565: GPU Programming and Architecture, Project 5**
 
 * Xueyin Wan
-* Platform: *FireFox 49.0.2* on
+* Platform: *FireFox 49.0.2* on Windows 10 x64, i7-6700K @ 4.00GHz 16GB, GTX 970 4096MB (Personal Desktop)
 
-  Windows 10 x64, i7-6700K @ 4.00GHz 16GB, GTX 970 4096MB (Personal Desktop)
-  
-  
 ###Features I Implemented
 
 * Deferred Blinn-Phong shading
 * Bloom using blur
 * Bloom using two-pass Gaussian blur (extract, blur, blurtwice, combine)
 * Toon Shading (ramp shading, edge detection)
-* Scissor Test (with debug view)
-
+* Scissor Test Optimization (with debug view)
+* Screen-space Motion Blur 
+* G-Buffer Optimization
 
 ### Live Online
 
@@ -26,7 +24,39 @@ WebGL Deferred Shading
 
 [![](img/video.png)](TODO)
 
-### (TODO: Your README)
+## Showcase My Result
+### 1. Deferred Blinn-Phong shading
+|  Depth Map  | Position Map |
+|------|------|
+|![alt text](https://github.com/xueyinw/Project5-WebGL-Deferred-Shading-with-glTF/blob/master/result/deferred-1478436556417.png "Depth Map") | ![alt text](https://github.com/xueyinw/Project5-WebGL-Deferred-Shading-with-glTF/blob/master/result/deferred-1478436560546.png "Position Map") |
+
+| Geometry Normal  | Normal map |
+|------|------|
+|![alt text](https://github.com/xueyinw/Project5-WebGL-Deferred-Shading-with-glTF/blob/master/result/deferred-1478436569856.png "Geometry Normal") | ![alt text](https://github.com/xueyinw/Project5-WebGL-Deferred-Shading-with-glTF/blob/master/result/deferred-1478436581008.png "Normal Map") |
+
+| Surface Normal  | Color map |
+|------|------|
+|![alt text](https://github.com/xueyinw/Project5-WebGL-Deferred-Shading-with-glTF/blob/master/result/deferred-1478436585799.png "Surface Normal") | ![alt text](https://github.com/xueyinw/Project5-WebGL-Deferred-Shading-with-glTF/blob/master/result/deferred-1478436575930.png "Color Map") |
+
+### 2. Two-pass Gaussian blur Bloom Effect
+|  Without Bloom Effect | With Bloom Effect |
+|------|------|
+|![alt text](https://github.com/xueyinw/Project5-WebGL-Deferred-Shading-with-glTF/blob/master/result/without_bloom.gif "Without Bloom Effect") | ![alt text](https://github.com/xueyinw/Project5-WebGL-Deferred-Shading-with-glTF/blob/master/result/only_bloom.gif " With Bloom Effect") |
+
+### 3. Toon Shading
+|  Without Toon Shading | With Toon Shading |
+|------|------|
+|![alt text](https://github.com/xueyinw/Project5-WebGL-Deferred-Shading-with-glTF/blob/master/result/without-toon-shading.gif "Without Toon Shading") | ![alt text](https://github.com/xueyinw/Project5-WebGL-Deferred-Shading-with-glTF/blob/master/result/toon-shading.gif " With Toon Shading") |
+
+### 4. Motion Blur
+| Without Motion Blur | With Motion Blur |
+|------|------|
+|![alt text](https://github.com/xueyinw/Project5-WebGL-Deferred-Shading-with-glTF/blob/master/result/without-toon-shading.gif "Without Motion Blur") | ![alt text](https://github.com/xueyinw/Project5-WebGL-Deferred-Shading-with-glTF/blob/master/result/toon-shading.gif " With Motion Blur") |
+
+
+
+
+
 
 *DO NOT* leave the README to the last minute! It is a crucial part of the
 project, and we will not be able to grade you without a good README.
