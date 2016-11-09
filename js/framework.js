@@ -122,7 +122,7 @@ var width, height;
             R.sphereModel = m;
         });
 
-        // var glTFURL = 'models/glTF-duck/Duck.gltf';
+        //var glTFURL = 'models/glTF-duck/Duck.gltf';
         var glTFURL = 'models/glTF-sponza-kai-fix/sponza.gltf';
         var glTFLoader = new MinimalGLTFLoader.glTFLoader(gl);
         glTFLoader.loadGLTF(glTFURL, function (glTF) {

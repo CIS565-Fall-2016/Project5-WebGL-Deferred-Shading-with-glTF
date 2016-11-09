@@ -10,6 +10,7 @@ var cfg;
         this.enableScissor = true;
         this.enableBloom = false;
         this.enableCel = false;
+        this.bloomTwoPass = false;
     };
 
     var init = function() {
@@ -33,6 +34,7 @@ var cfg;
         var eff0 = gui.addFolder('Effects');
         eff0.open();
         eff0.add(cfg, 'enableBloom');
+        eff0.add(cfg, 'bloomTwoPass');
         eff0.add(cfg, 'enableCel');
         // TODO: add more effects toggles and parameters here
     };

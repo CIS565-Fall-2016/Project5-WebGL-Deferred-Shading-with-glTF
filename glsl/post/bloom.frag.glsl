@@ -37,6 +37,15 @@ void main() {
         color += texture2D(u_color, v_uv - vec2(0.0, tOff.y*float(i))).rgb * u_kernel[i];
       }
     }
+    else if (u_pass == -1) {
+      for (int i = 0; i < KSIZE; i++) {
+      for (int j = 0; j < KSIZE; j++) {
+        color += texture2D(u_color, v_uv + vec2(tOff.x*float(i), tOff.y*float(j))).rgb * u_kernel[i] * u_kernel[j];
+        color += texture2D(u_color, v_uv + vec2(tOff.x*float(i), -tOff.y*float(j))).rgb * u_kernel[i] * u_kernel[j];
+        color += texture2D(u_color, v_uv + vec2(-tOff.x*float(i), tOff.y*float(j))).rgb * u_kernel[i] * u_kernel[j];
+        color += texture2D(u_color, v_uv + vec2(-tOff.x*float(i), -tOff.y*float(j))).rgb * u_kernel[i] * u_kernel[j];
+      }}
+    }
 
     /*
     if (color.a == 0.0) {

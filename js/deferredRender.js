@@ -249,7 +249,7 @@
         gl.useProgram(R.prog_bloom.prog);
 
         // Configure the R.progPost1.u_color uniform to point at texture unit 0
-        gl.uniform1f(R.prog_bloom.u_radius, 5.0);
+        gl.uniform1f(R.prog_bloom.u_radius, 1.0);
         gl.uniform1fv(R.prog_bloom.u_kernel,
             [0.227027, 0.1945946, 0.1216216, 0.054054, 0.016216]);
         gl.uniform2f(R.prog_bloom.u_texSize, width, height);
@@ -262,25 +262,38 @@
         gl.uniform1i(R.prog_bloom.u_pass, 0);
         renderFullScreenQuad(R.prog_bloom);
 
-        // x-pass, add to blur FBO
-        gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_bloom.blurFbo);
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, R.pass_bloom.extractTex);
+        if (cfg.bloomTwoPass) {
+          // x-pass, add to blur FBO
+          gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_bloom.blurFbo);
+          gl.activeTexture(gl.TEXTURE0);
+          gl.bindTexture(gl.TEXTURE_2D, R.pass_bloom.extractTex);
 
-        gl.uniform1i(R.prog_bloom.u_pass, 1);
-        renderFullScreenQuad(R.prog_bloom);
+          gl.uniform1i(R.prog_bloom.u_pass, 1);
+          renderFullScreenQuad(R.prog_bloom);
 
-        // y-pass, add to output
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, R.pass_bloom.blurTex);
+          // y-pass, add to output
+          gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+          gl.activeTexture(gl.TEXTURE0);
+          gl.bindTexture(gl.TEXTURE_2D, R.pass_bloom.blurTex);
 
-        gl.enable(gl.BLEND);
-        gl.blendEquation( gl.FUNC_ADD );
-        gl.blendFunc(gl.ONE,gl.ONE);
+          gl.enable(gl.BLEND);
+          gl.blendEquation( gl.FUNC_ADD );
+          gl.blendFunc(gl.ONE,gl.ONE);
 
-        gl.uniform1i(R.prog_bloom.u_pass, 2);
-        renderFullScreenQuad(R.prog_bloom);
+          gl.uniform1i(R.prog_bloom.u_pass, 2);
+          renderFullScreenQuad(R.prog_bloom);
+        } else {
+          gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+          gl.activeTexture(gl.TEXTURE0);
+          gl.bindTexture(gl.TEXTURE_2D, R.pass_bloom.extractTex);
+
+          gl.enable(gl.BLEND);
+          gl.blendEquation( gl.FUNC_ADD );
+          gl.blendFunc(gl.ONE,gl.ONE);
+
+          gl.uniform1i(R.prog_bloom.u_pass, -1);
+          renderFullScreenQuad(R.prog_bloom);
+        }
 
         gl.disable(gl.BLEND);
     }
