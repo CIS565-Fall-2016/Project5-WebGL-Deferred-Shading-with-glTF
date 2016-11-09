@@ -7,9 +7,8 @@
     R.pass_deferred = {};
     R.pass_post1 = {};
     R.lights = [];
-    R.toon = false; 
 
-    R.NUM_GBUFFERS = 4;
+    R.NUM_GBUFFERS = 3;
 
     /**
      * Set up the deferred pipeline framebuffer objects and textures.
@@ -26,7 +25,7 @@
     R.light_max = [14, 18, 6];
     R.light_dt = -0.03;
     R.LIGHT_RADIUS = 4.0;
-    R.NUM_LIGHTS = 50; // TODO: test with MORE lights!
+    R.NUM_LIGHTS = 100; // TODO: test with MORE lights!
     var setupLights = function() {
         Math.seedrandom(0);
 
@@ -158,6 +157,7 @@
 
         loadPostProgram('one', function(p) {
             p.u_color    = gl.getUniformLocation(p.prog, 'u_color');
+            p.u_invScreenSize = gl.getUniformLocation(p.prog, 'invScreenSize');
             // Save the object into this variable for access later
             R.progPost1 = p;
         });

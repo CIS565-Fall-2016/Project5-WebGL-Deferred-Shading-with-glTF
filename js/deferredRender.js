@@ -138,7 +138,7 @@
         gl.blendFunc(gl.ONE,gl.ONE);
 
         // * Bind/setup the ambient pass, and render using fullscreen quad
-        if (R.toon) {
+        if (cfg.enableEffect0) {
             bindTexturesForLightPass(R.prog_Ambient);
 
             gl.uniform3fv(R.prog_Ambient.u_cameraPos, state.cameraPos.toArray());
@@ -240,6 +240,7 @@
 
         // Configure the R.progPost1.u_color uniform to point at texture unit 0
         gl.uniform1i(R.progPost1.u_color, 0);
+        gl.uniform2fv(R.progPost1.u_invScreenSize, [1. / width, 1. / height]);
 
         // * Render a fullscreen quad to perform shading on
         renderFullScreenQuad(R.progPost1);

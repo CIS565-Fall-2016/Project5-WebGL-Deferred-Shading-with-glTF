@@ -27,6 +27,13 @@ to implementation work. Complete the implementation early to leave time!
     R.toon = true; 
 
 
+### Optimization
+Scissor
+
+4 g-buffers -> 3 g-buffers
+
+Before: 16-17ms per frame (scissor on)
+
 ### Credits
 
 * [Three.js](https://github.com/mrdoob/three.js) by [@mrdoob](https://github.com/mrdoob) and contributors
