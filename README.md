@@ -52,8 +52,8 @@ This does not include the optimizations to the shading pass. With all the optimi
 
   The bloom pass added 7.91% to the total computation which was only a ~2.8ms of the render time.
 
-  Optimizations
-  -------------
+Optimizations
+-------------
 
 - [x] Scissor test optimization: when accumulating shading from each point light source, only   render in a rectangle around the light.
   - [x] Improved screen-space AABB for scissor test
