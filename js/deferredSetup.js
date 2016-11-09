@@ -6,6 +6,9 @@
     R.pass_debug = {};
     R.pass_deferred = {};
     R.pass_post1 = {};
+    R.pass_bloom = {};
+    R.pass_bloom_h = {};
+    R.pass_bloom_w = {};
     R.lights = [];
 
     R.NUM_GBUFFERS = 2;
@@ -18,6 +21,7 @@
         loadAllShaderPrograms();
         R.pass_copy.setup();
         R.pass_deferred.setup();
+        R.pass_bloom_h.setup();
     };
 
     // TODO: Edit if you want to change the light initial positions
@@ -89,14 +93,42 @@
         R.pass_deferred.colorTex = createAndBindColorTargetTexture(
             R.pass_deferred.fbo, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
 
+        // Create a second color target texture of MRT Bloom
+        R.pass_deferred.lightTex = createAndBindColorTargetTexture(
+            R.pass_deferred.fbo, gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL);
+
         // * Check for framebuffer errors
         abortIfFramebufferIncomplete(R.pass_deferred.fbo);
         // * Tell the WEBGL_draw_buffers extension which FBO attachments are
         //   being used. (This extension allows for multiple render targets.)
-        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL, gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL]);
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     };
+
+    /**
+     * Create/configure framebuffer between "bloom_h" and "bloom_w" stages
+     */
+    R.pass_bloom_h.setup = function() {
+        // * Create the FBO
+        R.pass_bloom_h.fbo = gl.createFramebuffer();
+        // * Create, bind, and store a single color target texture for the FBO
+        R.pass_bloom_h.colorTex = createAndBindColorTargetTexture(
+            R.pass_bloom_h.fbo, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+
+        // Create a second color target texture of MRT Bloom
+        R.pass_bloom_h.lightTex = createAndBindColorTargetTexture(
+            R.pass_bloom_h.fbo, gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL);
+
+        // * Check for framebuffer errors
+        abortIfFramebufferIncomplete(R.pass_bloom_h.fbo);
+        // * Tell the WEBGL_draw_buffers extension which FBO attachments are
+        //   being used. (This extension allows for multiple render targets.)
+        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL, gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL]);
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    };
+
 
     /**
      * Loads all of the shader programs used in the pipeline.
@@ -167,7 +199,32 @@
             R.progPost1 = p;
         });
 
-        // TODO: If you add more passes, load and set up their shader programs.
+        loadPostProgram('bloom', function(p) {
+            p.u_color    = gl.getUniformLocation(p.prog, 'u_color');
+            p.u_light    = gl.getUniformLocation(p.prog, 'u_light');
+            p.u_height   = gl.getUniformLocation(p.prog, 'u_height');
+            p.u_width    = gl.getUniformLocation(p.prog, 'u_width');
+            // Save the object into this variable for access later
+            R.progBloom = p;
+        });
+
+        loadPostProgram('bloom_h', function(p) {
+            p.u_color    = gl.getUniformLocation(p.prog, 'u_color');
+            p.u_light    = gl.getUniformLocation(p.prog, 'u_light');
+            p.u_height   = gl.getUniformLocation(p.prog, 'u_height');
+            p.u_width    = gl.getUniformLocation(p.prog, 'u_width');
+            // Save the object into this variable for access later
+            R.progBloom_h = p;
+        });
+
+        loadPostProgram('bloom_w', function(p) {
+            p.u_color    = gl.getUniformLocation(p.prog, 'u_color');
+            p.u_light    = gl.getUniformLocation(p.prog, 'u_light');
+            p.u_height   = gl.getUniformLocation(p.prog, 'u_height');
+            p.u_width    = gl.getUniformLocation(p.prog, 'u_width');
+            // Save the object into this variable for access later
+            R.progBloom_w = p;
+        });
     };
 
     var loadDeferredProgram = function(name, callback) {

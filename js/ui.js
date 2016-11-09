@@ -8,6 +8,8 @@ var cfg;
         this.debugView = -1;
         this.debugScissor = false;
         this.toon = false;
+        this.bloom = false;
+        this.optimizedBloom = false;
     };
 
     var init = function() {
@@ -30,6 +32,8 @@ var cfg;
         var eff0 = gui.addFolder('EFFECT NAME HERE');
         eff0.open();
         eff0.add(cfg, 'toon');
+        eff0.add(cfg, 'bloom');
+        eff0.add(cfg, 'optimizedBloom');
         // TODO: add more effects toggles and parameters here
     };
 

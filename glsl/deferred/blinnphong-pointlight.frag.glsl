@@ -1,4 +1,5 @@
 #version 100
+#extension GL_EXT_draw_buffers: enable
 precision highp float;
 precision highp int;
 
@@ -14,6 +15,8 @@ uniform sampler2D u_gbufs[NUM_GBUFFERS];
 uniform sampler2D u_depth;
 
 varying vec2 v_uv;
+
+const vec3 lightThresh = vec3(0.2126, 0.7152, 0.0722);
 
 vec3 applyNormalMap(vec3 geomnor, vec3 normap) {
     normap = normap * 2.0 - 1.0;
@@ -69,7 +72,7 @@ void main() {
     // If nothing was rendered to this pixel, set alpha to 0 so that the
     // postprocessing step can render the sky color.
     if (depth == 1.0) {
-        gl_FragColor = vec4(0, 0, 0, 0);
+        gl_FragData[0] = vec4(0, 0, 0, 0);
         return;
     }
 
@@ -86,5 +89,10 @@ void main() {
     float specular = specularLighting(nor, lightDir, viewDir);
     vec3 color = colmap * u_lightCol * (diffuse + specular) * attenuation;
 
-    gl_FragColor = vec4(color, 1);  // TODO: perform lighting calculations
+    gl_FragData[0] = vec4(color, 1);  // TODO: perform lighting calculations
+
+    // Check for the brightness of this fragment. If it meets some threshold, set it 
+    // to be part of the light.
+    if (dot(color, lightThresh) > 1.0)
+        gl_FragData[1] = vec4(color, 1);
 }

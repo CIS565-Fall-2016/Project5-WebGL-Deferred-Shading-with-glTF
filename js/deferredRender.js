@@ -11,7 +11,10 @@
             !R.prog_BlinnPhong_PointLight ||
             !R.prog_Debug ||
             !R.progPost1 ||
-            !R.progToon)) {
+            !R.progToon ||
+            !R.progBloom || 
+            !R.progBloom_h || 
+            !R.progBloom_w)) {
             console.log('waiting for programs to load...');
             return;
         }
@@ -27,7 +30,7 @@
         // Execute deferred shading pipeline
 
         // CHECKITOUT: START HERE! You can even uncomment this:
-        debugger;
+        // debugger;
 
         // { // TODO: this block should be removed after testing renderFullScreenQuad
         //     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -46,7 +49,15 @@
             // * Deferred pass and postprocessing pass(es)
             // TODO: uncomment these
             R.pass_deferred.render(state);
-            R.pass_post1.render(state);
+            if (cfg.optimizedBloom) {
+                R.pass_bloom_h.render(state);
+                R.pass_bloom_w.render(state);
+            }
+            else if (cfg.bloom) {
+                R.pass_bloom.render(state);
+            } else {
+                R.pass_post1.render(state);
+            }
 
             // OPTIONAL TODO: call more postprocessing passes, if any
         }
@@ -234,6 +245,101 @@
 
         // * Render a fullscreen quad to perform shading on
         renderFullScreenQuad(R.progPost1);
+    };
+
+    /**
+     * 'Bloom' pass: Perform naive bloom post process
+     */
+    R.pass_bloom.render = function(state) {
+        // * Unbind any existing framebuffer (if there are no more passes)
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+        // * Clear the framebuffer depth to 1.0
+        gl.clearDepth(1.0);
+        gl.clear(gl.DEPTH_BUFFER_BIT);
+
+        // * Bind the postprocessing shader program
+        gl.useProgram(R.progBloom.prog);
+
+        // * Bind the color buffer to texture 0
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex);
+        gl.uniform1i(R.progBloom.u_color, 0);
+
+        // * Bind the light buffer to texture 1
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.lightTex);
+        gl.uniform1i(R.progBloom.u_light, 1);
+
+        gl.uniform1f(R.progBloom.u_height, height);
+        gl.uniform1f(R.progBloom.u_width, width);
+
+        // * Render a fullscreen quad to perform shading on
+        renderFullScreenQuad(R.progBloom);
+    };
+
+    /**
+     * 'Bloom_h' pass: Perform optimized bloom post process. This does the
+     *                 horizontal blur.
+     */
+    R.pass_bloom_h.render = function(state) {
+        // * Unbind any existing framebuffer (if there are no more passes)
+        gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_bloom_h.fbo);
+
+        // * Clear the framebuffer depth to 1.0
+        gl.clearDepth(1.0);
+        gl.clear(gl.DEPTH_BUFFER_BIT);
+
+        // * Bind the postprocessing shader program
+        gl.useProgram(R.progBloom_h.prog);
+
+        // * Bind the color buffer to texture 0
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex);
+        gl.uniform1i(R.progBloom_h.u_color, 0);
+
+        // * Bind the light buffer to texture 1
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.lightTex);
+        gl.uniform1i(R.progBloom_h.u_light, 1);
+
+        gl.uniform1f(R.progBloom_h.u_height, height);
+        gl.uniform1f(R.progBloom_h.u_width, width);
+
+        // * Render a fullscreen quad to perform shading on
+        renderFullScreenQuad(R.progBloom_h);
+    };
+
+    /**
+     * 'Bloom_w' pass: Perform optimized bloom post process. This does the
+     *                 vertical blur.
+     */
+    R.pass_bloom_w.render = function(state) {
+        // * Unbind any existing framebuffer (if there are no more passes)
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+        // * Clear the framebuffer depth to 1.0
+        gl.clearDepth(1.0);
+        gl.clear(gl.DEPTH_BUFFER_BIT);
+
+        // * Bind the postprocessing shader program
+        gl.useProgram(R.progBloom_w.prog);
+
+        // * Bind the color buffer to texture 0
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, R.pass_bloom_h.colorTex);
+        gl.uniform1i(R.progBloom_w.u_color, 0);
+
+        // * Bind the light buffer to texture 1
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, R.pass_bloom_h.lightTex);
+        gl.uniform1i(R.progBloom_w.u_light, 1);
+
+        gl.uniform1f(R.progBloom_w.u_height, height);
+        gl.uniform1f(R.progBloom_w.u_width, width);
+
+        // * Render a fullscreen quad to perform shading on
+        renderFullScreenQuad(R.progBloom_w);
     };
 
     var renderFullScreenQuad = (function() {
