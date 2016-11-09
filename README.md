@@ -122,7 +122,7 @@ Now the code chaged to
 ```
 And the optimization results are in the chart below.
 ![alt text](https://github.com/xueyinw/Project5-WebGL-Deferred-Shading-with-glTF/blob/master/result/GBuffer%20charts.PNG "G-Buffer Optimization")
-We can see, when we increased light numbers, when we still has gb0 - gb3, the time to render one frame is 35ms, 50ms, 66ms. When we reduced the number of GBuffer and has only gb0 - gb2, the time to render one frame is 27ms, 38ms, 52ms. With such results we can say that the time efficiency has been improved about 1.3 times.
+We can see, as we increased light numbers, when we still has gb0 - gb3, the time to render one frame is 35ms, 50ms, 66ms. If we reduced the number of GBuffer and has only gb0 - gb2, the time to render one frame is 27ms, 38ms, 52ms. With such results we can say that the time efficiency has been improved about 1.3 times.
 
 ### Credits
 
