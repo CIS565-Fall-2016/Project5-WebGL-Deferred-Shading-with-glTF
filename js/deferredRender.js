@@ -49,7 +49,9 @@
             // TODO: uncomment these
             R.pass_deferred.render(state);
             R.pass_post1.render(state);
-			R.pass_scissor.render(state);
+			if (cfg && cfg.debugScissor) {
+				R.pass_scissor.render(state);
+			}
 
             // OPTIONAL TODO: call more postprocessing passes, if any
         }
@@ -227,7 +229,11 @@
 		gl.bindTexture(gl.TEXTURE_2D, R.pass_post1.colorTex);
 		gl.uniform1i(R.progPost1_3.u_color, 0);
 		gl.activeTexture(gl.TEXTURE1);
-		gl.bindTexture(gl.TEXTURE_2D, R.pass_post1.brightTex);
+		if (cfg && cfg.enableEffect0) {
+			gl.bindTexture(gl.TEXTURE_2D, R.pass_post1.brightTex);
+		} else {
+			gl.bindTexture(gl.TEXTURE_2D, null);
+		}
 		gl.uniform1i(R.progPost1_3.u_bright, 1);
 		renderFullScreenQuad(R.progPost1_3);
     };

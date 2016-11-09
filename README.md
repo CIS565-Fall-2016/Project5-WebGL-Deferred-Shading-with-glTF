@@ -92,7 +92,7 @@ Bloom OFF | Bloom ON
 :---:|:---:
 36 ms/frame | 40 ms/frame
 
-_*Note_ To achieve bloom effect, we first extract bright color from original color, then bleed the bright color of each pixel into to its neighboring pixels, subject to a gaussian distribution. Commonly we will first do the color bleeding first in horizontal direction, then vertical direction. Finally we composite the blurred bright color and the original color to achieve bloom effect.
+_*Note_ To achieve bloom effect, we first extract bright color from original color, then bleed the bright color of each pixel into its neighboring pixels, subject to a gaussian distribution. Commonly we will first do the color bleeding first in horizontal direction, then vertical direction. Finally we composite the blurred bright color and the original color to achieve bloom effect.
 
 ### Credits
 

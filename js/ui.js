@@ -26,7 +26,7 @@ var cfg;
         });
         gui.add(cfg, 'debugScissor');
 
-        var eff0 = gui.addFolder('EFFECT NAME HERE');
+        var eff0 = gui.addFolder('Bloom');
         eff0.open();
         eff0.add(cfg, 'enableEffect0');
         // TODO: add more effects toggles and parameters here
