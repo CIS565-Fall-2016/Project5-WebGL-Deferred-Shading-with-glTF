@@ -36,10 +36,17 @@ The GBuffer is where we store information relevant to our geometry during the si
 
 As expected, reducing the size of the GBuffer improves performance. 
 
+<p align="center">
+  <img src="https://github.com/xnieamo/Project5-WebGL-Deferred-Shading-with-glTF/blob/master/img/GBufferOpt.png?raw=true">
+</p>
+
 #### Shaders
 The Blinn-Phong shader is the default in this repository. It combines a diffuse and specular component of the light color in order to fill in the fragments. The toon shader applies a ramp to the color of the fragments. In this implementation, the ramp is only applied to the diffuse color while a hard threshold is set for the specular. Finally, the bloom shader is a post-processing effect that adds blur to the lights in a scene. The result is that lights in a scene now appear to glow.  This can be achieve by applied a 2D Gaussian filter. Using Multiple Rendering Targets, we create a separate color buffer that contains only the lights, selected as fragments that have a brightness exceeding some threshold. Because this buffer contains only the lights, applying the Gaussian filter will not blur the rest of the scene. This repository contains two implementations of the Gaussian filter. The first implementation calculates the entire filter in 1 shader. The second optimizes the process by applying two shaders, one horizontal and the other vertical. The addition of the post-process step is expected to decrease performance, while the optimization should improve it.
 
 
+<p align="center">
+  <img src="https://github.com/xnieamo/Project5-WebGL-Deferred-Shading-with-glTF/blob/master/img/Shaders.png?raw=true">
+</p>
 
 
 
