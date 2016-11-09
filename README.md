@@ -51,11 +51,19 @@ Similar to edge highlights, DoF is also applying a filter over the final fragmen
 ### Scissor Test
 The scissor test is an optimization that discards fragments that fall outside of a rectangular region. This acceleration leverages light attenuation to allow for early termination when performing shading per light. Any region outside of the scissor rectangle doesn't need any light processing.
 
+| Scissor Test           | B-P w/o Scissor | B-P w/ Scissor |
+|------------------------|-----------------|----------------|
+| Milliseconds per frame | 13              | 12             |
+
 <img src="img/deferred-1478639472121.png" width="400" height="300"/>
 
 ### G-Buffer Packing
 The baseline implementation uses 4 buffers for positions, normals, color maps, and normal maps. We can precompute the normals by applying the normal map in the copy pass. This way the memory bandwith is much less throughout the pipeline. 
-
+| G-Buffer Optimization  | B-P w/o Opt | B-P w/ Opt |
+|------------------------|-------------|------------|
+| Milliseconds per frame | 13          | 13         |
+| Bandwith in MB         | 11          | 11         |
+Though it seems like the optimization didn't do much :|.
 ## Performance Factors
 ### Deferred pipeline
 |Deferred Shader vs Time/Frame| Default | Blinn-Phong | Ramp Shading |
