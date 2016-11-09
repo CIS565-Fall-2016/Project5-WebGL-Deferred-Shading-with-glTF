@@ -49,7 +49,16 @@ However, this will likely incur a cost of having to reconstruct the missing comp
 I implemented Bloom by extracting 'bright' portions (according to standard sRGB luminance values) of the deferred-pass output,
 then performing a Gaussian blur and adding it to the rendered output. A togglable option switches between single-pass and two-pass blur,
 though the latter seemed to actually cause worse performance. This is likely an implementation flaw, due to switching framebuffers and rebinding textures.
+![Sponza bloom only](img/sponza_bloom_only.png )
 ![Sponza bloom](img/sponza_bloom.png )
-![Duck bloom](img/duck_bloom.png )
 ![Duck glow](img/duck_glow.png )
+Bloom did not seem to affect overall performance.
+
+## Cel-shading
+I also implemented cel-shading, by creating a simple 1D stepped ramp texture, which was sampled in order to 'posterize' each RGB channel.
+Contouring is done with a seperate shader, which simply tests for large depth changes and subtracts from those (smoothed) locations.
+![Sponza cel](img/sponza_cel.png )
+![Duck cel](img/duck_cel_basic.png )
+![Duck cel full](img/duck_cel_full.png )
+
 
