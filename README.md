@@ -13,7 +13,7 @@ WebGL Deferred Shading
 
 ### Demo Video/GIF
 
-![](img/video.png)
+![](img/demo.gif)
 
 ## Deferred Shading
 In deferred shading, the lighting step is postponed to a later step. Instead, in the first pass through, all geometry data is accumulated into texture buffers known as G-buffers. This is then later on used in more complex lighting operations. The benefit of doing this is that all the fragments that are in the G-buffers will ultimately be used in a single lighting pass (the depth-test has already been applied to these fragments). This ensures that we dont run multiple lighting passes over objects that might never make it to a pixel.
@@ -46,7 +46,7 @@ Edge highlights are performed in two ways. One through a single-pass approximate
 
 ### Depth of Field Blur
 Similar to edge highlights, DoF is also applying a filter over the final fragments. There is a slider that adjusts the focus of the DoF.  Due to limitations of glsl/WebGL, I couldn't make the kernel size adjustable (no dynamic array allocation). The algorithm used to determine blurring rate is taking a focal value (which ranges from 0 to 1) and the depth value and using a quadratic falloff value as a standard deviation for a gaussian kernel. The reason we use a falloff value raised to a power is to widen the depth range that is within focus. We also needed to scale the value to have it map to reasonable standard deviation values.
-
+![](img/blur.gif)
 ## Optimizations
 ### Scissor Test
 The scissor test is an optimization that discards fragments that fall outside of a rectangular region. This acceleration leverages light attenuation to allow for early termination when performing shading per light. Any region outside of the scissor rectangle doesn't need any light processing.
