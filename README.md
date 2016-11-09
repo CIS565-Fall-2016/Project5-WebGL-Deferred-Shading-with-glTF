@@ -73,6 +73,8 @@ The baseline implementation uses 4 buffers for positions, normals, color maps, a
 |------------------------|----|----|----|----|----|----|
 | Milliseconds per frame | 14 | 14 | 15 | 20 | 34 | 90 |
 
+It seems that after 10, the quadratic nature of generating gaussian kernels on the fly seems to take its toll. As a result, I think a kernel of size 10 works best visually and performance-wise.
+
 ## Kernel Experiments
 Here were some odd images that I got by using different 3x3 kernels without thresholding–you need to threshold the value obtained from the convolution in order to get the highlighted edges. 
 
