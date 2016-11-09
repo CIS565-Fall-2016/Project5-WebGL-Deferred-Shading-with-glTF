@@ -25,6 +25,7 @@ The default lighting is simply a product of the attenuation and the color from t
 
 ### Blinn-Phong
 Blinn-phong is the standard baseline shader. https://www.wikiwand.com/en/Blinn%E2%80%93Phong_shading_model
+
 ![](img/deferred-1478498011215.png)
 
 ### Ramp-Shading
@@ -32,7 +33,6 @@ Ramp shading is a non-photorealistic shader that "bands" together colors of simi
 ![](img/deferred-1478638975696.png)
 
 ## Post Process Effects
-
 
 ### Ramp-Shading (Post-process)
 In this version of the Ramp-shading, we are directly looking at the final result of the fragments and band the color values independently through their components.
@@ -55,6 +55,23 @@ The scissor test is an optimization that discards fragments that fall outside of
 
 ### G-Buffer Packing
 The baseline implementation uses 4 buffers for positions, normals, color maps, and normal maps. We can precompute the normals by applying the normal map in the copy pass. This way the memory bandwith is much less throughout the pipeline. 
+
+## Performance Factors
+### Deferred pipeline
+|Deferred Shader vs Time/Frame| Default | Blinn-Phong | Ramp Shading |
+|------------------------|---------|-------------|--------------|
+| Milliseconds per frame | 13      | 13          | 13           |
+
+### Post Process pipeline
+|Post Process vs Time/Frame| Baseline | Ramp Shading (Post) | Edge Highlights (One) | Edge Highlights (Two) |
+|------------------------|----------|---------------------|-----------------------|-----------------------|
+| Milliseconds per frame | 13       | 13                  | 14                    | 15                    |
+
+### Depth of Field Blur
+
+|Kernel Size vs Time/Frame| 3  | 5  | 10 | 20 | 30 | 40 |
+|------------------------|----|----|----|----|----|----|
+| Milliseconds per frame | 14 | 14 | 15 | 20 | 34 | 90 |
 
 ## Kernel Experiments
 Here were some odd images that I got by using different 3x3 kernels without thresholding–you need to threshold the value obtained from the convolution in order to get the highlighted edges. 
