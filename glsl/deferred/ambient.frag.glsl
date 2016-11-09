@@ -19,9 +19,9 @@ void main() {
     // TODO: Extract needed properties from the g-buffers into local variables
 
     if (depth == 1.0) {
-        gl_FragColor = vec4(0, 0, 0, 0); // set alpha to 0
+        gl_FragColor = vec4(0, 0, 0, 1); // set alpha to 0
         return;
     }
 
-    gl_FragColor = vec4(gb2.rgb/2.5, 1);  // TODO: replace this
+    gl_FragColor = vec4(gb2.rgb/5.0, 1);  // TODO: replace this
 }

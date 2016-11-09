@@ -25,7 +25,7 @@
     R.light_max = [14, 18, 6];
     R.light_dt = -0.03;
     R.LIGHT_RADIUS = 4.0;
-    R.NUM_LIGHTS = 30; // TODO: test with MORE lights!
+    R.NUM_LIGHTS = 50; // TODO: test with MORE lights!
     var setupLights = function() {
         Math.seedrandom(0);
 
@@ -125,6 +125,18 @@
                 R.progRed = { prog: prog };
             });
 
+        //+     sphere model
+         
+        loadShaderProgram(gl, 'glsl/sphere.vert.glsl', 'glsl/red.frag.glsl',
+            function(prog){
+                var p = { prog: prog };
+
+                //p.u_camMat = gl.getUniformLocation(prog, 'u_camMat'); 
+                p.u_cameraMat = gl.getUniformLocation(prog, 'u_cameraMat');
+                p.u_lightpos = gl.getUniformLocation(prog, 'u_lightpos');
+                R.prog_Sphere_Red = p;
+        });
+
         loadShaderProgram(gl, 'glsl/quad.vert.glsl', 'glsl/clear.frag.glsl',
             function(prog) {
                 // Create an object to hold info about this shader program
@@ -147,6 +159,20 @@
             p.u_height = gl.getUniformLocation(p.prog, 'u_height');
             R.prog_BlinnPhong_PointLight = p;
         });
+
+//+
+         loadDeferredSphereProgram('blinnphong-pointlight', function(p) {
+            // Save the object into this variable for access later
+            p.u_lightPos = gl.getUniformLocation(p.prog, 'u_lightPos');
+            p.u_lightCol = gl.getUniformLocation(p.prog, 'u_lightCol');
+            p.u_lightRad = gl.getUniformLocation(p.prog, 'u_lightRad');
+            p.u_camPos = gl.getUniformLocation(p.prog, 'u_camPos');
+            p.u_effects = gl.getUniformLocation(p.prog, 'u_effects');
+            p.u_width = gl.getUniformLocation(p.prog, 'u_width');
+            p.u_height = gl.getUniformLocation(p.prog, 'u_height');
+
+            R.prog_BlinnPhong_PointLight_Sphere = p;
+        });        
 
         loadDeferredProgram('debug', function(p) {
             p.u_debug = gl.getUniformLocation(p.prog, 'u_debug');
@@ -182,6 +208,28 @@
             });
     };
 
+    //+
+ 
+      var loadDeferredSphereProgram = function(name, callback){
+        loadShaderProgram(gl, 'glsl/sphere.vert.glsl',
+                          'glsl/deferred/' + name + '.frag.glsl',
+            function(prog) {
+                // Create an object to hold info about this shader program
+                var p = { prog: prog };
+
+                // Retrieve the uniform and attribute locations
+                p.u_gbufs = [];
+                for (var i = 0; i < R.NUM_GBUFFERS; i++) {
+                    p.u_gbufs[i] = gl.getUniformLocation(prog, 'u_gbufs[' + i + ']');
+                }
+                p.u_depth    = gl.getUniformLocation(prog, 'u_depth');
+
+                p.a_position = gl.getAttribLocation(prog, 'a_position');
+
+                callback(p);
+            });
+        }; 
+    
     var loadPostProgram = function(name, callback) {
         loadShaderProgram(gl, 'glsl/quad.vert.glsl',
                           'glsl/post/' + name + '.frag.glsl',

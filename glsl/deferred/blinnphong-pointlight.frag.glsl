@@ -86,10 +86,10 @@ void main() {
         else{
             thiscolor *= 0.1;
         }
-        thiscolor *= sign(diffusefact)*attenuation*0.25;
+        thiscolor *= sign(diffusefact)*attenuation*0.35;
     }
     else{
-        thiscolor *= attenuation*diffusefact*0.25;
+        thiscolor *= attenuation*diffusefact*0.35;
     }
 
 

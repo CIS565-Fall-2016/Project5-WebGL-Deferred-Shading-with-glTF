@@ -9,6 +9,7 @@ var cfg;
         this.debugScissor = false;
         this.enableEffect0 = false;
         this.enableToon= false;
+        this.enableSphere=false;
     };
 
     var init = function() {
@@ -32,6 +33,7 @@ var cfg;
         eff0.add(cfg, 'enableEffect0');
         // TODO: add more effects toggles and parameters here
         eff0.add(cfg, 'enableToon');
+        eff0.add(cfg, 'enableSphere');
     };
 
     window.handle_load.push(init);

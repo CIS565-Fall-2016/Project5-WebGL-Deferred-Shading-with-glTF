@@ -92,16 +92,35 @@ window.readyModelForDraw = function(prog, m) {
         gl.uniform1i(prog.u_normap, 1);
     }
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, m.attributes);
+    if (m.interleaved) {
+        gl.bindBuffer(gl.ARRAY_BUFFER, m.attributes);
     
-    gl.enableVertexAttribArray(prog.a_position);
-    gl.vertexAttribPointer(prog.a_position, m.posInfo.size, m.posInfo.type, false, m.posInfo.stride, m.posInfo.offset);
+        gl.enableVertexAttribArray(prog.a_position);
+        gl.vertexAttribPointer(prog.a_position, m.posInfo.size, m.posInfo.type, false, m.posInfo.stride, m.posInfo.offset);
 
-    gl.enableVertexAttribArray(prog.a_normal);
-    gl.vertexAttribPointer(prog.a_normal, m.norInfo.size, m.norInfo.type, false, m.norInfo.stride, m.norInfo.offset);
+        gl.enableVertexAttribArray(prog.a_normal);
+        gl.vertexAttribPointer(prog.a_normal, m.norInfo.size, m.norInfo.type, false, m.norInfo.stride, m.norInfo.offset);
 
-    gl.enableVertexAttribArray(prog.a_uv);
-    gl.vertexAttribPointer(prog.a_uv, m.uvInfo.size, m.uvInfo.type, false, m.uvInfo.stride, m.uvInfo.offset);
+        gl.enableVertexAttribArray(prog.a_uv);
+        gl.vertexAttribPointer(prog.a_uv, m.uvInfo.size, m.uvInfo.type, false, m.uvInfo.stride, m.uvInfo.offset);
+    } else {
+        gl.enableVertexAttribArray(prog.a_position);
+        gl.bindBuffer(gl.ARRAY_BUFFER, m.position);
+        gl.vertexAttribPointer(prog.a_position, 3, gl.FLOAT, false, 0, 0);
+
+        if (prog.a_normal >= 0 && m.normal) {
+            gl.enableVertexAttribArray(prog.a_normal);
+            gl.bindBuffer(gl.ARRAY_BUFFER, m.normal);
+            gl.vertexAttribPointer(prog.a_normal, 3, gl.FLOAT, false, 0, 0);
+        }
+
+        if (prog.a_uv >= 0 && m.uv) {
+            gl.enableVertexAttribArray(prog.a_uv);
+            gl.bindBuffer(gl.ARRAY_BUFFER, m.uv);
+            gl.vertexAttribPointer(prog.a_uv, 2, gl.FLOAT, false, 0, 0);
+        }
+    }
+    
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, m.idx);
 };
@@ -110,7 +129,11 @@ window.drawReadyModel = function(m) {
     // TODO for TA in future: matrix transform for multiple hierachy gltf models
     // reference: https://github.com/CIS565-Fall-2016/Project5A-WebGL-Forward-Plus-Shading-with-glTF/blob/master/js/forwardPlusRenderer/forwardPlusRenderer.js#L201
 
-    gl.drawElements(m.gltf.mode, m.gltf.indices.length, m.gltf.indicesComponentType, 0);
+    if (m.gltf) {
+        gl.drawElements(m.gltf.mode, m.gltf.indices.length, m.gltf.indicesComponentType, 0);
+    } else {
+        gl.drawElements(gl.TRIANGLES, m.elemCount, gl.UNSIGNED_INT, 0);
+    }
 };
 
 window.getScissorForLight = (function() {
