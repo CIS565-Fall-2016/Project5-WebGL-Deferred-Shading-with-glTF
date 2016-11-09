@@ -6,6 +6,11 @@
     R.pass_debug = {};
     R.pass_deferred = {};
     R.pass_post1 = {};
+    R.pass_post_bloom_brightness = {};
+    R.pass_post_bloom_blur = {};
+    R.pass_output = {};
+    
+
     R.lights = [];
 
     R.NUM_GBUFFERS = 4;
@@ -18,14 +23,18 @@
         loadAllShaderPrograms();
         R.pass_copy.setup();
         R.pass_deferred.setup();
+        
+        // bloom related
+        R.pass_post_bloom_blur.setup();
+
     };
 
     // TODO: Edit if you want to change the light initial positions
     R.light_min = [-14, 0, -6];
     R.light_max = [14, 18, 6];
     R.light_dt = -0.03;
-    R.LIGHT_RADIUS = 4.0;
-    R.NUM_LIGHTS = 20; // TODO: test with MORE lights!
+    R.LIGHT_RADIUS = 4.0;  
+    R.NUM_LIGHTS = 25; // TODO: test with MORE lights!
     var setupLights = function() {
         Math.seedrandom(0);
 
@@ -98,6 +107,28 @@
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     };
 
+
+    R.pass_post_bloom_blur.setup = function() {
+        
+        // pingpong buffer1 setup
+        R.pass_post_bloom_blur.fbo1 = gl.createFramebuffer();
+        R.pass_post_bloom_blur.bufferTex1 = createAndBindColorTargetTexture(
+        R.pass_post_bloom_blur.fbo1, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+
+        abortIfFramebufferIncomplete(R.pass_post_bloom_blur.fbo1);
+        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+
+        // buffer2
+        R.pass_post_bloom_blur.fbo2 = gl.createFramebuffer();
+        R.pass_post_bloom_blur.bufferTex2 = createAndBindColorTargetTexture(
+        R.pass_post_bloom_blur.fbo2, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+
+        abortIfFramebufferIncomplete(R.pass_post_bloom_blur.fbo2);
+        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    };
+
     /**
      * Loads all of the shader programs used in the pipeline.
      */
@@ -141,6 +172,8 @@
             p.u_lightPos = gl.getUniformLocation(p.prog, 'u_lightPos');
             p.u_lightCol = gl.getUniformLocation(p.prog, 'u_lightCol');
             p.u_lightRad = gl.getUniformLocation(p.prog, 'u_lightRad');
+            p.u_cameraPos = gl.getUniformLocation(p.prog, 'u_cameraPos');
+            
             R.prog_BlinnPhong_PointLight = p;
         });
 
@@ -157,6 +190,30 @@
         });
 
         // TODO: If you add more passes, load and set up their shader programs.
+        loadPostProgram('bloom_brightness', function(p){
+
+            p.u_color   = gl.getUniformLocation(p.prog, 'u_color');
+
+            R.prog_Bloom_Brightness = p;
+        });
+
+        loadPostProgram('bloom_blur', function(p){
+
+            p.u_bufferTex   = gl.getUniformLocation(p.prog, 'u_bufferTex');
+            p.u_horizontal   = gl.getUniformLocation(p.prog, 'u_horizontal');
+            p.u_texSize   = gl.getUniformLocation(p.prog, 'u_texSize');
+
+            R.prog_Bloom_Blur = p;
+        });
+
+        loadPostProgram('output', function(p){
+            
+            p.u_deferTex   = gl.getUniformLocation(p.prog, 'u_deferTex');
+            p.u_bloomTex   = gl.getUniformLocation(p.prog, 'u_bloomTex');
+            p.u_useBloom   = gl.getUniformLocation(p.prog, 'u_useBloom');
+
+            R.prog_output = p;
+        });
     };
 
     var loadDeferredProgram = function(name, callback) {
