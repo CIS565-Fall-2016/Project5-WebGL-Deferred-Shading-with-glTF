@@ -50,8 +50,7 @@ WebGL Deferred Shading
     
     | G-buffers | R | G | B | A |
     | --- | --- | --- | --- | --- |
-    | G-buffer 1 | nrm.x | nrm.y | unused | unused |
-    | G-buffer 2 | albedo.r | albedo.g | albedo.b | unused |
+    | G-buffer 1 | nrm.x | nrm.y | packedAlbedo | unused |
   
   ![](img/gbuffer_perf.png)
   
