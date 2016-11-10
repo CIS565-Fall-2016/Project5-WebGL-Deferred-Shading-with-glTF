@@ -166,32 +166,34 @@
 
         gl.disable(gl.SCISSOR_TEST);
 
-        if (cfg.toon == 1) {
+        if (cfg.toon) {
             renderFullScreenQuad(R.progEdges);
         }
 
 
-        gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_deferred.fbo2);
+        if (cfg.blur) {
+            gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_deferred.fbo2);
 
-        prog = R.progBlur;
-        gl.useProgram(prog.prog);
+            prog = R.progBlur;
+            gl.useProgram(prog.prog);
 
-        // set uniforms
-        gl.uniform1i(prog.u_color, 0); // TEXTURE0 accesses shades buffer
-        gl.uniformMatrix4fv(prog.u_prevScreen2World, false, R.screen2world.toArray());
-        var newScreen2World = new THREE.Matrix4().getInverse(state.cameraMat).toArray();
-        for (var i in R.screen2world.elements) {
-            R.screen2world.elements[i] += (newScreen2World[i] - R.screen2world.elements[i]) / 4000;
-            R.screen2world.elements[i] /= 2.0;
+            // set uniforms
+            gl.uniform1i(prog.u_color, 0); // TEXTURE0 accesses shades buffer
+            gl.uniformMatrix4fv(prog.u_prevScreen2World, false, R.screen2world.toArray());
+            var newScreen2World = new THREE.Matrix4().getInverse(state.cameraMat).toArray();
+            for (var i in R.screen2world.elements) {
+                R.screen2world.elements[i] += (newScreen2World[i] - R.screen2world.elements[i]) / 4000;
+                R.screen2world.elements[i] /= 2.0;
+            }
+            gl.uniformMatrix4fv(prog.u_newScreen2World, false, newScreen2World);
+            gl.uniformMatrix4fv(prog.u_world2Screen, false, state.cameraMat.toArray());
+
+            // bind textures
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex1); //
+
+            renderFullScreenQuad(prog);
         }
-        gl.uniformMatrix4fv(prog.u_newScreen2World, false, newScreen2World);
-        gl.uniformMatrix4fv(prog.u_world2Screen, false, state.cameraMat.toArray());
-
-        // bind textures
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex1); //
-
-        renderFullScreenQuad(prog);
 
         gl.disable(gl.BLEND);
 
@@ -231,7 +233,13 @@
         gl.activeTexture(gl.TEXTURE0);
 
         // Bind the TEXTURE_2D, R.pass_deferred.colorTex1 to the active texture unit
-        gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex2);
+        var buffer;
+        if (cfg.blur) {
+            buffer = R.pass_deferred.colorTex2;
+        } else {
+            buffer = R.pass_deferred.colorTex1;
+        }
+        gl.bindTexture(gl.TEXTURE_2D, buffer);
 
         // Configure the R.progPost1.u_color uniform to point at texture unit 0
         // gl.uniform1i(R.progPost1.u_color, 0);
