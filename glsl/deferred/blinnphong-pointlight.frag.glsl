@@ -58,7 +58,7 @@ void main()
 
     // TODO: perform lighting calculations
 	vec3 pos = recoverEyePos(depth);
-	vec3 nrm = vec3(gb0.xy, sqrt(1.0 - dot(gb0.xy, gb0.xy)));
+	vec3 nrm = vec3(gb0.xy, sqrt(max(0.0, 1.0 - dot(gb0.xy, gb0.xy))));
 	vec3 albedo = unpackRGBA(gb0.z).rgb;
 	float dist2Light = distance(pos, u_lightPos);
 	

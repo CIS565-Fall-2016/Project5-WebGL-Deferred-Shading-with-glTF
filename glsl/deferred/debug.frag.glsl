@@ -58,7 +58,7 @@ void main()
 	// TODO: Extract needed properties from the g-buffers into local variables
     // These definitions are suggested for starting out, but you will probably want to change them.
     vec3 pos = recoverEyePos(depth);     // World-space position
-    vec3 nrm = vec3(gb0.xy, sqrt(1.0 - dot(gb0.xy, gb0.xy)));  // Normals of the geometry as defined, without normal mapping
+    vec3 nrm = vec3(gb0.xy, sqrt(max(0.0, 1.0 - dot(gb0.xy, gb0.xy))));  // Normals of the geometry as defined, without normal mapping
 	vec3 colmap = unpackRGBA(gb0.z).rgb;
 	
     // TODO: uncomment
