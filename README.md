@@ -15,6 +15,8 @@ WebGL Deferred Shading
 
 ![](img/demo.gif)
 
+[Additional Video](https://youtu.be/Ue2dwt0cAYE)
+
 ### Basic Deferred Renderer
 
 This is a WebGL implementation of a deferred renderer. Some of the features I have included are Blinn-Phong shading, toon shading, and motion blur. The optimizations
@@ -112,7 +114,7 @@ improvement if using a bloom filter of size bigger than 16x16 (at least on my co
 The motion blur implementation was adapted from http://http.developer.nvidia.com/GPUGems3/gpugems3_ch27.html.
 
 Motion blur was added as a post-process effect. Similarly to bloom, its runtime degrades with number of pixels and not with number of lights/geometry. The basic algorithm is to use the position
-vector of the piece of geometry the fragment shader and translate it back into screen-space using the view-projection matrix of the __last frame__. Then, the pixel coordinate is subtracted from
+vector of the piece of geometry the fragment shader and translate it back into screen-space using the view-projection matrix of the __previous frame__. Then, the pixel coordinate is subtracted from
 the old pixel coordinate to get a velocity. Below is a still image of the velocity as the camera spins around the scene.
 
 ![](img/velocity.PNG)
@@ -129,3 +131,4 @@ Like bloom, this effect has <1ms render time per frame and therefore does not re
 * [webgl-debug](https://github.com/KhronosGroup/WebGLDeveloperTools) by Khronos Group Inc.
 * [glMatrix](https://github.com/toji/gl-matrix) by [@toji](https://github.com/toji) and contributors
 * [minimal-gltf-loader](https://github.com/shrekshao/minimal-gltf-loader) by [@shrekshao](https://github.com/shrekshao)
+* [Blur implementation](http://http.developer.nvidia.com/GPUGems3/gpugems3_ch27.html)
