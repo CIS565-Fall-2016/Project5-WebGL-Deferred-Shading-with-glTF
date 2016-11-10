@@ -12,7 +12,7 @@ uniform mat4 u_inverseCameraMat;
 uniform sampler2D u_depth;
 uniform float u_motionBlurScale;
 
-const int numMotionBlurSamples = 5;
+const int numMotionBlurSamples = 9;
 
 // varying vu coordinate
 varying vec2 v_uv;

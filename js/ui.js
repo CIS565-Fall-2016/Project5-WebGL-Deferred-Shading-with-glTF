@@ -21,7 +21,7 @@ var cfg;
         
         // motion Blur
         this.enableMotionBlur = false;
-        this.motionBlurScale = 1.0;
+        this.motionBlurScale = 0.5;
     };
 
     var init = function() {
@@ -60,7 +60,7 @@ var cfg;
         var effect_motin_blur = gui.addFolder('Motion Blur Effect');
         effect_motin_blur.open();
         effect_motin_blur.add(cfg, 'enableMotionBlur');
-        effect_motin_blur.add(cfg, 'motionBlurScale', 0.1, 5.0);
+        effect_motin_blur.add(cfg, 'motionBlurScale', 0.1, 1.5);
         
     };
 

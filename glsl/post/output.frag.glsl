@@ -34,7 +34,7 @@ void main() {
         // ramp color
         float deltaStep = 1.0 / float(u_rampLevel);
 
-        float intensity = dot(vec3(0.2, 0.7, 0.1), gl_FragColor.rgb);
+        float intensity = dot(vec3(0.2126, 0.7152, 0.0722), gl_FragColor.rgb);
         intensity = floor(intensity / deltaStep) * deltaStep;
         gl_FragColor = vec4(intensity * gl_FragColor.rgb, 1.0);
 
