@@ -18,6 +18,7 @@ uniform sampler2D u_edgeTex; // edge detection result from edge extraction pass
 // varying vu coordinate
 varying vec2 v_uv;
 
+// main function
 void main() {
 
     gl_FragColor = vec4(texture2D(u_deferTex, v_uv).rgb, 1.0);

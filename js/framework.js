@@ -8,7 +8,6 @@ var width, height;
     var models = [];
 
     var cameraMat = new THREE.Matrix4();
-
     var render = function() {
         camera.updateMatrixWorld();
         camera.matrixWorldInverse.getInverse(camera.matrixWorld);

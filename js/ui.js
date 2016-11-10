@@ -16,9 +16,12 @@ var cfg;
 
         // toon related
         this.enableToon = false;
-        this.rampLevel = 3;
-        this.edgeThreshold = 0.5;
-    
+        this.rampLevel = 2;
+        this.edgeThreshold = 0.2;
+        
+        // motion Blur
+        this.enableMotionBlur = false;
+        this.motionBlurScale = 0.5;
     };
 
     var init = function() {
@@ -40,17 +43,25 @@ var cfg;
         scissor_test.add(cfg, 'enableScissorTest');
 
         // TODO: add more effects toggles and parameters here
+        // bloom effect
         var effect_bloom = gui.addFolder('Bloom Effect');
         effect_bloom.open();
         effect_bloom.add(cfg, 'enableBloom');
         effect_bloom.add(cfg, 'bloomThreshold', 0, 1);
 
-        // TOON Shading
+        // toon Shading
         var effect_toon = gui.addFolder('Toon Shading Effect');
         effect_toon.open();
         effect_toon.add(cfg, 'enableToon');
-        effect_toon.add(cfg, 'rampLevel', 1, 16).step(1);
+        effect_toon.add(cfg, 'rampLevel', 1, 8).step(1);
         effect_toon.add(cfg, 'edgeThreshold', 0.1, 2.0);
+
+        // toon Shading
+        var effect_motin_blur = gui.addFolder('Motion Blur Effect');
+        effect_motin_blur.open();
+        effect_motin_blur.add(cfg, 'enableMotionBlur');
+        effect_motin_blur.add(cfg, 'motionBlurScale', 0.1, 2.0);
+        
     };
 
     window.handle_load.push(init);

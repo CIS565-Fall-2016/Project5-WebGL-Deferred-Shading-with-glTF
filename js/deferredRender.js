@@ -14,7 +14,8 @@
             !R.prog_Bloom_Brightness ||
             !R.prog_Bloom_Blur ||
             !R.prog_output || 
-            !R.prog_toon_edge_detector )) {
+            !R.prog_toon_edge_detector ||
+            !R.prog_motion_blur)) {
             console.log('waiting for programs to load...');
             return;
         }
@@ -53,11 +54,20 @@
             R.pass_deferred.render(state);
 
             // OPTIONAL TODO: call more postprocessing passes, if any
-            R.pass_post_bloom_brightness.render(state);
-            R.pass_post_bloom_blur.render(state);
-            R.pass_post_toon_edge_detector.render(state);
+            if(cfg.enableBloom) {
+                R.pass_post_bloom_brightness.render(state);
+                R.pass_post_bloom_blur.render(state);
+            }
+
+            if(cfg.enableToon) {
+                R.pass_post_toon_edge_detector.render(state);
+            }
+
+            // gather pass for bloom and toon
             R.pass_output.render(state);
 
+            // pass for motion blur
+            R.pass_post_motion_blur.render(state);
 
             //R.pass_post1.render(state);
         }
@@ -336,8 +346,6 @@
         gl.enable(gl.DEPTH_TEST);
     };
 
-
-
     // bloom combination pass
     R.pass_output.render = function(state){
         
@@ -345,7 +353,7 @@
         gl.disable(gl.DEPTH_TEST);
 
         gl.useProgram(R.prog_output.prog);
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_output.fbo);
 
         // color texture input
         gl.activeTexture(gl.TEXTURE0);
@@ -362,14 +370,60 @@
         gl.bindTexture(gl.TEXTURE_2D, R.pass_post_toon_edge_detector.edgeTex);
         gl.uniform1i(R.prog_output.u_edgeTex, 2);
 
+        // set unfirom control variables
         gl.uniform1i(R.prog_output.u_useBloom, cfg.enableBloom);
         gl.uniform1i(R.prog_output.u_useToon, cfg.enableToon);
         gl.uniform1i(R.prog_output.u_rampLevel, cfg.rampLevel);
         
         renderFullScreenQuad(R.prog_output);
+        
         gl.enable(gl.DEPTH_TEST);
 
     };
+
+
+    R.pass_post_motion_blur.render = function(state){
+        
+        // output prog
+        gl.disable(gl.DEPTH_TEST);
+
+        gl.useProgram(R.prog_motion_blur.prog);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        
+        // color texture input
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, R.pass_output.colorTex);
+        gl.uniform1i(R.prog_motion_blur.u_colorTex, 0);
+
+        // depth input
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, R.pass_copy.depthTex);
+        gl.uniform1i(R.prog_motion_blur.u_depth, 1);
+
+        gl.uniform1i(R.prog_motion_blur.u_enableMotionBlur, cfg.enableMotionBlur);
+        gl.uniform1f(R.prog_motion_blur.u_motionBlurScale, cfg.motionBlurScale);
+
+
+        // set motion blur matrix
+        if(R.prog_motion_blur.previousCameraMat == null)
+        {
+            R.prog_motion_blur.previousCameraMat = new THREE.Matrix4();
+            R.prog_motion_blur.previousCameraMat.copy(state.cameraMat);
+        }
+        var m = R.prog_motion_blur.previousCameraMat.elements;
+        gl.uniformMatrix4fv(R.prog_motion_blur.u_previousCameraMat, false, m);
+
+        R.prog_motion_blur.inverseCameraMat.getInverse(state.cameraMat);
+        m = R.prog_motion_blur.inverseCameraMat.elements;
+        gl.uniformMatrix4fv(R.prog_motion_blur.u_inverseCameraMat, false, m);
+
+        R.prog_motion_blur.previousCameraMat.copy(state.cameraMat);
+
+        renderFullScreenQuad(R.prog_motion_blur);
+        
+        gl.enable(gl.DEPTH_TEST);
+    };
+
 
     var renderFullScreenQuad = (function() {
         // The variables in this function are private to the implementation of

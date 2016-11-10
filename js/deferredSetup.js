@@ -8,8 +8,9 @@
     R.pass_post1 = {};
     R.pass_post_bloom_brightness = {};
     R.pass_post_bloom_blur = {};
-    R.pass_output = {};
+    R.pass_output = {}; // gather bloom and toon
     R.pass_post_toon_edge_detector = {};
+    R.pass_post_motion_blur = {};
 
     R.lights = [];
 
@@ -31,6 +32,8 @@
         // toon shader related
         R.pass_post_toon_edge_detector.setup();
 
+        // output setup
+        R.pass_output.setup();
     };
 
     // TODO: Edit if you want to change the light initial positions
@@ -145,7 +148,16 @@
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     };
 
+    R.pass_output.setup = function() {
 
+        R.pass_output.fbo = gl.createFramebuffer();
+        R.pass_output.colorTex = createAndBindColorTargetTexture(
+            R.pass_output.fbo, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+
+        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    };
 
     /**
      * Loads all of the shader programs used in the pipeline.
@@ -246,6 +258,21 @@
             p.u_edgeThreshold = gl.getUniformLocation(p.prog, 'u_edgeThreshold');
 
             R.prog_toon_edge_detector = p;
+        });
+
+        loadPostProgram('motion_blur', function(p) {
+
+            p.u_colorTex = gl.getUniformLocation(p.prog, 'u_colorTex');
+            p.u_enableMotionBlur = gl.getUniformLocation(p.prog, 'u_enableMotionBlur');
+            p.u_previousCameraMat = gl.getUniformLocation(p.prog, 'u_previousCameraMat');
+            p.u_inverseCameraMat = gl.getUniformLocation(p.prog, 'u_inverseCameraMat');
+            p.u_depth = gl.getUniformLocation(p.prog, 'u_depth');
+            p.u_motionBlurScale = gl.getUniformLocation(p.prog, 'u_motionBlurScale');
+
+            p.previousCameraMat = null;
+            p.inverseCameraMat = new THREE.Matrix4();
+
+            R.prog_motion_blur = p;
         });
     };
 
