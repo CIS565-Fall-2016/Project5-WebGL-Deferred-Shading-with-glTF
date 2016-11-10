@@ -136,6 +136,23 @@ window.drawReadyModel = function(m) {
     }
 };
 
+window.readySphereProxy = function(prog, m)
+{
+	gl.useProgram(prog.prog);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, m.position);
+    
+    gl.enableVertexAttribArray(prog.a_position);
+    gl.vertexAttribPointer(prog.a_position, 3, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, m.idx);
+};
+
+window.drawSphereProxy = function(m)
+{
+	gl.drawElements(gl.TRIANGLES, m.elemCount, gl.UNSIGNED_INT, 0);
+};
+
 window.getScissorForLight = (function() {
     // Pre-allocate for performance - avoids additional allocation
     var a = new THREE.Vector4(0, 0, 0, 0);
@@ -189,8 +206,8 @@ window.getScissorForLight = (function() {
 
         ret[0] = Math.round(width * minpt.x);
         ret[1] = Math.round(height * minpt.y);
-        ret[2] = Math.round(width * (maxpt.x - minpt.x));
-        ret[3] = Math.round(height * (maxpt.y - minpt.y));
+        ret[2] = Math.max(0, Math.round(width * (maxpt.x - minpt.x)));
+        ret[3] = Math.max(0, Math.round(height * (maxpt.y - minpt.y)));
         return ret;
     };
 })();

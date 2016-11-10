@@ -67,7 +67,7 @@ var width, height;
 
     var init = function() {
         // TODO: For performance measurements, disable debug mode!
-        var debugMode = true;
+        var debugMode = false;
 
         canvas = document.getElementById('canvas');
         renderer = new THREE.WebGLRenderer({
@@ -115,7 +115,7 @@ var width, height;
         controls.panSpeed = 2.0;
 
         // Add sphere geometry to the scene so it gets initialized
-        var sph = new THREE.Mesh(new THREE.SphereGeometry(1, 8, 6));
+        var sph = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 12));
         scene.add(sph);
         renderer.render(scene, camera);
         uploadModel(sph, function(m) {

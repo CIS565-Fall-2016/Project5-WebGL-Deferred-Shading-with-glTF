@@ -7,7 +7,11 @@ var cfg;
         // TODO: Define config fields and defaults here
         this.debugView = -1;
         this.debugScissor = false;
-        this.enableEffect0 = false;
+		this.sphereProxy = true;
+        this.enableBloom = true;
+		this.bloomThreshold = 0.2;
+		this.enableMotionBlur = true;
+		this.motionBlurScale = 0.5;
     };
 
     var init = function() {
@@ -19,17 +23,26 @@ var cfg;
             'None':             -1,
             '0 Depth':           0,
             '1 Position':        1,
-            '2 Geometry normal': 2,
+            '2 Surface normal':  2,
             '3 Color map':       3,
-            '4 Normal map':      4,
-            '5 Surface normal':  5
         });
         gui.add(cfg, 'debugScissor');
+		
+		gui.add(cfg, 'sphereProxy');
 
-        var eff0 = gui.addFolder('EFFECT NAME HERE');
-        eff0.open();
-        eff0.add(cfg, 'enableEffect0');
+        var eff = gui.addFolder('EFFECT NAME HERE');
+        eff.open();
+		
+		var eff0 = eff.addFolder('Bloom');
+        eff0.add(cfg, 'enableBloom');
         // TODO: add more effects toggles and parameters here
+		eff0.add(cfg, 'bloomThreshold', 0.0, 2.0);
+		eff0.open();
+		
+		var eff1 = eff.addFolder('Motion Blur');
+		eff1.add(cfg, 'enableMotionBlur');
+		eff1.add(cfg, 'motionBlurScale', 0.1, 2.0);
+		eff1.open();
     };
 
     window.handle_load.push(init);
