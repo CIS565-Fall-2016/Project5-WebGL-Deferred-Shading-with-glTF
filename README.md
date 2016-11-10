@@ -33,13 +33,29 @@ linearly in proportion to the number of lights added to the scene. That is, as t
 
 ![](img/blinn_perf.png)
 
-#### Scissor
+#### glScissor
+
+An easy and efficient optimization I implemented is using gl.scissor to define a bounding box in which each light's shader should be rasterized. Instead of rendering
+the entire screen quad for each light, a screen-space bounding box is calculated and WebGL renders the light within that bounding box. The performance improvement
+can be seen below:
+
+![](img/scissor_perf.png)
+
+Clearly, this is a large performance boost with a fairly simple implementation. In its best case, this can reduce the render time of a large number of small lights greatly.
+In its worst case, it simply renders the full-screen quad for each light, if the lights' radii are very large. Below is the debug view of the scissor boxes:
+
+![](img/scissor.PNG)
+
+![](img/scissor2.PNG)
 
 #### G-Buffer optimization
+
+Another optimization I added is the 
 4 g-buffers -> 3 g-buffers
 
 Before: 16-17ms per frame (scissor on)
 
+![](img/gbuffer_perf.png)
 
 ### Toon Shading
 
@@ -79,32 +95,30 @@ The bloom filter can be combined with the toon shader:
 
 ![](img/bloom_toon.PNG)
 
-The bloom post-process effect 
-
-Potential optimization
+The bloom post-process effect is interesting because it scales with the number of pixels and the size of the blur used in the shader. In fact, its render time is completely independent from
+the number of lights in the scene. The graph below is the same graph for rendering with and without the bloom effect. That is, the 16x16 filter adds <1ms of time to each frame. The spike at 
+1600 lights is not due to the bloom filter but rather the blinn-phong shading.
 
 ![](img/bloom_perf.png)
 
-Bloom
-16x16 ~ 16ms (100 lights)
-32x32 ~ 16ms
-64x64 ~ 50ms
-
-Bloom is independent on number of lights--depends on screen size/blur size
+An optimization I could have added to the bloom filter is seperable convolution, which would turn the shader from `d*d` time to `d` time, while requiring a seperate buffer. The basic algorithm
+is to first calculate the pixel averages on one axis and store them in the buffer. Then, calculate the pixel color averages from the buffer on the other axis. This would only show performance
+improvement if using a bloom filter of size bigger than 16x16 (at least on my computer). 32x32 took an average of `16ms` to render while 64x64 took `51ms`. 
 
 ### Motion Blur
-http://http.developer.nvidia.com/GPUGems3/gpugems3_ch27.html
 
+The motion blur implementation was adapted from http://http.developer.nvidia.com/GPUGems3/gpugems3_ch27.html.
 
-Concise overview write-up of the feature.
-Performance change due to adding the feature.
-If applicable, how do parameters (such as number of lights, etc.) affect performance? Show data with simple graphs.
-Show timing in milliseconds, not FPS.
-If you did something to accelerate the feature, what did you do and why?
-How might this feature be optimized beyond your current implementation?
+Motion blur was added as a post-process effect. Similarly to bloom, its runtime degrades with number of pixels and not with number of lights/geometry. The basic algorithm is to use the position
+vector of the piece of geometry the fragment shader and translate it back into screen-space using the view-projection matrix of the __last frame__. Then, the pixel coordinate is subtracted from
+the old pixel coordinate to get a velocity. Below is a still image of the velocity as the camera spins around the scene.
 
+![](img/velocity.PNG)
 
+This velocity is then used to sample texels in the color texture in that direction. In other words, the shader samples nearby texels in the direction of the velocity and averages them. This creates
+a screen-space blurring effect.
 
+Like bloom, this effect has <1ms render time per frame and therefore does not reduce the render time noticeably.
 
 ### Credits
 
