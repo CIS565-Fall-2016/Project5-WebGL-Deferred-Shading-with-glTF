@@ -48,7 +48,7 @@ void main() {
 
     vec2 v_uv_shifted = v_uv;
     for(int i = 1; i < NUM_SAMPLES; ++i) {
-        v_uv_shifted += velocity / float(NUM_SAMPLES);
+        v_uv_shifted += velocity / float(NUM_SAMPLES) / 10.0;
 
         // Sample the color buffer along the velocity vector.
         vec4 currentColor = texture2D(u_color, v_uv_shifted); // TODO: sample from somewhere else.

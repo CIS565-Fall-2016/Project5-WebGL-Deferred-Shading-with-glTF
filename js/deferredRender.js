@@ -190,7 +190,7 @@
 
             // bind textures
             gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex1); //
+            gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex1);
 
             renderFullScreenQuad(prog);
         }
