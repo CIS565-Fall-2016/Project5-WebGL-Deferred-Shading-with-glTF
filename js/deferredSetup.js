@@ -9,6 +9,7 @@
     R.pass_post2 = {};
     R.pass_postToon1 = {};
     R.pass_postToon2 = {};
+    R.pass_blur = {};
     R.lights = [];
 
     R.NUM_GBUFFERS = 4;
@@ -25,6 +26,7 @@
         R.pass_post2.setup();
         R.pass_postToon1.setup();
         R.pass_postToon2.setup();
+        R.pass_blur.setup();
     };
 
     // TODO: Edit if you want to change the light initial positions
@@ -32,7 +34,7 @@
     R.light_max = [14, 18, 6];
     R.light_dt = -0.03;
     R.LIGHT_RADIUS = 4.0;
-    R.NUM_LIGHTS = 20; // TODO: test with MORE lights!
+    R.NUM_LIGHTS = 100; // TODO: test with MORE lights!
     //R.NUM_LIGHTS = cfg.numberOfLights;
     var setupLights = function() {
         Math.seedrandom(0);
@@ -138,6 +140,15 @@
         abortIfFramebufferIncomplete(R.pass_postToon2.fbo);
         gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
     }
+
+    R.pass_blur.setup = function () {
+        R.pass_blur.fbo = gl.createFramebuffer();
+        R.pass_blur.colorTex = createAndBindColorTargetTexture(
+            R.pass_blur.fbo, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+        abortIfFramebufferIncomplete(R.pass_blur.fbo);
+        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+    }
+
     /**
      * Loads all of the shader programs used in the pipeline.
      */
@@ -224,6 +235,14 @@
             p.u_old_color = gl.getUniformLocation(p.prog, 'u_old_color');
             p.u_screen_inv = gl.getUniformLocation(p.prog, 'u_screen_inv');
             R.progPostToon2 = p;
+        });
+
+        loadPostProgram('blur', function (p) {
+            p.u_color = gl.getUniformLocation(p.prog, 'u_color');
+            p.u_prev = gl.getUniformLocation(p.prog, 'u_prev');
+            p.u_pos = gl.getUniformLocation(p.prog, 'u_pos');
+            R.progBlur = p;
+            console.log("load blur complete" + p.progBlur + "  " + p);
         });
 
         // TODO: If you add more passes, load and set up their shader programs.

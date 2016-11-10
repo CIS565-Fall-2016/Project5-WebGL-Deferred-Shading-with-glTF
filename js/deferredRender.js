@@ -1,6 +1,7 @@
 (function() {
     'use strict';
     // deferredSetup.js must be loaded first
+    var prevMat = null;
 
     R.deferredRender = function(state) {
         if (!aborted && (
@@ -13,8 +14,9 @@
             !R.progPost1 ||
             !R.progPost2 ||
             !R.progPostToon1 ||
-            !R.progPostToon2)) {
-            console.log('waiting for programs to load...');
+            !R.progPostToon2 ||
+            !R.progBlur)) {
+            console.log('waiting for programs to load... ' + R.progBlur + "   " + R.progPostToon2);
             return;
         }
 
@@ -48,9 +50,11 @@
             // * Deferred pass and postprocessing pass(es)
             // TODO: uncomment these
             R.pass_deferred.render(state);
+            //console.log("deferred render");
 
-            if (!cfg.bloom || !cfg.toon)
+            if (!cfg.bloom && !cfg.toon && !cfg.blur)
             {
+                //console.log("old render");
                 R.pass_post1.oldRender(state);
             }
             else if (cfg.bloom)
@@ -58,11 +62,19 @@
                 R.pass_post1.render(state);
                 R.pass_post2.render(state);
             }
-            else
+            else if (cfg.toon)
             {
                 R.pass_postToon1.render(state);
                 R.pass_postToon2.render(state);
             }
+            else if (cfg.blur)
+            {
+                //console.log("blur");
+                R.pass_blur.render(state);
+            }
+
+            //console.log("blusr state " + cfg.blur);
+
             // OPTIONAL TODO: call more postprocessing passes, if any
         }
     };
@@ -290,8 +302,7 @@
         renderFullScreenQuad(R.progPost1);
     };
 
-    R.pass_post2.render = function(state)
-    {
+    R.pass_post2.render = function (state) {
         // * Unbind any existing framebuffer (if there are no more passes)
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
@@ -323,7 +334,7 @@
         gl.uniform2f(R.progPost2.u_screen_inv, 1.0 / width, 1.0 / height);
         // * Render a fullscreen quad to perform shading on
         renderFullScreenQuad(R.progPost2);
-    }
+    };
 
     R.pass_postToon1.render = function (state) {
         // * Unbind any existing framebuffer (if there are no more passes)
@@ -386,7 +397,37 @@
         gl.uniform2f(R.progPostToon2.u_screen_inv, 1.0 / width, 1.0 / height);
         // * Render a fullscreen quad to perform shading on
         renderFullScreenQuad(R.progPostToon2);
-    }
+    };
+
+    R.pass_blur.render = function (state) {
+        // * Unbind any existing framebuffer (if there are no more passes)
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        // * Clear the framebuffer depth to 1.0
+        gl.clearDepth(1.0);
+        gl.clear(gl.DEPTH_BUFFER_BIT);
+        // * Bind the postprocessing shader program
+        gl.useProgram(R.progBlur.prog);
+
+        // * Bind the deferred pass's color output as a texture input
+        // Set gl.TEXTURE0 as the gl.activeTexture unit
+        // TODO: uncomment
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex);
+        gl.uniform1i(R.progBlur.u_color, 0);
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, R.pass_copy.gbufs[0]);
+        gl.uniform1i(R.progBlur.u_pos, 1);
+
+        if (R.prevMat == null)
+        {
+            R.prevMat = new Float32Array(state.cameraMat.elements);
+        }
+        gl.uniformMatrix4fv(R.progBlur.u_prev, false, R.prevMat);
+
+        renderFullScreenQuad(R.progBlur);
+
+        R.prevMat = new Float32Array(state.cameraMat.elements);
+    };
 
     var renderFullScreenQuad = (function() {
         // The variables in this function are private to the implementation of

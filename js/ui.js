@@ -11,6 +11,7 @@ var cfg;
         this.numberOfLights = 20;
         this.bloom = false;
         this.toon = false;
+        this.blur = false;
     };
 
     var init = function() {
@@ -40,6 +41,7 @@ var cfg;
         eff0.open();
         eff0.add(cfg, 'bloom');
         eff0.add(cfg, 'toon');
+        eff0.add(cfg, 'blur');
         // TODO: add more effects toggles and parameters here
     };
 

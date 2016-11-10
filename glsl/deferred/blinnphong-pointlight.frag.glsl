@@ -53,7 +53,7 @@ void main() {
 	float attenuation = max(0.0, u_lightRad - dist);
 	float lambertian = max(dot(lightDir, nor), 0.0);
 	float specAngle = max(dot(halfDir, nor), 0.0);
-	vec3 colLinear = specAngle * u_lightCol + col * u_lightCol * lambertian;
+	vec3 colLinear = 0.3 * specAngle * u_lightCol + 0.7 * col * u_lightCol * lambertian;
 	if (u_toon == 1)
 	{
 		float steps = 3.0;
@@ -61,7 +61,7 @@ void main() {
 		lambertian = ceil(lambertian * steps) / steps;
 		attenuation = ceil(attenuation * steps) / steps;
 
-		colLinear = specAngle * u_lightCol + col * u_lightCol * lambertian;
+		colLinear = 0.3 * specAngle * u_lightCol + 0.7 * col * u_lightCol * lambertian;
 
 		gl_FragColor = vec4(colLinear * attenuation, 1.0);
 	}
