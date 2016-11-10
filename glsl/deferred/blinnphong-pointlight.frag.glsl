@@ -2,7 +2,7 @@
 precision highp float;
 precision highp int;
 
-#define NUM_GBUFFERS 4
+#define NUM_GBUFFERS 3
 
 uniform vec3 u_cameraPos;
 uniform vec3 u_lightCol;
@@ -11,6 +11,7 @@ uniform float u_lightRad;
 
 uniform sampler2D u_gbufs[NUM_GBUFFERS];
 uniform sampler2D u_depth;
+
 
 varying vec2 v_uv;
 
@@ -27,13 +28,13 @@ void main() {
     vec4 gb0 = texture2D(u_gbufs[0], v_uv);
     vec4 gb1 = texture2D(u_gbufs[1], v_uv);
     vec4 gb2 = texture2D(u_gbufs[2], v_uv);
-    vec4 gb3 = texture2D(u_gbufs[3], v_uv);
+    //vec4 gb3 = texture2D(u_gbufs[3], v_uv);
     float depth = texture2D(u_depth, v_uv).x;
-    // TODO: Extract needed properties from the g-buffers into local variables
+    // Extract needed properties from the g-buffers into local variables
 
     vec3 pos = gb0.xyz;
     vec3 color = gb2.rgb;
-    vec3 normal = applyNormalMap(gb1.xyz, gb3.xyz);
+    vec3 normal = gb1.xyz;
 
     // If nothing was rendered to this pixel, set alpha to 0 so that the
     // postprocessing step can render the sky color.
@@ -55,6 +56,10 @@ void main() {
         vec3 halfDir = normalize(lightDir + viewDir);
         float specAngle = max(dot(halfDir, normal), 0.0);
         specular = pow(specAngle, 16.0);
+
+        // ramp
+        //NDotL = floor(NDotL / 0.2) * 0.2;
+        //specular = floor(specular / 0.2) * 0.2;
 
         vec3 tmpColor = (0.5 * NDotL * color + 0.5 * specular) * u_lightCol;
         //float att = (u_lightRad - dist) / u_lightRad;

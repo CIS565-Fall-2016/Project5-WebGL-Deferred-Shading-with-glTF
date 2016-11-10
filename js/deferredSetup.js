@@ -9,11 +9,12 @@
     R.pass_post_bloom_brightness = {};
     R.pass_post_bloom_blur = {};
     R.pass_output = {};
-    
+    R.pass_post_toon_edge_detector = {};
 
     R.lights = [];
 
-    R.NUM_GBUFFERS = 4;
+    //R.NUM_GBUFFERS = 4;
+    R.NUM_GBUFFERS = 3;
 
     /**
      * Set up the deferred pipeline framebuffer objects and textures.
@@ -27,6 +28,9 @@
         // bloom related
         R.pass_post_bloom_blur.setup();
 
+        // toon shader related
+        R.pass_post_toon_edge_detector.setup();
+
     };
 
     // TODO: Edit if you want to change the light initial positions
@@ -34,7 +38,7 @@
     R.light_max = [14, 18, 6];
     R.light_dt = -0.03;
     R.LIGHT_RADIUS = 4.0;  
-    R.NUM_LIGHTS = 25; // TODO: test with MORE lights!
+    R.NUM_LIGHTS = 60; // TODO: test with MORE lights!
     var setupLights = function() {
         Math.seedrandom(0);
 
@@ -113,7 +117,7 @@
         // pingpong buffer1 setup
         R.pass_post_bloom_blur.fbo1 = gl.createFramebuffer();
         R.pass_post_bloom_blur.bufferTex1 = createAndBindColorTargetTexture(
-        R.pass_post_bloom_blur.fbo1, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+            R.pass_post_bloom_blur.fbo1, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
 
         abortIfFramebufferIncomplete(R.pass_post_bloom_blur.fbo1);
         gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
@@ -128,6 +132,20 @@
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     };
+
+
+    R.pass_post_toon_edge_detector.setup = function() {
+
+        R.pass_post_toon_edge_detector.fbo = gl.createFramebuffer();
+        R.pass_post_toon_edge_detector.edgeTex = createAndBindColorTargetTexture(
+            R.pass_post_toon_edge_detector.fbo, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+
+        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    };
+
+
 
     /**
      * Loads all of the shader programs used in the pipeline.
@@ -193,6 +211,7 @@
         loadPostProgram('bloom_brightness', function(p){
 
             p.u_color   = gl.getUniformLocation(p.prog, 'u_color');
+            p.u_bloomThreshold = gl.getUniformLocation(p.prog, 'u_bloomThreshold');
 
             R.prog_Bloom_Brightness = p;
         });
@@ -209,10 +228,24 @@
         loadPostProgram('output', function(p){
             
             p.u_deferTex   = gl.getUniformLocation(p.prog, 'u_deferTex');
-            p.u_bloomTex   = gl.getUniformLocation(p.prog, 'u_bloomTex');
+            
             p.u_useBloom   = gl.getUniformLocation(p.prog, 'u_useBloom');
-
+            p.u_bloomTex   = gl.getUniformLocation(p.prog, 'u_bloomTex');
+           
+            p.u_useToon    = gl.getUniformLocation(p.prog, 'u_useToon');
+            p.u_rampLevel  = gl.getUniformLocation(p.prog, 'u_rampLevel');
+            p.u_edgeTex    = gl.getUniformLocation(p.prog, 'u_edgeTex');
+            
             R.prog_output = p;
+        });
+
+        loadPostProgram('toon_edge_detector', function(p) {
+
+            p.u_depthTex   = gl.getUniformLocation(p.prog, 'u_depthTex');
+            p.u_texSize    = gl.getUniformLocation(p.prog, 'u_texSize');
+            p.u_edgeThreshold = gl.getUniformLocation(p.prog, 'u_edgeThreshold');
+
+            R.prog_toon_edge_detector = p;
         });
     };
 

@@ -3,6 +3,7 @@ precision highp float;
 precision highp int;
 
 uniform sampler2D u_color;
+uniform float u_bloomThreshold;
 
 varying vec2 v_uv;
 
@@ -11,7 +12,7 @@ void main() {
 
     float brightness = dot(vec3(0.2126, 0.7152, 0.0722), color.rgb);
 
-    if(brightness > 0.7){
+    if(brightness > u_bloomThreshold){
         gl_FragColor = color;
     }
     else{

@@ -13,7 +13,8 @@
             !R.progPost1 || 
             !R.prog_Bloom_Brightness ||
             !R.prog_Bloom_Blur ||
-            !R.prog_output)) {
+            !R.prog_output || 
+            !R.prog_toon_edge_detector )) {
             console.log('waiting for programs to load...');
             return;
         }
@@ -54,6 +55,7 @@
             // OPTIONAL TODO: call more postprocessing passes, if any
             R.pass_post_bloom_brightness.render(state);
             R.pass_post_bloom_blur.render(state);
+            R.pass_post_toon_edge_detector.render(state);
             R.pass_output.render(state);
 
 
@@ -169,14 +171,19 @@
         // set camera postion
         gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_cameraPos, state.cameraPos.toArray());
 
-        gl.enable(gl.SCISSOR_TEST);
+        if(cfg.enableScissorTest)
+            gl.enable(gl.SCISSOR_TEST);
+
         for (var i = 0; i < R.lights.length; i++) {
             
-            var sc = getScissorForLight(state.viewMat, state.projMat, R.lights[i]);
+            var sc = null;
+            if(cfg.enableScissorTest)
+                sc = getScissorForLight(state.viewMat, state.projMat, R.lights[i]);
             
-            if(sc != null){
+            if(sc != null || !cfg.enableScissorTest){
 
-                gl.scissor(sc[0], sc[1], sc[2], sc[3]);
+                if(cfg.enableScissorTest)
+                    gl.scissor(sc[0], sc[1], sc[2], sc[3]);
 
                 gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_lightPos, R.lights[i].pos);
                 gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_lightCol, R.lights[i].col);
@@ -184,7 +191,7 @@
                         
                 renderFullScreenQuad(R.prog_BlinnPhong_PointLight);
 
-                if(cfg.debugScissor)
+                if(cfg.enableScissorTest && cfg.debugScissor)
                 {
                     gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
                     renderFullScreenQuad(R.progRed);
@@ -195,7 +202,8 @@
             }
 
         }
-        gl.disable(gl.SCISSOR_TEST);
+        if(cfg.enableScissorTest)
+            gl.disable(gl.SCISSOR_TEST);
 
         // Disable blending so that it doesn't affect other code
         gl.disable(gl.BLEND);
@@ -264,6 +272,7 @@
         gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex);
 
         gl.uniform1i(R.prog_Bloom_Brightness.u_color, 0);
+        gl.uniform1f(R.prog_Bloom_Brightness.u_bloomThreshold, cfg.bloomThreshold);
 
         // Render  brightness
         renderFullScreenQuad(R.prog_Bloom_Brightness);
@@ -304,6 +313,31 @@
         gl.enable(gl.DEPTH_TEST);
     };
 
+
+    R.pass_post_toon_edge_detector.render = function(state){
+
+        gl.disable(gl.DEPTH_TEST);
+
+        // use program , bind output fbo
+        gl.useProgram(R.prog_toon_edge_detector.prog);
+        gl.uniform2f(R.prog_toon_edge_detector.u_texSize, width, height);
+        gl.uniform1f(R.prog_toon_edge_detector.u_edgeThreshold, cfg.edgeThreshold);
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_post_toon_edge_detector.fbo);
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, R.pass_copy.depthTex);
+        gl.uniform1i(R.prog_toon_edge_detector.u_depthTex, 0);
+
+        
+
+        renderFullScreenQuad(R.prog_toon_edge_detector);
+
+        gl.enable(gl.DEPTH_TEST);
+    };
+
+
+
     // bloom combination pass
     R.pass_output.render = function(state){
         
@@ -313,16 +347,25 @@
         gl.useProgram(R.prog_output.prog);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
+        // color texture input
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex);
         gl.uniform1i(R.prog_output.u_deferTex, 0);
 
+        // bloom blur input 
         gl.activeTexture(gl.TEXTURE1);
         gl.bindTexture(gl.TEXTURE_2D, R.pass_post_bloom_blur.bufferTex1);
         gl.uniform1i(R.prog_output.u_bloomTex, 1);
 
-        gl.uniform1i(R.prog_output.u_useBloom, cfg.enableBloom);
+        // edge input
+        gl.activeTexture(gl.TEXTURE2);
+        gl.bindTexture(gl.TEXTURE_2D, R.pass_post_toon_edge_detector.edgeTex);
+        gl.uniform1i(R.prog_output.u_edgeTex, 2);
 
+        gl.uniform1i(R.prog_output.u_useBloom, cfg.enableBloom);
+        gl.uniform1i(R.prog_output.u_useToon, cfg.enableToon);
+        gl.uniform1i(R.prog_output.u_rampLevel, cfg.rampLevel);
+        
         renderFullScreenQuad(R.prog_output);
         gl.enable(gl.DEPTH_TEST);
 
