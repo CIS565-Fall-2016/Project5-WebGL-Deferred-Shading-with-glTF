@@ -12,6 +12,10 @@ void main() {
     const int num_samples = 20;
 
     vec4 color = texture2D(u_color, v_uv);
+    if (color.a == 0.0) {
+        gl_FragColor = vec4(0, 0, 0, 0);
+        return;
+    }
     vec4 curr_pos = vec4(v_uv, 0, 1);
     vec4 previous_pos = u_previousViewProjectionMatrix * vec4(texture2D(u_pos, v_uv).xyz, 1);
     previous_pos /= previous_pos.w;  
