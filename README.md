@@ -50,12 +50,14 @@ In its worst case, it simply renders the full-screen quad for each light, if the
 
 #### G-Buffer optimization
 
-Another optimization I added is the 
-4 g-buffers -> 3 g-buffers
-
-Before: 16-17ms per frame (scissor on)
+Another optimization I added is reducing the number of g-buffers from 4 to 3. I did this by removing the `w` value from position, geometry normal, and color, which freed up 3 bytes
+in which to fit the normal information from the normal map. Because of this, the data is 'packed' among the three buffers and some information is spread between the buffers. This is
+basically a "free" optimization because no (necessary) information is lost and the look-up time of each value is essentially the same. The performance benefit can be seen below:
 
 ![](img/gbuffer_perf.png)
+
+This clearly helps a lot since a large array of floats is no longer passed as a uniform to the lighting shaders. This optimization scales with the number of pixels because the 
+buffer size is equal to the number of pixels and the lighting calculations remain the same.
 
 ### Toon Shading
 
