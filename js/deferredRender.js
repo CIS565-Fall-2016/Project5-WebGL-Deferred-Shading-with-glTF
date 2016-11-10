@@ -52,7 +52,6 @@
         // TODO: uncomment
         gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_copy.fbo);
 
-
         // * Clear screen using R.progClear
         // TODO: uncomment
         renderFullScreenQuad(R.progClear);
@@ -83,7 +82,7 @@
         for (var i = 0; i < state.models.length; i++) {
             var m = state.models[i];
 
-            // If you want to render one model many times, note:
+            // If you want to render
             // readyModelForDraw only needs to be called once.
             readyModelForDraw(R.progCopy, m);
 
@@ -112,8 +111,8 @@
      */
 
     R.pass_deferred.render = function(state) {
-        // * Bind R.pass_deferred.fbo to write into for later postprocessing
-        gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_deferred.fbo);
+        // * Bind R.pass_deferred.fbo1 to write into for later postprocessing
+        gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_deferred.fbo1);
 
         // * Clear depth to 1.0 and color to black
         gl.clearColor(0.0, 0.0, 0.0, 0.0);
@@ -136,15 +135,16 @@
         renderFullScreenQuad(R.prog_Ambient);
 
         // * Bind/setup the Blinn-Phong pass, and render using fullscreen quad
-        bindTexturesForLightPass(R.prog_BlinnPhong_PointLight);
 
         // TODO: add a loop here, over the values in R.lights, which sets the
         //   uniforms R.prog_BlinnPhong_PointLight.u_lightPos/Col/Rad etc.,
         //   then does renderFullScreenQuad(R.prog_BlinnPhong_PointLight).
 
         gl.enable(gl.SCISSOR_TEST);
+
+        var prog = R.prog_BlinnPhong_PointLight;
+        bindTexturesForLightPass(prog);
         for (var i in R.lights) {
-            var prog = R.prog_BlinnPhong_PointLight;
             var light = R.lights[i];
 
             var sc = getScissorForLight(state.viewMat, state.projMat, light);
@@ -161,25 +161,48 @@
             if (cfg.debugScissor) {
                 renderFullScreenQuad(R.progRed);
             }
-            renderFullScreenQuad(R.prog_BlinnPhong_PointLight);
+            renderFullScreenQuad(prog);
         }
+
         gl.disable(gl.SCISSOR_TEST);
 
-        renderFullScreenQuad(R.progEdges);
-
-        // gl.uniformMatrix4fv(prog.u_view, state.viewMat);
-        // gl.uniformMatrix4fv(prog.u_proj, state.projMat);
-        // renderFullScreenQuad(R.progBlur);
-
-        // TODO: In the lighting loop, use the scissor test optimization
-        // Enable gl.SCISSOR_TEST, render all lights, then disable it.
-        //
-        // getScissorForLight returns null if the scissor is off the screen.
-        // Otherwise, it returns an array [xmin, ymin, width, height].
-        //
-
-        // Disable blending so that it doesn't affect other code
+        if (cfg.toon == 1) {
+            renderFullScreenQuad(R.progEdges);
+        }
         gl.disable(gl.BLEND);
+
+        prog = R.progBlur;
+        // equivalent to TEXTURE0[TEXTURE_2D] = colorTex1;
+
+        gl.useProgram(prog.prog);
+        gl.uniform1i(prog.u_color, 0); // TEXTURE0 accesses shades buffer
+        gl.uniformMatrix4fv(prog.u_prevTransform, false, R.screen2world.toArray());
+        var old = new THREE.Matrix4().copy(R.screen2world);
+
+        // var newScreen2world = new THREE.Matrix4().getInverse(state.cameraMat); // new screen pos -> view pos transformation
+        R.screen2world.getInverse(state.cameraMat); // new screen pos -> view pos transformation
+        gl.uniformMatrix4fv(prog.u_newTransform, false, R.screen2world.toArray());
+
+        var same = true;
+        for (var i = 0; i < 16; i++ ){
+            if (old.toArray()[i] != R.screen2world.toArray()[i]) {
+                same = false;
+                break;
+            }
+        }
+        if (!same) {
+            console.log(old);
+            console.log(R.screen2world);
+            console.log();
+        }
+
+        // bind textures
+        bindTexturesForLightPass(prog); // TODO: take out?
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex1); //
+        gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_deferred.fbo2);
+
+        renderFullScreenQuad(prog);
 
     };
 
@@ -210,19 +233,17 @@
         gl.clear(gl.DEPTH_BUFFER_BIT);
 
         // * Bind the postprocessing shader program
-        gl.useProgram(R.progPost1.prog);
+        // gl.useProgram(R.progPost1.prog);
 
         // * Bind the deferred pass's color output as a texture input
         // Set gl.TEXTURE0 as the gl.activeTexture unit
-        // TODO: uncomment
         gl.activeTexture(gl.TEXTURE0);
 
-        // Bind the TEXTURE_2D, R.pass_deferred.colorTex to the active texture unit
-        // TODO: uncomment
-        gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex);
+        // Bind the TEXTURE_2D, R.pass_deferred.colorTex1 to the active texture unit
+        gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex2);
 
         // Configure the R.progPost1.u_color uniform to point at texture unit 0
-        gl.uniform1i(R.progPost1.u_color, 0);
+        // gl.uniform1i(R.progPost1.u_color, 0);
 
         // * Render a fullscreen quad to perform shading on
         renderFullScreenQuad(R.progPost1);

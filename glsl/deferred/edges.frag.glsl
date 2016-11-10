@@ -4,10 +4,6 @@ precision highp int;
 
 #define NUM_GBUFFERS 3
 #define NUM_CEL_CUTS 7
-#define gb(i) (texture2D(u_gbufs[i], v_uv).xyz)
-#define round(n) (floor((n) + 0.5))
-#define color_at_offset(i, j) (texture2D(u_depth, v_uv + vec2(i, j) / vec2(width, height)))
-#define PRODUCT_AT_OFFSET(i, j, kernel) (dot(vec4(1), color_at_offset(i, j) * float(kernel[i][j])))
 
 uniform sampler2D u_gbufs[NUM_GBUFFERS];
 uniform sampler2D u_depth;
@@ -18,29 +14,26 @@ void main() {
     int width = 800;
     int height = 600;
 
-    mat2 gx = mat2(
-         1,  0,
-         0, -1
+    mat3 kernel = mat3(
+          1,   1,   1,
+          1,  -8,   1,
+          1,   1,   1
     );
 
-    mat2 gy = mat2(
-        0, -1,
-        1,  0
-    );
+    float conv = 0.0;
+    for (int i = -1; i <= 1; i++) {
+        for (int j = -1; j <= 1; j++) {
+            vec2 offset = vec2(i, j) / vec2(width, height);
+            vec4 depth_at_offset = texture2D(u_depth, v_uv + offset);
+            vec4 product_at_offset = depth_at_offset * float(kernel[i + 1][j + 1]);
+            float reduce_sum = dot(vec4(1), product_at_offset);
+            conv += reduce_sum;
+        }
+    }
 
-    float gx_conv = PRODUCT_AT_OFFSET(0, 0, gx) +
-                    PRODUCT_AT_OFFSET(0, 1, gx) +
-
-                    PRODUCT_AT_OFFSET(1, 0, gx) +
-                    PRODUCT_AT_OFFSET(1, 1, gx) ;
-
-    float gy_conv = PRODUCT_AT_OFFSET(0, 0, gy) +
-                    PRODUCT_AT_OFFSET(0, 1, gy) +
-
-                    PRODUCT_AT_OFFSET(1, 0, gy) +
-                    PRODUCT_AT_OFFSET(1, 1, gy) ;
-
-    if (gx_conv + gy_conv > 0.5) {
-       gl_FragColor = vec4(0, 0, 0, 1);
+    float depth = texture2D(u_depth, v_uv).x;
+    if (abs(conv) > 1.0 && depth < 1.0) {
+       gl_FragColor = vec4(1) * .065;
+       gl_FragColor.w = 1.0;
     }
 }

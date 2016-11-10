@@ -7,6 +7,7 @@
     R.pass_deferred = {};
     R.pass_post1 = {};
     R.lights = [];
+    R.screen2world = new THREE.Matrix4();
 
     R.NUM_GBUFFERS = 4;
 
@@ -84,13 +85,22 @@
      */
     R.pass_deferred.setup = function() {
         // * Create the FBO
-        R.pass_deferred.fbo = gl.createFramebuffer();
+        R.pass_deferred.fbo1 = gl.createFramebuffer();
         // * Create, bind, and store a single color target texture for the FBO
-        R.pass_deferred.colorTex = createAndBindColorTargetTexture(
-            R.pass_deferred.fbo, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+        R.pass_deferred.colorTex1 = createAndBindColorTargetTexture(
+            R.pass_deferred.fbo1, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
 
         // * Check for framebuffer errors
-        abortIfFramebufferIncomplete(R.pass_deferred.fbo);
+        abortIfFramebufferIncomplete(R.pass_deferred.fbo1);
+
+        R.pass_deferred.fbo2 = gl.createFramebuffer();
+        // * Create, bind, and store a single color target texture for the FBO
+        R.pass_deferred.colorTex2 = createAndBindColorTargetTexture(
+            R.pass_deferred.fbo2, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+
+        // * Check for framebuffer errors
+        abortIfFramebufferIncomplete(R.pass_deferred.fbo2);
+
         // * Tell the WEBGL_draw_buffers extension which FBO attachments are
         //   being used. (This extension allows for multiple render targets.)
         gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
@@ -161,10 +171,12 @@
         // TODO: If you add more passes, load and set up their shader programs.
         loadDeferredProgram('edges', function (p) {
             R.progEdges = p;
-        })
+        });
+
         loadDeferredProgram('blur', function (p) {
-            p.u_view = gl.getUniformLocation(p.prog, 'view');
-            p.u_proj = gl.getUniformLocation(p.prog, 'proj');
+            p.u_prevTransform = gl.getUniformLocation(p.prog, 'prevTransform');
+            p.u_newTransform = gl.getUniformLocation(p.prog, 'newTransform');
+            p.u_color    = gl.getUniformLocation(p.prog, 'u_color');
             R.progBlur = p;
         })
     };
@@ -181,6 +193,7 @@
                 for (var i = 0; i < R.NUM_GBUFFERS; i++) {
                     p.u_gbufs[i] = gl.getUniformLocation(prog, 'u_gbufs[' + i + ']');
                 }
+
                 p.u_depth    = gl.getUniformLocation(prog, 'u_depth');
                 p.a_position = gl.getAttribLocation(prog, 'a_position');
 

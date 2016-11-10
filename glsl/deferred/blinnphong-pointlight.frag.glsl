@@ -10,12 +10,16 @@ precision highp int;
 uniform vec3 u_lightCol;
 uniform vec3 u_lightPos;
 uniform vec3 u_camPos;
-uniform float u_lightRad;
+
 uniform sampler2D u_gbufs[NUM_GBUFFERS];
 uniform sampler2D u_depth;
+
+uniform float u_lightRad;
 uniform int u_toon;
 
 varying vec2 v_uv;
+
+const vec4 SKY_COLOR = vec4(0.01, 0.14, 0.42, 1.0);
 
 void main() {
     float depth = texture2D(u_depth, v_uv).x;
@@ -29,7 +33,7 @@ void main() {
     // If nothing was rendered to this pixel, set alpha to 0 so that the
     // postprocessing step can render the sky color.
     if (depth == 1.0) {
-        gl_FragColor = vec4(1, 1, 1, 0);
+        gl_FragColor = SKY_COLOR;
         return;
     }
 
@@ -46,8 +50,5 @@ void main() {
         shading = ROUND(shading * cuts) / cuts;
     }
 
-
-
     gl_FragColor = shading * vec4(colmap * u_lightCol, 1.0);
-    // HELP: not doing anything
 }

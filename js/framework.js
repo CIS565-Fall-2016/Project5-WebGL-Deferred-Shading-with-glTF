@@ -8,14 +8,12 @@ var width, height;
     var models = [];
 
     var cameraMat = new THREE.Matrix4();
-    var prevProjViewMatrixInverse = new THREE.Matrix4();
-
-    // from previous timestep: screen pos -> view pos
-    prevProjMatrixInverse.getInverse(cameraMat); //
+    var prevScreen2View = new THREE.Matrix4();
+    var screen2View = new THREE.Matrix4();
 
     var render = function() {
 
-        // camera -> world pos
+        // view pos -> world pos
         camera.updateMatrixWorld();
 
         // world pos -> view pos
@@ -29,7 +27,7 @@ var width, height;
             projMat: camera.projectionMatrix,
             viewMat: camera.matrixWorldInverse,
             cameraPos: camera.position,
-            models: models
+            models: models,
         });
     };
 

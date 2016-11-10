@@ -290,7 +290,7 @@ UI is accessible anywhere as `cfg.enableEffect0`, etc.
 
 **Pass 1:** Renders the scene geometry and its properties to the g-buffers.
 * `copy.vert.glsl`, `copy.frag.glsl`
-* The framebuffer object `pass_copy.fbo` must be bound during this pass.
+* The framebuffer object `pass_copy.fbo1` must be bound during this pass.
 * Renders into `pass_copy.depthTex` and `pass_copy.gbufs[i]`, which need to be
   attached to the framebuffer.
 
@@ -298,12 +298,12 @@ UI is accessible anywhere as `cfg.enableEffect0`, etc.
 * `quad.vert.glsl`, `deferred/blinnphong-pointlight.frag.glsl`
 * Takes the g-buffers `pass_copy.gbufs`/`depthTex` as texture inputs to the
   fragment shader, on uniforms `u_gbufs` and `u_depth`.
-* `pass_deferred.fbo` must be bound.
-* Renders into `pass_deferred.colorTex`.
+* `pass_deferred.fbo1` must be bound.
+* Renders into `pass_deferred.colorTex1`.
 
 **Pass 3:** Performs post-processing.
 * `quad.vert.glsl`, `post/one.frag.glsl`
-* Takes `pass_deferred.colorTex` as a texture input `u_color`.
+* Takes `pass_deferred.colorTex1` as a texture input `u_color`.
 * Renders directly to the screen if there are no additional passes.
 
 More passes may be added for additional effects (e.g. combining bloom with
