@@ -28,6 +28,8 @@ Motion blur subsamples pixels over time in the direction of their velocity. In o
 ## Scissor optimization
 Since light attenuates with distance in our model, at a certain distance, light ceases to have any effect on an area. Consequently our shader only scans pixels within the light radius of any given light, establishing a rectangle around the edges of the circle cast by the light radius. The original implementation simply took the cube circumscribing the light sphere and rendered pixels lying between the upper left corner of this cube and the lower right. In a few edge cases, however, the resulting rectangle failed to fully enclose the light halo. To correct the error, I iterated through all eight corners of the circumscribing cube to calculate the actual minima and maxima along the x and y axes.
 
+![](https://github.com/lobachevzky/Project5-WebGL-Deferred-Shading-with-glTF/blob/master/scissor.gif)
+
 ## G-buffer optimization
 In order to optimize memory usage in the g-buffer, I pre-calculated surface normals, combining texture normals with surface normals before adding them to the g-buffer. The naive method stores texture normals and surface normals separately and combines them in the fragment shader. My optimization combines them first and stores the result in the g-buffer. As a result the total time of the deferred render pass dropped from 36.6 ms to 29.4 ms.
 
