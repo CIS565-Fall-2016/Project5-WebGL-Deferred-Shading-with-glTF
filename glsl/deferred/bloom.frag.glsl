@@ -2,8 +2,8 @@
 precision highp float;
 precision highp int;
 
-#define sigma  15
-#define alpha  0.15
+#define sigma  10
+#define alpha  0.08
 #define cutoff 0.5
 
 uniform float u_width;

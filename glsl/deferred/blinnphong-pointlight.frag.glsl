@@ -101,7 +101,7 @@ void main() {
     vec3 camdir = normalize(u_camPos-pos);
     vec3 tmp = normalize(lightdir+camdir);
     float specularfact = dot(nor,tmp);
-    thiscolor += colmap * specularfact * attenuation * 0.25;
+    thiscolor += colmap * specularfact * attenuation * 0.05;
 
     gl_FragColor = vec4(thiscolor,1);
 
