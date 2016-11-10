@@ -3,9 +3,9 @@ WebGL Deferred Shading
 
 **University of Pennsylvania, CIS 565: GPU Programming and Architecture, Project 5**
 
-* (TODO) YOUR NAME HERE
-* Tested on: (TODO) **Google Chrome 222.2** on
-  Windows 22, i7-2222 @ 2.22GHz 22GB, GTX 222 222MB (Moore 2222 Lab)
+* Ottavio Hartman
+* Tested on: **Google Chrome 54.0.2840.71**
+  Windows 10, FX-8320 @ 3.50GHz 8GB, GTX 1060 3GB
 
 ### Live Online
 
@@ -13,16 +13,41 @@ WebGL Deferred Shading
 
 ### Demo GIF
 
-[![](img/demo.gif)]
+![](img/demo.gif)
 
 ### Basic Deferred Renderer
 
+This is a WebGL implementation of a deferred renderer. Some of the features I have included are Blinn-Phong shading, toon shading, and motion blur. The optimizations
+which make the renderer run smoothly include scissor rendering and reducing the number of g-buffers needed to render the scene. 
+
+The deferred renderer first renders the scene to 4 different textures, known as g-buffers. These textures hold the color, position, normal, and normal-map information
+for every fragment on the screen. By sampling these textures in a shader in a per-light loop, I use their information to implement Blinn-Phong shading very rapidly for
+hundreds of lights.
+
+Below is an image from the renderer calculating the shading from 400 lights.
+
+![](img/blinnphong.PNG)
+
+Because the algorithm loops over the number of lights in the scene, it gets slower as more lights are added. The analysis of the performance degredation as lights are 
+added can be found in the __optimization__ section.
+
 ### Toon Shading
+
+
 
 ### Bloom
 
 ### Motion Blur
 http://http.developer.nvidia.com/GPUGems3/gpugems3_ch27.html
+
+
+Concise overview write-up of the feature.
+Performance change due to adding the feature.
+If applicable, how do parameters (such as number of lights, etc.) affect performance? Show data with simple graphs.
+Show timing in milliseconds, not FPS.
+If you did something to accelerate the feature, what did you do and why?
+How might this feature be optimized beyond your current implementation?
+
 
 ### Optimization
 
