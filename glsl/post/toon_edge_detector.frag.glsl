@@ -54,10 +54,10 @@ void main() {
     float edgeRes = edgeX * edgeX + edgeY * edgeY ;
 
     if(edgeRes * 1000.0 > u_edgeThreshold) {
-        gl_FragColor = vec4(0.0, 0.0, 0.0, texture2D(u_depthTex, v_uv).x);
+        gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
     }
     else {
-        gl_FragColor = vec4(1.0, 1.0, 1.0, texture2D(u_depthTex, v_uv).x);
+        gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
     }
 
 }

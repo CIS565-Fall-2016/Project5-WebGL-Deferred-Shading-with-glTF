@@ -403,7 +403,6 @@
         gl.uniform1i(R.prog_motion_blur.u_enableMotionBlur, cfg.enableMotionBlur);
         gl.uniform1f(R.prog_motion_blur.u_motionBlurScale, cfg.motionBlurScale);
 
-
         // set motion blur matrix
         if(R.prog_motion_blur.previousCameraMat == null)
         {
@@ -417,10 +416,9 @@
         m = R.prog_motion_blur.inverseCameraMat.elements;
         gl.uniformMatrix4fv(R.prog_motion_blur.u_inverseCameraMat, false, m);
 
+        renderFullScreenQuad(R.prog_motion_blur);
         R.prog_motion_blur.previousCameraMat.copy(state.cameraMat);
 
-        renderFullScreenQuad(R.prog_motion_blur);
-        
         gl.enable(gl.DEPTH_TEST);
     };
 
