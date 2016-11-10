@@ -14,6 +14,10 @@ With toon |  No toon
 :-------------------------:|:-------------------------:  
 ![](img/toon.JPG) | ![](img/notoon.JPG) 
 
+With toon |  No toon 
+:-------------------------:|:-------------------------:  
+![](img/toon2.JPG) | ![](img/notoon2.JPG) 
+
 With Bloom |  With Bloom&lava
 :-------------------------:|:-------------------------:  
 ![](img/bloomnolava.JPG) | ![](img/bloomlava.JPG) 
