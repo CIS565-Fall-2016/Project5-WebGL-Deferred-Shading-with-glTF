@@ -96,6 +96,14 @@
         gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+
+        // + setup additional buffer for bloom
+         R.pass_deferred.fbo_bloom = gl.createFramebuffer();
+         R.pass_deferred.colorTex_bloom = createAndBindColorTargetTexture(
+             R.pass_deferred.fbo_bloom , gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+         abortIfFramebufferIncomplete(R.pass_deferred.fbo_bloom);    
+        //gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]); 
     };
 
     /**
@@ -187,6 +195,14 @@
         });
 
         // TODO: If you add more passes, load and set up their shader programs.
+        loadDeferredProgram('bloom', function(p) {
+            p.u_color    = gl.getUniformLocation(p.prog, 'u_color');
+            p.u_width    = gl.getUniformLocation(p.prog, 'u_width');
+            p.u_height    = gl.getUniformLocation(p.prog, 'u_height');
+            p.u_whichway = gl.getUniformLocation(p.prog, 'u_whichway');
+            // Save the object into this variable for access later
+            R.prog_Bloom = p;
+        });        
     };
 
     var loadDeferredProgram = function(name, callback) {

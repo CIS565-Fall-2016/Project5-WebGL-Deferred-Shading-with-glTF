@@ -12,7 +12,8 @@
             !R.prog_BlinnPhong_PointLight_Sphere ||
             !R.prog_Debug ||
             !R.progPost1) ||
-            !R.prog_Sphere_Red) {//+
+            !R.prog_Sphere_Red
+            |R.prog_Bloom) {//+
             console.log('waiting for programs to load...');
             return;
         }
@@ -139,7 +140,7 @@
         // TODO: uncomment
         gl.enable(gl.BLEND);
         gl.blendEquation(gl.FUNC_ADD);
-        if (cfg && cfg.debugScissor) {
+        if (cfg && cfg.debugScissorOrSphere) {
             gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);//DONE                 
         }
         else {
@@ -152,13 +153,18 @@
         renderFullScreenQuad(R.prog_Ambient);
 
         // * Bind/setup the Blinn-Phong pass, and render using fullscreen quad
-        if (cfg && cfg.enableSphere) {
-            bindTexturesForLightPass(R.prog_BlinnPhong_PointLight_Sphere);//+
+        var prog_render = R.prog_BlinnPhong_PointLight;
+        if (cfg.enableSphere){
+            prog_render = R.prog_BlinnPhong_PointLight_Sphere;
         }
-        else {
-            bindTexturesForLightPass(R.prog_BlinnPhong_PointLight);
-        }
-
+        
+        // if (cfg && cfg.enableSphere) {
+        //     bindTexturesForLightPass(R.prog_BlinnPhong_PointLight_Sphere);//+
+        // }
+        // else {
+        //     bindTexturesForLightPass(R.prog_BlinnPhong_PointLight);
+        // }
+        bindTexturesForLightPass(prog_render);
         //+
         // 
 
@@ -171,7 +177,7 @@
                 var sc = getScissorForLight(state.viewMat, state.projMat, curlight);
                 if (sc != null && sc[2] > 0 && sc[3] > 0) {
                     gl.scissor(sc[0], sc[1], sc[2], sc[3]);
-                    if (cfg.debugScissor) {
+                    if (cfg.debugScissorOrSphere) {
                         // gl.blendFunc(gl.SRC_ALPHA, 1-gl.SRC_ALPHA);//DONE
                         renderFullScreenQuad(R.progRed);
                     }
@@ -204,7 +210,7 @@
                 var light = R.lights[i];
                 var curlight = R.lights[i];
                 if (1) {
-                    if (cfg.debugScissor) {
+                    if (cfg.debugScissorOrSphere) {
                         var tmppos = curlight.pos.concat(curlight.rad);
                         readyModelForDraw(R.prog_Sphere_Red, R.sphereModel);
                         gl.uniformMatrix4fv(R.prog_Sphere_Red.u_cameraMat, false, state.cameraMat.elements);
@@ -231,8 +237,43 @@
             }
 
         }
+        //+ post bloom
+        if (cfg && cfg.enableBloom) {
+            if (cfg.enableBloomBang) {
+                gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+            }
+            else {
+                gl.blendFunc(gl.ONE, gl.ONE);
+            }
 
 
+            var prog = R.prog_Bloom;
+            gl.useProgram(prog.prog);
+            gl.activeTexture(gl['TEXTURE0']);   
+
+            
+            gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+            //gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_deferred.fbo);
+            gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_deferred.fbo_bloom);
+            gl.uniform1f(prog.u_width, width);
+            gl.uniform1f(prog.u_height,height);
+            gl.uniform1i(prog.u_color, 0);
+
+
+            gl.clearColor(0.0, 0.0, 0.0, 0.0); 
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            
+            gl.uniform1i(prog.u_whichway, 0);    
+            gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex); // first layer                       
+            renderFullScreenQuad(prog);
+            
+            //second layer 
+            gl.uniform1i(prog.u_whichway, 1);
+            //gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_deferred.fbo_bloom);
+            gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_deferred.fbo); 
+            gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex_bloom);           
+            renderFullScreenQuad(prog);            
+        }
         // TODO: see above; add a loop here, over the values in R.lights, which sets the
         //   uniforms R.prog_BlinnPhong_PointLight.u_lightPos/Col/Rad etc.,
         //   then does renderFullScreenQuad(R.prog_BlinnPhong_PointLight).

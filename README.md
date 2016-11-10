@@ -14,7 +14,13 @@ With toon |  No toon
 :-------------------------:|:-------------------------:  
 ![](img/toon.JPG) | ![](img/notoon.JPG) 
 
-![](img/scissordebug.JPG) 
+With Bloom |  With Bloom&lava
+:-------------------------:|:-------------------------:  
+![](img/bloomnolava.JPG) | ![](img/bloomlava.JPG) 
+
+With Scissor Debug |  With Sphere Debug
+:-------------------------:|:-------------------------:  
+![](img/scissordebug.JPG) | ![](img/spheredebug.JPG) 
 
 ### Live Online
 
