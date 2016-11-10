@@ -6,6 +6,7 @@
     R.pass_debug = {};
     R.pass_deferred = {};
     R.pass_post1 = {};
+    R.pass_post2 = {};
     R.lights = [];
 
     R.NUM_GBUFFERS = 4;
@@ -18,6 +19,8 @@
         loadAllShaderPrograms();
         R.pass_copy.setup();
         R.pass_deferred.setup();
+        R.pass_post1.setup();
+        R.pass_post2.setup();
     };
 
     // TODO: Edit if you want to change the light initial positions
@@ -99,6 +102,23 @@
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     };
 
+    R.pass_post1.setup = function()
+    {
+        R.pass_post1.fbo = gl.createFramebuffer();
+        R.pass_post1.colorTex = createAndBindColorTargetTexture(
+            R.pass_post1.fbo, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+        abortIfFramebufferIncomplete(R.pass_post1.fbo);
+        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+    }
+
+    R.pass_post2.setup = function () {
+        R.pass_post2.fbo = gl.createFramebuffer();
+        R.pass_post2.colorTex = createAndBindColorTargetTexture(
+            R.pass_post2.fbo, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+        abortIfFramebufferIncomplete(R.pass_post2.fbo);
+        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+    }
+
     /**
      * Loads all of the shader programs used in the pipeline.
      */
@@ -151,10 +171,24 @@
             R.prog_Debug = p;
         });
 
+        loadPostProgram('old', function (p) {
+            p.u_color = gl.getUniformLocation(p.prog, 'u_color');
+            // Save the object into this variable for access later
+            R.progPostOld = p;
+        });
+
         loadPostProgram('one', function(p) {
-            p.u_color    = gl.getUniformLocation(p.prog, 'u_color');
+            p.u_color = gl.getUniformLocation(p.prog, 'u_color');
+            p.u_screen_inv = gl.getUniformLocation(p.prog, 'u_screen_inv');
             // Save the object into this variable for access later
             R.progPost1 = p;
+        });
+
+        loadPostProgram('two', function (p) {
+            p.u_color = gl.getUniformLocation(p.prog, 'u_color');
+            p.u_old_color = gl.getUniformLocation(p.prog, 'u_old_color');
+            p.u_screen_inv = gl.getUniformLocation(p.prog, 'u_screen_inv');
+            R.progPost2 = p;
         });
 
         // TODO: If you add more passes, load and set up their shader programs.

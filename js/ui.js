@@ -9,6 +9,7 @@ var cfg;
         this.debugScissor = false;
         this.enableEffect0 = false;
         this.numberOfLights = 20;
+        this.bloom = false;
     };
 
     var init = function() {
@@ -34,9 +35,9 @@ var cfg;
             '100': 100
         });
 
-        var eff0 = gui.addFolder('EFFECT NAME HERE');
+        var eff0 = gui.addFolder('Effects');
         eff0.open();
-        eff0.add(cfg, 'enableEffect0');
+        eff0.add(cfg, 'bloom');
         // TODO: add more effects toggles and parameters here
     };
 

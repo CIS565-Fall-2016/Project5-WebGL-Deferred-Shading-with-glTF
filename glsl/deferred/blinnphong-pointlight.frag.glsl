@@ -10,6 +10,8 @@ uniform float u_lightRad;
 uniform sampler2D u_gbufs[NUM_GBUFFERS];
 uniform sampler2D u_depth;
 
+uniform int u_toon;
+
 varying vec2 v_uv;
 
 vec3 applyNormalMap(vec3 geomnor, vec3 normap) {
@@ -52,5 +54,17 @@ void main() {
 	float lambertian = max(dot(lightDir, nor), 0.0);
 	float specAngle = max(dot(halfDir, nor), 0.0);
 	vec3 colLinear = specAngle * u_lightCol + col * u_lightCol * lambertian;
-	gl_FragColor = vec4(colLinear * attenuation, 1.0);
+	if (u_toon == 1)
+	{
+		float steps = 3.0;
+		specAngle = ceil(specAngle * steps) / steps;
+		lambertian = ceil(lambertian * steps) / steps;
+		
+
+		gl_FragColor = vec4(colLinear * attenuation, 1.0);
+	}
+	else
+	{
+		gl_FragColor = vec4(colLinear * attenuation, 1.0);
+	}
 }
