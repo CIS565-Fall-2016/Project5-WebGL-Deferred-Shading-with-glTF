@@ -27,12 +27,14 @@ void main() {
     // this gives you the idea
     // gl_FragData[0] = vec4( v_position, 1.0 );
     vec4 colormap = texture2D(u_colmap,v_uv);
-    gl_FragData[0] = vec4(v_position,colormap);
+    gl_FragData[0] = vec4(v_position,colormap.x);
 
     vec3 normap = texture2D(u_normap,v_uv).rgb;  // The raw normal map (normals relative to the surface they're on)
     //vec3 nor = applyNormalMap (v_normal, normap);     // The true normals as we want to light them - with the normal map applied to the geometry normals (applyNormalMap above)
 
-    gl_FragData[1] =  vec4(v_normal, 1); 
-    gl_FragData[2] = colormap; 
-    gl_FragData[3] =  vec4(normap, 1); 
+    //gl_FragData[1] =  vec4(v_normal, 1); 
+    gl_FragData[1] =  vec4(v_normal, colormap.y); 
+    //gl_FragData[2] = colormap; 
+    //gl_FragData[3] =  vec4(normap, 1); 
+    gl_FragData[2] =  vec4(normap, colormap.z); 
 }

@@ -8,7 +8,7 @@
     R.pass_post1 = {};
     R.lights = [];
 
-    R.NUM_GBUFFERS = 4;
+    R.NUM_GBUFFERS = 3;//+4-->3
 
     /**
      * Set up the deferred pipeline framebuffer objects and textures.
@@ -23,7 +23,7 @@
     // TODO: Edit if you want to change the light initial positions
     R.light_min = [-14, 0, -6];
     R.light_max = [14, 18, 6];
-    R.light_dt = -0.01;
+    R.light_dt = -0.015;
     R.LIGHT_RADIUS = 4.0;
     R.NUM_LIGHTS = 200; // TODO: test with MORE lights!
     var setupLights = function() {
