@@ -169,40 +169,31 @@
         if (cfg.toon == 1) {
             renderFullScreenQuad(R.progEdges);
         }
-        gl.disable(gl.BLEND);
 
-        prog = R.progBlur;
-        // equivalent to TEXTURE0[TEXTURE_2D] = colorTex1;
 
-        gl.useProgram(prog.prog);
-        gl.uniform1i(prog.u_color, 0); // TEXTURE0 accesses shades buffer
-        gl.uniformMatrix4fv(prog.u_prevTransform, false, R.screen2world.toArray());
-        var old = new THREE.Matrix4().copy(R.screen2world);
-
-        // var newScreen2world = new THREE.Matrix4().getInverse(state.cameraMat); // new screen pos -> view pos transformation
-        R.screen2world.getInverse(state.cameraMat); // new screen pos -> view pos transformation
-        gl.uniformMatrix4fv(prog.u_newTransform, false, R.screen2world.toArray());
-
-        var same = true;
-        for (var i = 0; i < 16; i++ ){
-            if (old.toArray()[i] != R.screen2world.toArray()[i]) {
-                same = false;
-                break;
-            }
-        }
-        if (!same) {
-            console.log(old);
-            console.log(R.screen2world);
-            console.log();
-        }
-
-        // bind textures
-        bindTexturesForLightPass(prog); // TODO: take out?
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex1); //
         gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_deferred.fbo2);
 
+        prog = R.progBlur;
+        gl.useProgram(prog.prog);
+
+        // set uniforms
+        gl.uniform1i(prog.u_color, 0); // TEXTURE0 accesses shades buffer
+        gl.uniformMatrix4fv(prog.u_prevScreen2World, false, R.screen2world.toArray());
+        var newScreen2World = new THREE.Matrix4().getInverse(state.cameraMat).toArray();
+        for (var i in R.screen2world.elements) {
+            R.screen2world.elements[i] += (newScreen2World[i] - R.screen2world.elements[i]) / 4000;
+            R.screen2world.elements[i] /= 2.0;
+        }
+        gl.uniformMatrix4fv(prog.u_newScreen2World, false, newScreen2World);
+        gl.uniformMatrix4fv(prog.u_world2Screen, false, state.cameraMat.toArray());
+
+        // bind textures
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex1); //
+
         renderFullScreenQuad(prog);
+
+        gl.disable(gl.BLEND);
 
     };
 

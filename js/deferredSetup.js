@@ -174,8 +174,9 @@
         });
 
         loadDeferredProgram('blur', function (p) {
-            p.u_prevTransform = gl.getUniformLocation(p.prog, 'prevTransform');
-            p.u_newTransform = gl.getUniformLocation(p.prog, 'newTransform');
+            p.u_prevScreen2World = gl.getUniformLocation(p.prog, 'prevScreen2World');
+            p.u_newScreen2World = gl.getUniformLocation(p.prog, 'newScreen2World');
+            p.u_world2Screen = gl.getUniformLocation(p.prog, 'world2Screen');
             p.u_color    = gl.getUniformLocation(p.prog, 'u_color');
             R.progBlur = p;
         })
