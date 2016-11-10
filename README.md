@@ -11,20 +11,9 @@ WebGL Deferred Shading
 
 [![](img/thumb.png)](http://TODO.github.io/Project5B-WebGL-Deferred-Shading)
 
-### Demo Video/GIF
+### Demo GIF
 
-[![](img/video.png)](TODO)
-
-### (TODO: Your README)
-
-*DO NOT* leave the README to the last minute! It is a crucial part of the
-project, and we will not be able to grade you without a good README.
-
-This assignment has a considerable amount of performance analysis compared
-to implementation work. Complete the implementation early to leave time!
-
-
-    R.toon = true; 
+[![](img/demo.gif)]
 
 ### Basic Deferred Renderer
 
