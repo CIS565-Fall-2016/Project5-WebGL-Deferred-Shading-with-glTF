@@ -23,8 +23,16 @@ In this project, I have implemented the following features:
   * Using 2-component normals
   * Reducing the number of properties passed via g-buffer by applying the normal map in the `copy` shader pass instead of copying both geometry normals and normal maps.
 
-### Running the code
+### Performance Analysis
+![](img/ScissorTestPerf.JPG)
 
+From the graph above, we notice that:
+  1. Scissoring is a very optimization feature and scales well as the number of lights in the scene increases.
+  2. The Sphere scissoring is faster with fewer lights. This is mostly because while sphere proxies reduces the shaded area, they are overall more expensive to render than simple quads.
+
+I have also noticed that applying the normal map in the `copy` shader pass instead of copying both geometry normals and normal maps is much faster (around 150% because of reduced memory bandwidth necessary to perform the operation). Using 2-component normals however is slower because of the mathematical operations necessary to compress the normal and to retrieve their Z component from their X and Y ones. 
+
+### Running the code
 If you have Python, you should be able to run `server.py` to start a server.
 Then, open [`http://localhost:10565/`](http://localhost:10565/) in your browser.
 
@@ -36,16 +44,6 @@ Google Chrome seems to work best on all platforms. If you have problems running
 the starter code, use Chrome or Chromium, and make sure you have updated your
 browser and video drivers. Firefox's shader editor may require that you disable
 WebGL debugging in `framework.js` (see below).
-
-### Performance Analysis
-![](img/ScissorTestPerf.JPG)
-
-From the graph above, we notice that:
-  1. Scissoring is a very optimization feature and scales well as the number of lights in the scene increases.
-  2. The Sphere scissoring is faster with fewer lights. This is mostly because while sphere proxies reduces the shaded area, they are overall more expensive to render than simple quads.
-
-I have also noticed that applying the normal map in the `copy` shader pass instead of copying both geometry normals and normal maps is much faster (around 150% because of reduced memory bandwidth necessary to perform the operation). Using 2-component normals however is slower because of the mathematical operations necessary to compress the normal and to retrieve their Z component from their X and Y ones. 
-
 
 ### Credits
 
