@@ -2,7 +2,8 @@
 precision highp float;
 precision highp int;
 
-#define NUM_GBUFFERS 4
+//#define NUM_GBUFFERS 4
+#define NUM_GBUFFERS 3
 
 uniform vec3 u_lightCol;
 uniform vec3 u_lightPos;
@@ -26,15 +27,15 @@ void main() {
     vec4 gb0 = texture2D(u_gbufs[0], v_uv);
     vec4 gb1 = texture2D(u_gbufs[1], v_uv);
     vec4 gb2 = texture2D(u_gbufs[2], v_uv);
-    vec4 gb3 = texture2D(u_gbufs[3], v_uv);
+    //vec4 gb3 = texture2D(u_gbufs[3], v_uv);
     float depth = texture2D(u_depth, v_uv).x;
     // TODO: Extract needed properties from the g-buffers into local variables
 
 	vec3 pos = gb0.xyz;
-	vec3 geomNor = gb1.xyz;
+	//vec3 geomNor = gb1.xyz;
 	vec3 col = gb2.rgb;
-	vec3 nor = gb3.xyz;
-	vec3 nor_ = applyNormalMap(geomNor, nor);
+	//vec3 nor = gb3.xyz;
+	vec3 nor_ = gb1.xyz;//applyNormalMap(geomNor, nor);
 
 	float dist = distance(pos, u_lightPos);
 
@@ -51,8 +52,8 @@ void main() {
 	vec3 halfDir = normalize(lightDir + viewDir);
 
 	float attenuation = max(0.0, u_lightRad - dist);
-	float lambertian = max(dot(lightDir, nor), 0.0);
-	float specAngle = max(dot(halfDir, nor), 0.0);
+	float lambertian = max(dot(lightDir, nor_), 0.0);
+	float specAngle = max(dot(halfDir, nor_), 0.0);
 	vec3 colLinear = 0.3 * specAngle * u_lightCol + 0.7 * col * u_lightCol * lambertian;
 	if (u_toon == 1)
 	{
