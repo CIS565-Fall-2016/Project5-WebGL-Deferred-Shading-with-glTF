@@ -22,7 +22,7 @@ WebGL Deferred Shading
   * Bloom with 2-pass Gaussian filtering
   * SS Motion Blur
   * G-buffer optimization
-  * Spherical light proxies
+  * Spherical light proxies with depth test and front face culling optimization
 
 * Bloom
   * Extracting bright regions
