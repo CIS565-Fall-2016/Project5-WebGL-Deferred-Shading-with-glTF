@@ -13,7 +13,7 @@ WebGL Deferred Shading
 
 ### Demo Video/GIF
 
-[![](img/video.png)](TODO)
+![](img/demo.gif)
 
 ### Analysis
 
@@ -30,7 +30,7 @@ WebGL Deferred Shading
   * Blur the resulting brightness map
     * I used two 1D Gaussian kernels with size 1x9 and 9x1 respectively and convolve them with the brightness map 5 times each.
   
-  ![]()
+  ![](img/bloom_perf.png)
 
 * SS Motion Blur
   * Implemented by following the idea from GPU Gems 3, Ch. 27.
@@ -38,7 +38,7 @@ WebGL Deferred Shading
   * Transform the point from world to the NDC space in the previous frame by pre-multiplying it with the inverse of view-projection matrix from last frame
   * Velocity vector is defined as the difference between the point's positions in the current and last frame
   
-  ![]()
+  ![](img/motionblur_perf.png)
   
 * G-Buffer Optimization
   * G-buffer number reduced to 1 from 4 by
@@ -50,10 +50,9 @@ WebGL Deferred Shading
     
     | G-buffers | R | G | B | A |
     | --- | --- | --- | --- | --- |
-    | G-buffer 1 | nrm.x | nrm.y | unused | unused |
-    | G-buffer 2 | albedo.r | albedo.g | albedo.b | unused |
+    | G-buffer 1 | nrm.x | nrm.y | packedAlbedo | unused |
   
-  ![]()
+  ![](img/gbuffer_perf.png)
   
 * Spherical Light Proxies
   * Render spheres instead of a full screen quad with scissor test to trigger light computation
@@ -62,9 +61,9 @@ WebGL Deferred Shading
   
   | Scissors | Spherical Proxies |
   | --- | --- |
-  | ![]() | ![]() |
+  | ![](img/scissor.PNG) | ![](img/sphere_proxy.PNG) |
   
-  ![]()
+  ![](img/scissor_vs_proxy.png)
 
 ### Credits
 
