@@ -208,10 +208,12 @@
         });
         
         loadPostProgram('moblur', function(p) {
-        	p.u_cameraMat = gl.getUniformLocation(p.prog, 'u_cameraMat');
-        	p.u_color    = gl.getUniformLocation(p.prog, 'u_color');
-        	p.u_matdiff  = gl.getUniformLocation(p.prog, 'u_matdiff');
-        	p.u_gbufs    = gl.getUniformLocation(p.prog, 'u_gbufs');
+        	p.u_cameraMat     = gl.getUniformLocation(p.prog, 'u_cameraMat');
+        	p.u_color         = gl.getUniformLocation(p.prog, 'u_color');
+        	p.u_matdiff       = gl.getUniformLocation(p.prog, 'u_matdiff');
+        	p.u_cameraInverse = gl.getUniformLocation(p.prog, 'u_cameraInverse');
+        	p.u_lastCamMat    = gl.getUniformLocation(p.prog, 'u_lastCamMat');
+        	p.u_gbufs         = gl.getUniformLocation(p.prog, 'u_gbufs');
             // Save the object into this variable for access later
             R.progMoblur = p;
         });

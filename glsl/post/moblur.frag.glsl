@@ -29,13 +29,17 @@ uniform float resolution;
 uniform float radius;
 uniform vec2 dir;
 uniform int u_gauss;
+
 uniform mat4 u_matdiff;
 uniform mat4 u_cameraMat;
-
+uniform mat4 u_cameraInverse;
+uniform mat4 u_lastCamMat;
 
 uniform int u_debug;
 uniform sampler2D u_gbufs;
 uniform sampler2D u_depth;
+
+
 
 int i = 0;
 int j = 0;
@@ -49,7 +53,7 @@ void main() {
 	vec2 coord = v_uv;
 
 
-    vec4 gb0 = texture2D(u_gbufs, coord);
+    vec4 gb0 = u_lastCamMat*u_cameraInverse*texture2D(u_gbufs, coord);
 
 
 	float size = 1.0;

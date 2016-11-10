@@ -107,7 +107,7 @@
                 
                 gl.disable(gl.BLEND);
             }
-            R.lastCamPos = state.cameraMat;          
+            //R.lastCamPos = state.cameraMat;          
         }
         //R.lastCamPos = state.cameraMat;  
     };
@@ -474,36 +474,46 @@
         // TODO: uncomment
         
         gl.activeTexture(gl.TEXTURE2);
-        gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex);
+        //gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex);
         // TEST PASSES FOR POSITION STORING
         //bindTexturesForLightPass(R.progMoblur);
         //gl.bindTexture(gl.TEXTURE_2D, R.pass_moblur.gbufs);
         //gl.uniform1i(R.progMoblur.u_gbufs, 0);
         
-        gl.bindTexture(gl.TEXTURE_2D, R.pass_copy.gbufs[0]);
+        //gl.bindTexture(gl.TEXTURE_2D, R.pass_copy.gbufs[0]);
         //gl.uniform1i(R.progMoblur.u_texture, R.progBloom.u_texture);
         gl.uniform1i(R.progMoblur.u_gbufs, R.pass_copy.gbufs[0]);
         gl.uniformMatrix4fv(R.progMoblur.u_cameraMat, false, cameraMat.elements);
+        gl.uniformMatrix4fv(R.progMoblur.u_matdiff, false, matdiff.elements);
         
-        gl.activeTexture(gl.TEXTURE0);
+        var camInverse = new THREE.Matrix4();
+        camInverse = camInverse.getInverse(state.cameraMat);
+        gl.uniformMatrix4fv(R.progMoblur.u_cameraInverse, false, camInverse.elements);
+        gl.uniformMatrix4fv(R.progMoblur.u_lastCamMat, false, R.lastCamPos.elements);
+
+        
+        //gl.activeTexture(gl.TEXTURE0);
 
         // Bind the TEXTURE_2D, R.pass_deferred.colorTex to the active texture unit
         // TODO: uncomment
-        gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex);
+        //gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex);
 
         // Configure the R.progBloom.u_color uniform to point at texture unit 2
-        gl.uniform1i(R.progMoblur.u_color, 2);
+        //gl.uniform1i(R.progMoblur.u_color, 2);
         
         
         //console.log(matdiff);
         
-        gl.uniformMatrix4fv(R.progMoblur.u_matdiff, false, matdiff.elements);
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        
+        
+        //gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
         //console.log(gauss);
         //gl.uniform1i(R.progBloom.u_gauss, gauss);
         // * Render a fullscreen quad to perform shading on
         renderFullScreenQuad(R.progMoblur);
+        
+        R.lastCamPos = state.cameraMat;
     };
 
     var renderFullScreenQuad = (function() {
