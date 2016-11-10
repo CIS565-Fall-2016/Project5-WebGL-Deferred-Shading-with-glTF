@@ -7,6 +7,8 @@
     R.pass_deferred = {};
     R.pass_post1 = {};
     R.pass_post2 = {};
+    R.pass_postToon1 = {};
+    R.pass_postToon2 = {};
     R.lights = [];
 
     R.NUM_GBUFFERS = 4;
@@ -21,6 +23,8 @@
         R.pass_deferred.setup();
         R.pass_post1.setup();
         R.pass_post2.setup();
+        R.pass_postToon1.setup();
+        R.pass_postToon2.setup();
     };
 
     // TODO: Edit if you want to change the light initial positions
@@ -119,6 +123,21 @@
         gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
     }
 
+    R.pass_postToon1.setup = function () {
+        R.pass_postToon1.fbo = gl.createFramebuffer();
+        R.pass_postToon1.colorTex = createAndBindColorTargetTexture(
+            R.pass_postToon1.fbo, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+        abortIfFramebufferIncomplete(R.pass_postToon1.fbo);
+        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+    }
+
+    R.pass_postToon2.setup = function () {
+        R.pass_postToon2.fbo = gl.createFramebuffer();
+        R.pass_postToon2.colorTex = createAndBindColorTargetTexture(
+            R.pass_postToon2.fbo, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+        abortIfFramebufferIncomplete(R.pass_postToon2.fbo);
+        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+    }
     /**
      * Loads all of the shader programs used in the pipeline.
      */
@@ -162,6 +181,7 @@
             p.u_lightPos = gl.getUniformLocation(p.prog, 'u_lightPos');
             p.u_lightCol = gl.getUniformLocation(p.prog, 'u_lightCol');
             p.u_lightRad = gl.getUniformLocation(p.prog, 'u_lightRad');
+            p.u_toon = gl.getUniformLocation(p.prog, 'u_toon');
             R.prog_BlinnPhong_PointLight = p;
         });
 
@@ -189,6 +209,21 @@
             p.u_old_color = gl.getUniformLocation(p.prog, 'u_old_color');
             p.u_screen_inv = gl.getUniformLocation(p.prog, 'u_screen_inv');
             R.progPost2 = p;
+        });
+
+        loadPostProgram('toon1', function (p)
+        {
+            p.u_color = gl.getUniformLocation(p.prog, 'u_color');
+            p.u_screen_inv = gl.getUniformLocation(p.prog, 'u_screen_inv');
+            // Save the object into this variable for access later
+            R.progPostToon1 = p;
+        });
+
+        loadPostProgram('toon2', function (p) {
+            p.u_color = gl.getUniformLocation(p.prog, 'u_color');
+            p.u_old_color = gl.getUniformLocation(p.prog, 'u_old_color');
+            p.u_screen_inv = gl.getUniformLocation(p.prog, 'u_screen_inv');
+            R.progPostToon2 = p;
         });
 
         // TODO: If you add more passes, load and set up their shader programs.

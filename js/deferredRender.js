@@ -11,7 +11,9 @@
             !R.prog_BlinnPhong_PointLight ||
             !R.prog_Debug ||
             !R.progPost1 ||
-            !R.progPost2)) {
+            !R.progPost2 ||
+            !R.progPostToon1 ||
+            !R.progPostToon2)) {
             console.log('waiting for programs to load...');
             return;
         }
@@ -47,14 +49,19 @@
             // TODO: uncomment these
             R.pass_deferred.render(state);
 
-            if (!cfg.bloom)
+            if (!cfg.bloom || !cfg.toon)
             {
                 R.pass_post1.oldRender(state);
             }
-            else
+            else if (cfg.bloom)
             {
                 R.pass_post1.render(state);
                 R.pass_post2.render(state);
+            }
+            else
+            {
+                R.pass_postToon1.render(state);
+                R.pass_postToon2.render(state);
             }
             // OPTIONAL TODO: call more postprocessing passes, if any
         }
@@ -173,6 +180,7 @@
                 else continue;
             }
 
+            gl.uniform1i(R.prog_BlinnPhong_PointLight.u_toon, cfg.toon);
             gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_lightPos, light.pos);
             gl.uniform3fv(R.prog_BlinnPhong_PointLight.u_lightCol, light.col);
             gl.uniform1f(R.prog_BlinnPhong_PointLight.u_lightRad, light.rad);
@@ -277,7 +285,7 @@
         // Configure the R.progPost1.u_color uniform to point at texture unit 0
         gl.uniform1i(R.progPost1.u_color, 0);
         gl.uniform2f(R.progPost1.u_screen_inv, 1.0 / width, 1.0 / height);
-        console.log("inv: " + 1.0 / width + " " + 1.0 / height);
+        //console.log("inv: " + 1.0 / width + " " + 1.0 / height);
         // * Render a fullscreen quad to perform shading on
         renderFullScreenQuad(R.progPost1);
     };
@@ -315,6 +323,69 @@
         gl.uniform2f(R.progPost2.u_screen_inv, 1.0 / width, 1.0 / height);
         // * Render a fullscreen quad to perform shading on
         renderFullScreenQuad(R.progPost2);
+    }
+
+    R.pass_postToon1.render = function (state) {
+        // * Unbind any existing framebuffer (if there are no more passes)
+        gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_postToon1.fbo);
+        //gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+        // * Clear the framebuffer depth to 1.0
+        gl.clearDepth(1.0);
+        gl.clear(gl.DEPTH_BUFFER_BIT);
+
+        // * Bind the postprocessing shader program
+        gl.useProgram(R.progPostToon1.prog);
+
+        // * Bind the deferred pass's color output as a texture input
+        // Set gl.TEXTURE0 as the gl.activeTexture unit
+        // TODO: uncomment
+        gl.activeTexture(gl.TEXTURE0);
+
+        // Bind the TEXTURE_2D, R.pass_deferred.colorTex to the active texture unit
+        // TODO: uncomment
+        gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex);
+
+        // Configure the R.progPost1.u_color uniform to point at texture unit 0
+        gl.uniform1i(R.progPostToon1.u_color, 0);
+        gl.uniform2f(R.progPostToon1.u_screen_inv, 1.0 / width, 1.0 / height);
+        //console.log("inv: " + 1.0 / width + " " + 1.0 / height);
+        // * Render a fullscreen quad to perform shading on
+        renderFullScreenQuad(R.progPostToon1);
+    };
+
+    R.pass_postToon2.render = function (state) {
+        // * Unbind any existing framebuffer (if there are no more passes)
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+        // * Clear the framebuffer depth to 1.0
+        gl.clearDepth(1.0);
+        gl.clear(gl.DEPTH_BUFFER_BIT);
+
+        // * Bind the postprocessing shader program
+        gl.useProgram(R.progPostToon2.prog);
+
+        // * Bind the deferred pass's color output as a texture input
+        // Set gl.TEXTURE0 as the gl.activeTexture unit
+        // TODO: uncomment
+        gl.activeTexture(gl.TEXTURE0);
+
+        // Bind the TEXTURE_2D, R.pass_deferred.colorTex to the active texture unit
+        // TODO: uncomment
+        gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex);
+
+        // Configure the R.progPost1.u_color uniform to point at texture unit 0
+        gl.uniform1i(R.progPostToon2.u_old_color, 0);
+
+        gl.activeTexture(gl.TEXTURE1);
+
+        gl.bindTexture(gl.TEXTURE_2D, R.pass_postToon1.colorTex);
+
+        gl.uniform1i(R.progPostToon2.u_color, 1);
+
+        gl.uniform2f(R.progPostToon2.u_screen_inv, 1.0 / width, 1.0 / height);
+        // * Render a fullscreen quad to perform shading on
+        renderFullScreenQuad(R.progPostToon2);
     }
 
     var renderFullScreenQuad = (function() {

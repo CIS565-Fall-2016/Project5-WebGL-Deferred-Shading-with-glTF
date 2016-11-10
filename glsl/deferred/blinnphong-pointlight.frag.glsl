@@ -59,7 +59,9 @@ void main() {
 		float steps = 3.0;
 		specAngle = ceil(specAngle * steps) / steps;
 		lambertian = ceil(lambertian * steps) / steps;
-		
+		attenuation = ceil(attenuation * steps) / steps;
+
+		colLinear = specAngle * u_lightCol + col * u_lightCol * lambertian;
 
 		gl_FragColor = vec4(colLinear * attenuation, 1.0);
 	}

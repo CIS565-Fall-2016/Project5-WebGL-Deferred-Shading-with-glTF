@@ -10,6 +10,7 @@ var cfg;
         this.enableEffect0 = false;
         this.numberOfLights = 20;
         this.bloom = false;
+        this.toon = false;
     };
 
     var init = function() {
@@ -38,6 +39,7 @@ var cfg;
         var eff0 = gui.addFolder('Effects');
         eff0.open();
         eff0.add(cfg, 'bloom');
+        eff0.add(cfg, 'toon');
         // TODO: add more effects toggles and parameters here
     };
 
