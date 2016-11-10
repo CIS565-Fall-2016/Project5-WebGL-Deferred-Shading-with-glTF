@@ -247,7 +247,7 @@
         }
         var texTileLightIndicesWidth = nearestPow2(Math.ceil(Math.sqrt(tileLightIndices.length)));
         var texTileLightIndicesArea = texTileLightIndicesWidth * texTileLightIndicesWidth
-        var tileLightIndicesData = new Float32Array(texTileLightIndicesArea);
+        var tileLightIndicesData = new Uint8Array(texTileLightIndicesArea);
         // Copy over the grid array
         for (var i = 0; i < tileLightIndices.length; ++i) {
             tileLightIndicesData[i] = tileLightIndices[i];
@@ -415,7 +415,7 @@
             width,
             0,              // border
             gl.ALPHA,         // format
-            gl.FLOAT,       // type
+            gl.UNSIGNED_BYTE,       // type
             ints
             );
 

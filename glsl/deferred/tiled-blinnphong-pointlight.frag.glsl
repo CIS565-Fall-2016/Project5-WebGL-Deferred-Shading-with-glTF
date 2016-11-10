@@ -108,7 +108,8 @@ void main() {
             int offsetY = offset / u_tileLightIndicesTexWidth;
             int offsetX = u_tileLightIndicesTexWidth - (offsetY * u_tileLightIndicesTexWidth);
             vec2 tile_uv = vec2(float(offsetX) / float(u_tileLightIndicesTexWidth), float(offsetY) / float(u_tileLightIndicesTexWidth));
-            float lightId = texture2D(u_tileLightIndices, tile_uv).a;
+            
+            int lightId = int(texture2D(u_tileLightIndices, tile_uv).a);
             vec2 light_uv = vec2(float(lightId) / float(u_lightTexWidth), 0.0);
             vec3 lightPos = texture2D(u_lightPos, light_uv).rgb;
             vec3 lightCol = texture2D(u_lightCol, light_uv).rgb;
