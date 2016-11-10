@@ -36,11 +36,17 @@ Above shows the box of scissor test. We improve performance by only rendering th
 
 ## Effects
 
+### Basic
+
 ![](/img/basic.png)
+
+### Bloom
 
 ![](/img/bloom.png)
 
 (Due to the number of lights, the bloom effect is not that obvious... The lights now would seem to glow compared to the basic rendering)
+
+### Motion Blur
 
 ![](/img/blur.gif)
 
