@@ -115,7 +115,7 @@ var width, height;
         controls.panSpeed = 2.0;
 
         // Add sphere geometry to the scene so it gets initialized
-        var sph = new THREE.Mesh(new THREE.SphereGeometry(1, 8, 6));
+        var sph = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 12));
         scene.add(sph);
         renderer.render(scene, camera);
         uploadModel(sph, function(m) {
@@ -123,7 +123,7 @@ var width, height;
         });
 
         // var glTFURL = 'models/glTF-duck/duck.gltf';
-        var glTFURL = 'models/glTF-sponza-kai-fix/sponza.gltf';
+        var glTFURL = 'models/gltf-sponza-kai-fix/sponza.gltf';
         var glTFLoader = new MinimalGLTFLoader.glTFLoader(gl);
         glTFLoader.loadGLTF(glTFURL, function (glTF) {
             var curScene = glTF.scenes[glTF.defaultScene];
@@ -249,6 +249,8 @@ var width, height;
 
                         idx: indicesBuffer,
 
+                        interleaved: true,
+
                         attributes: vertexBuffer,
                         posInfo: {size: posInfo.size, type: posInfo.type, stride: posInfo.stride, offset: posInfo.offset},
                         norInfo: {size: norInfo.size, type: norInfo.type, stride: norInfo.stride, offset: norInfo.offset},
@@ -276,7 +278,7 @@ var width, height;
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
         R.deferredSetup();
-
+        //renderer.render(R.sphereModel, camera);
         requestAnimationFrame(update);
     };
 
@@ -325,9 +327,21 @@ var width, height;
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gidx);
             gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, idx, gl.STATIC_DRAW);
 
+            // var m = {
+            //     idx: gidx,
+            //     elemCount: idx.length,
+            //     position: gposition,
+            //     normal: gnormal,
+            //     uv: guv
+            // };
+
+            // adapt to new readyModelForDraw and drawReadyModel (glTF version)
             var m = {
                 idx: gidx,
                 elemCount: idx.length,
+
+                interleaved: false,
+
                 position: gposition,
                 normal: gnormal,
                 uv: guv

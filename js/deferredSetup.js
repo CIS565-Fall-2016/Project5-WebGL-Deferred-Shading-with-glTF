@@ -5,7 +5,8 @@
     R.pass_copy = {};
     R.pass_debug = {};
     R.pass_deferred = {};
-    R.pass_post1 = {};
+    R.pass_bloom = {};
+    R.pass_final = {};
     R.lights = [];
 
     R.NUM_GBUFFERS = 4;
@@ -18,6 +19,7 @@
         loadAllShaderPrograms();
         R.pass_copy.setup();
         R.pass_deferred.setup();
+        R.pass_bloom.setup();
     };
 
     // TODO: Edit if you want to change the light initial positions
@@ -25,7 +27,7 @@
     R.light_max = [14, 18, 6];
     R.light_dt = -0.03;
     R.LIGHT_RADIUS = 4.0;
-    R.NUM_LIGHTS = 20; // TODO: test with MORE lights!
+    R.NUM_LIGHTS = 10; // TODO: test with MORE lights!
     var setupLights = function() {
         Math.seedrandom(0);
 
@@ -99,6 +101,27 @@
     };
 
     /**
+     * Create/configure framebuffer of post bloom stage.
+     */
+    R.pass_bloom.setup = function() {
+
+        R.pass_bloom.bloomFbo = [gl.createFramebuffer(), gl.createFramebuffer()];
+        R.pass_bloom.bloomTex = [
+        createAndBindColorTargetTexture(
+            R.pass_bloom.bloomFbo[0], gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL),
+        createAndBindColorTargetTexture(
+            R.pass_bloom.bloomFbo[1], gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL)];
+        abortIfFramebufferIncomplete(R.pass_bloom.bloomFbo[0]);
+        abortIfFramebufferIncomplete(R.pass_bloom.bloomFbo[1]);
+
+        // * Tell the WEBGL_draw_buffers extension which FBO attachments are
+        //   being used. (This extension allows for multiple render targets.)
+        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    };
+
+    /**
      * Loads all of the shader programs used in the pipeline.
      */
     var loadAllShaderPrograms = function() {
@@ -119,10 +142,22 @@
                 R.progCopy = p;
             });
 
+        loadShaderProgram(gl, 'glsl/sphere.vert.glsl', 'glsl/red.frag.glsl',
+            function(prog) {
+                // Create an object to hold info about this shader program
+                var p = { prog: prog };
+                p.u_cameraMtx = gl.getUniformLocation(prog, 'u_cameraMtx');
+                p.u_worldMtx = gl.getUniformLocation(prog, 'u_worldMtx');
+                
+                R.progRedSphere = p;
+            });
+
         loadShaderProgram(gl, 'glsl/quad.vert.glsl', 'glsl/red.frag.glsl',
             function(prog) {
                 // Create an object to hold info about this shader program
-                R.progRed = { prog: prog };
+                var p = { prog: prog };
+                
+                R.progRedQuad = p;
             });
 
         loadShaderProgram(gl, 'glsl/quad.vert.glsl', 'glsl/clear.frag.glsl',
@@ -138,9 +173,10 @@
 
         loadDeferredProgram('blinnphong-pointlight', function(p) {
             // Save the object into this variable for access later
-            p.u_lightPos = gl.getUniformLocation(p.prog, 'u_lightPos');
-            p.u_lightCol = gl.getUniformLocation(p.prog, 'u_lightCol');
-            p.u_lightRad = gl.getUniformLocation(p.prog, 'u_lightRad');
+            p.u_cameraPos   = gl.getUniformLocation(p.prog, 'u_cameraPos');
+            p.u_lightPos    = gl.getUniformLocation(p.prog, 'u_lightPos');
+            p.u_lightCol    = gl.getUniformLocation(p.prog, 'u_lightCol');
+            p.u_lightRad    = gl.getUniformLocation(p.prog, 'u_lightRad');
             R.prog_BlinnPhong_PointLight = p;
         });
 
@@ -150,10 +186,25 @@
             R.prog_Debug = p;
         });
 
-        loadPostProgram('one', function(p) {
+        loadPostProgram('brightnessExtractor', function(p) {
             p.u_color    = gl.getUniformLocation(p.prog, 'u_color');
             // Save the object into this variable for access later
-            R.progPost1 = p;
+            R.prog_brightner = p;
+        });
+
+        loadPostProgram('gaussBlur', function(p) {
+            p.u_color       = gl.getUniformLocation(p.prog, 'u_color');
+            p.u_horizontal  = gl.getUniformLocation(p.prog, 'u_horizontal');
+            p.u_texelSize   = gl.getUniformLocation(p.prog, 'u_texelSize');
+            p.u_kernelWeights  = gl.getUniformLocation(p.prog, 'u_kernelWeights');
+            // Save the object into this variable for access later
+            R.prog_gaussBlur = p;
+        });
+
+        loadPostProgram('final', function(p) {
+            p.u_color    = gl.getUniformLocation(p.prog, 'u_color');
+            // Save the object into this variable for access later
+            R.prog_final = p;
         });
 
         // TODO: If you add more passes, load and set up their shader programs.
