@@ -6,6 +6,10 @@
     R.pass_debug = {};
     R.pass_deferred = {};
     R.pass_post1 = {};
+    R.pass_post2 = {};
+    R.pass_postToon1 = {};
+    R.pass_postToon2 = {};
+    R.pass_blur = {};
     R.lights = [];
 
     R.NUM_GBUFFERS = 4;
@@ -18,6 +22,11 @@
         loadAllShaderPrograms();
         R.pass_copy.setup();
         R.pass_deferred.setup();
+        R.pass_post1.setup();
+        R.pass_post2.setup();
+        R.pass_postToon1.setup();
+        R.pass_postToon2.setup();
+        R.pass_blur.setup();
     };
 
     // TODO: Edit if you want to change the light initial positions
@@ -25,7 +34,8 @@
     R.light_max = [14, 18, 6];
     R.light_dt = -0.03;
     R.LIGHT_RADIUS = 4.0;
-    R.NUM_LIGHTS = 20; // TODO: test with MORE lights!
+    R.NUM_LIGHTS = 400; // TODO: test with MORE lights!
+    //R.NUM_LIGHTS = cfg.numberOfLights;
     var setupLights = function() {
         Math.seedrandom(0);
 
@@ -98,6 +108,47 @@
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     };
 
+    R.pass_post1.setup = function()
+    {
+        R.pass_post1.fbo = gl.createFramebuffer();
+        R.pass_post1.colorTex = createAndBindColorTargetTexture(
+            R.pass_post1.fbo, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+        abortIfFramebufferIncomplete(R.pass_post1.fbo);
+        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+    }
+
+    R.pass_post2.setup = function () {
+        R.pass_post2.fbo = gl.createFramebuffer();
+        R.pass_post2.colorTex = createAndBindColorTargetTexture(
+            R.pass_post2.fbo, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+        abortIfFramebufferIncomplete(R.pass_post2.fbo);
+        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+    }
+
+    R.pass_postToon1.setup = function () {
+        R.pass_postToon1.fbo = gl.createFramebuffer();
+        R.pass_postToon1.colorTex = createAndBindColorTargetTexture(
+            R.pass_postToon1.fbo, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+        abortIfFramebufferIncomplete(R.pass_postToon1.fbo);
+        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+    }
+
+    R.pass_postToon2.setup = function () {
+        R.pass_postToon2.fbo = gl.createFramebuffer();
+        R.pass_postToon2.colorTex = createAndBindColorTargetTexture(
+            R.pass_postToon2.fbo, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+        abortIfFramebufferIncomplete(R.pass_postToon2.fbo);
+        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+    }
+
+    R.pass_blur.setup = function () {
+        R.pass_blur.fbo = gl.createFramebuffer();
+        R.pass_blur.colorTex = createAndBindColorTargetTexture(
+            R.pass_blur.fbo, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+        abortIfFramebufferIncomplete(R.pass_blur.fbo);
+        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+    }
+
     /**
      * Loads all of the shader programs used in the pipeline.
      */
@@ -141,6 +192,7 @@
             p.u_lightPos = gl.getUniformLocation(p.prog, 'u_lightPos');
             p.u_lightCol = gl.getUniformLocation(p.prog, 'u_lightCol');
             p.u_lightRad = gl.getUniformLocation(p.prog, 'u_lightRad');
+            p.u_toon = gl.getUniformLocation(p.prog, 'u_toon');
             R.prog_BlinnPhong_PointLight = p;
         });
 
@@ -150,10 +202,47 @@
             R.prog_Debug = p;
         });
 
+        loadPostProgram('old', function (p) {
+            p.u_color = gl.getUniformLocation(p.prog, 'u_color');
+            // Save the object into this variable for access later
+            R.progPostOld = p;
+        });
+
         loadPostProgram('one', function(p) {
-            p.u_color    = gl.getUniformLocation(p.prog, 'u_color');
+            p.u_color = gl.getUniformLocation(p.prog, 'u_color');
+            p.u_screen_inv = gl.getUniformLocation(p.prog, 'u_screen_inv');
             // Save the object into this variable for access later
             R.progPost1 = p;
+        });
+
+        loadPostProgram('two', function (p) {
+            p.u_color = gl.getUniformLocation(p.prog, 'u_color');
+            p.u_old_color = gl.getUniformLocation(p.prog, 'u_old_color');
+            p.u_screen_inv = gl.getUniformLocation(p.prog, 'u_screen_inv');
+            R.progPost2 = p;
+        });
+
+        loadPostProgram('toon1', function (p)
+        {
+            p.u_color = gl.getUniformLocation(p.prog, 'u_color');
+            p.u_screen_inv = gl.getUniformLocation(p.prog, 'u_screen_inv');
+            // Save the object into this variable for access later
+            R.progPostToon1 = p;
+        });
+
+        loadPostProgram('toon2', function (p) {
+            p.u_color = gl.getUniformLocation(p.prog, 'u_color');
+            p.u_old_color = gl.getUniformLocation(p.prog, 'u_old_color');
+            p.u_screen_inv = gl.getUniformLocation(p.prog, 'u_screen_inv');
+            R.progPostToon2 = p;
+        });
+
+        loadPostProgram('blur', function (p) {
+            p.u_color = gl.getUniformLocation(p.prog, 'u_color');
+            p.u_prev = gl.getUniformLocation(p.prog, 'u_prev');
+            p.u_pos = gl.getUniformLocation(p.prog, 'u_pos');
+            R.progBlur = p;
+            console.log("load blur complete" + p.progBlur + "  " + p);
         });
 
         // TODO: If you add more passes, load and set up their shader programs.

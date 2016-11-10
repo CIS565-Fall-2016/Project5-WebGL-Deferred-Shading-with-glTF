@@ -8,6 +8,10 @@ var cfg;
         this.debugView = -1;
         this.debugScissor = false;
         this.enableEffect0 = false;
+        this.numberOfLights = 20;
+        this.bloom = false;
+        this.toon = false;
+        this.blur = false;
     };
 
     var init = function() {
@@ -25,10 +29,19 @@ var cfg;
             '5 Surface normal':  5
         });
         gui.add(cfg, 'debugScissor');
+        gui.add(cfg, 'numberOfLights', {
+            '20': 20,
+            '40': 40,
+            '60': 60,
+            '80': 80,
+            '100': 100
+        });
 
-        var eff0 = gui.addFolder('EFFECT NAME HERE');
+        var eff0 = gui.addFolder('Effects');
         eff0.open();
-        eff0.add(cfg, 'enableEffect0');
+        eff0.add(cfg, 'bloom');
+        eff0.add(cfg, 'toon');
+        eff0.add(cfg, 'blur');
         // TODO: add more effects toggles and parameters here
     };
 
