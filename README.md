@@ -31,7 +31,15 @@ Below is an image from the renderer calculating the shading from 400 lights.
 Because the algorithm loops over the number of lights in the scene, it gets slower as more lights are added. The graph below shows how the render time increases 
 linearly in proportion to the number of lights added to the scene. That is, as the number of lights doubles, the render time also roughly doubles.
 
-![](img/binn_perf.png)
+![](img/blinn_perf.png)
+
+#### Scissor
+
+#### G-Buffer optimization
+4 g-buffers -> 3 g-buffers
+
+Before: 16-17ms per frame (scissor on)
+
 
 ### Toon Shading
 
@@ -56,11 +64,33 @@ of render time.
 
 ### Bloom
 
+The renderer includes a naive bloom implementation. I use the word "naive" because it samples from `d*d` pixels, where `d` is the width of the blur. This post-process effect
+was implemented by first passing lighting information along to the post-process shader. This was acheived by using the alpha channel of the color g-buffer to tell which parts
+of the image are brighter than other parts. Next, the shader simply loops over all of a pixel's neighbors and calculates the average color, using the alpha channel as a multiplier 
+of the color. The effect can be seen below:
+
 ![](img/bloom.PNG)
+
+Notice how the light bleeds into the dark areas of the image:
 
 ![](img/bloom_400.PNG)
 
+The bloom filter can be combined with the toon shader:
+
 ![](img/bloom_toon.PNG)
+
+The bloom post-process effect 
+
+Potential optimization
+
+![](img/bloom_perf.png)
+
+Bloom
+16x16 ~ 16ms (100 lights)
+32x32 ~ 16ms
+64x64 ~ 50ms
+
+Bloom is independent on number of lights--depends on screen size/blur size
 
 ### Motion Blur
 http://http.developer.nvidia.com/GPUGems3/gpugems3_ch27.html
@@ -74,21 +104,6 @@ If you did something to accelerate the feature, what did you do and why?
 How might this feature be optimized beyond your current implementation?
 
 
-### Optimization
-
-#### Scissor
-
-#### G-Buffer optimization
-4 g-buffers -> 3 g-buffers
-
-Before: 16-17ms per frame (scissor on)
-
-Bloom
-16x16 ~ 16ms (100 lights)
-32x32 ~ 16ms
-64x64 ~ 50ms
-
-Bloom is independent on number of lights--depends on screen size/blur size
 
 
 ### Credits
