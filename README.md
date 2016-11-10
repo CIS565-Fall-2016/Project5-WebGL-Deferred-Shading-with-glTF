@@ -28,14 +28,39 @@ Below is an image from the renderer calculating the shading from 400 lights.
 
 ![](img/blinnphong.PNG)
 
-Because the algorithm loops over the number of lights in the scene, it gets slower as more lights are added. The analysis of the performance degredation as lights are 
-added can be found in the __optimization__ section.
+Because the algorithm loops over the number of lights in the scene, it gets slower as more lights are added. The graph below shows how the render time increases 
+linearly in proportion to the number of lights added to the scene. That is, as the number of lights doubles, the render time also roughly doubles.
+
+![](img/binn_perf.png)
 
 ### Toon Shading
 
+Toon shading was added as a seperate shader. It does two things: clamps the lighting equations to a step function and renders black borders around objects in the scene.
+The lighting equation is straightforward, basically rounding the lambert value of each light to a value nearby. The black borders are rendered not in the vertex shader,
+which is how cel shading is usually done, but in the fragment shader. Each pixel samples its own depth from the depth buffer and then samples its neighbors to the left
+and right. Depending on the difference in depth value, the pixel may render itself as black in order to outline the edge of objects.
 
+This works OK in this scene, however it is not truly cel shading. This is because it does not distinguish between objects and edges, but rather differences in depth values
+among pixels. The base of the columns in the image below, for example, are not cel shaded properly because the shading is done in a fragment shader. The upside of this
+is that the calculation scales with the screen size and not with the number of vertices on screen. Therefore, this approach would be well-suited for applications which
+have a very large number of objects and vertics in the scene but need quick cel shading.
+
+![](img/toon_3.PNG)
+
+
+![](img/toon_4.PNG)
+
+The performance analysis of the toon shader proved to be underwhelming: every result was within 1% of the normal blinn-phong shader in terms of render time. This is because
+the toon shader is doing roughly the same number of lighting calculations. In addition, the black outline only adds two depth look-ups per pixel, which is easily within 1ms
+of render time. 
 
 ### Bloom
+
+![](img/bloom.PNG)
+
+![](img/bloom_400.PNG)
+
+![](img/bloom_toon.PNG)
 
 ### Motion Blur
 http://http.developer.nvidia.com/GPUGems3/gpugems3_ch27.html
