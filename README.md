@@ -7,11 +7,7 @@ WebGL Deferred Shading
 * Tested on: Google Chrome Version 54.0.2840.71 (64-bit)
   OS X Sierra, Intel Iris Pro 1536 MB
 
-### Live Online
-[![](img/thumb.png)](http://TODO.github.io/Project5B-WebGL-Deferred-Shading)
-
-### Demo Video/GIF
-[![](img/video.png)]
+![](https://github.com/lobachevzky/Project5-WebGL-Deferred-Shading-with-glTF/blob/master/vid2.gif)
 
 ### Summary
 For this project I implemented part of a deferred in WebGL. A deferred shader is a way to optimize shading in scenes with many lights. All geometries relevant to the fragment shading are calculated in a single pass and stored in a buffer (the g-buffer). Subsequently the fragment shader iterates through the lights in the scene and accesses the geometries in the buffer to color fragments lit by the light. In this project, I implemented the fragment shader, using the Blinn-Phong shading method, and two additional feature: toon shading and motion blur. I also made some additional adjustments to the scissor frame to ensure more accurate scissor clipping.
@@ -22,7 +18,7 @@ This shader uses the Blinn-Phong method. The brightness of an object is proporti
 ## Toon shading
 Toon shading discretizes light shading by bucketing shade levels into discrete buckets. In the simplest case -- two shade levels -- all cells lit above a certain threshold are shaded with the same amount of brightness and similarly for all cells lit below that threshold. My implementation of toon shading also uses an edge detector to outline edges. The edge detector applies a convolution over the depth associated with each pixel, picking out pixels adjacent to significant depth change and coloring these black.
 
-[![](img/video.png)]
+![](https://github.com/lobachevzky/Project5-WebGL-Deferred-Shading-with-glTF/blob/master/duck.gif)
 
 ## Motion blur
 Motion blur subsamples pixels over time in the direction of their velocity. In order to get the previous position of a pixel, I stored the screen-to-world transformation matrices for the previous turn. This transformation sends a point from screen space to world space. Using the previous turn's transformation matrix, I was able to calculate the points position in world space for the current and the previous turn and then calculate the difference between the two, yielding a velocity vector. I then subdivided this vector and subsampled pixels between the current and previous position. I noticed that the camera blur seemed to be a little jittery. In order to mitigate this, instead of storing a moving average of the previous frame's transformation matrix. This helped slightly, but I speculate that one flaw with this approach is that the inverse transformations from screen to world position tend to produce a lot of rounding errors. I suspect that a better looking, but less performant method would simply store the previous world position of each pixel from turn to turn. This would require storing a `vec4` for every pixel instead of simply storing a `mat4` as the current method does. That said, it might run faster since the blur mechanism would be spared some matrix inversions.
