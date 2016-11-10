@@ -10,7 +10,8 @@
             !R.prog_Ambient ||
             !R.prog_BlinnPhong_PointLight ||
             !R.prog_Debug ||
-            !R.progPost1)) {
+            !R.progPost1 ||
+            !R.progPost2)) {
             console.log('waiting for programs to load...');
             return;
         }
@@ -34,7 +35,7 @@
         //     renderFullScreenQuad(R.progRed);
         //     return;
         // }
-
+        
         R.pass_copy.render(state);
 
         if (cfg && cfg.debugView >= 0) {
@@ -45,8 +46,11 @@
             // * Deferred pass and postprocessing pass(es)
             // TODO: uncomment these
             R.pass_deferred.render(state);
-            R.pass_post1.render(state);
-
+            if (cfg.enableEffect1) {
+                R.pass_post1.render(state);
+            } else if (cfg.enableEffect2) {
+                R.pass_post2.render(state);
+            }
             // OPTIONAL TODO: call more postprocessing passes, if any
         }
     };
@@ -119,8 +123,12 @@
      */
     R.pass_deferred.render = function(state) {
         // * Bind R.pass_deferred.fbo to write into for later postprocessing
-        gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_deferred.fbo);
-
+        if (cfg.enableEffect1 || cfg.enableEffect2) {
+            gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_deferred.fbo);
+        }
+        else {
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        }
         // * Clear depth to 1.0 and color to black
         gl.clearColor(0.0, 0.0, 0.0, 0.0);
         gl.clearDepth(1.0);
@@ -244,6 +252,42 @@
 
         // * Render a fullscreen quad to perform shading on
         renderFullScreenQuad(R.progPost1);
+    };
+
+    R.pass_post2.render = function(state) {
+        // * Unbind any existing framebuffer (if there are no more passes)
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+        // * Clear the framebuffer depth to 1.0
+        gl.clearDepth(1.0);
+        gl.clear(gl.DEPTH_BUFFER_BIT);
+
+        // * Bind the postprocessing shader program
+        gl.useProgram(R.progPost2.prog);
+
+        // * Bind the deferred pass's color output as a texture input
+        // Set gl.TEXTURE0 as the gl.activeTexture unit
+        gl.activeTexture(gl.TEXTURE0);
+
+        // Bind the TEXTURE_2D, R.pass_deferred.colorTex to the active texture unit
+        gl.bindTexture(gl.TEXTURE_2D, R.pass_deferred.colorTex);
+
+        // Configure the R.progPost1.u_color uniform to point at texture unit 0
+        debugger;
+        if (R.previousViewProjectionMatrix == null) {
+            R.previousViewProjectionMatrix = state.cameraMat;
+        }
+        gl.uniform1i(R.progPost2.u_color, 0);
+        gl.uniformMatrix4fv(R.progPost2.u_previousViewProjectionMatrix, false, R.previousViewProjectionMatrix.elements);
+        
+        gl.activeTexture(gl['TEXTURE1']);
+        gl.bindTexture(gl.TEXTURE_2D, R.pass_copy.gbufs[0]);
+        gl.uniform1i(R.progPost2.u_pos, 1);
+        // LAST HERE - CHECK IF MATRIX IS THE SAME AS PREV
+        R.previousViewProjectionMatrix = state.cameraMat.clone();
+
+        // * Render a fullscreen quad to perform shading on
+        renderFullScreenQuad(R.progPost2);
     };
 
     var renderFullScreenQuad = (function() {

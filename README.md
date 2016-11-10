@@ -26,13 +26,31 @@ to implementation work. Complete the implementation early to leave time!
 
     R.toon = true; 
 
+### Basic Deferred Renderer
+
+### Toon Shading
+
+### Bloom
+
+### Motion Blur
+http://http.developer.nvidia.com/GPUGems3/gpugems3_ch27.html
 
 ### Optimization
-Scissor
 
+#### Scissor
+
+#### G-Buffer optimization
 4 g-buffers -> 3 g-buffers
 
 Before: 16-17ms per frame (scissor on)
+
+Bloom
+16x16 ~ 16ms (100 lights)
+32x32 ~ 16ms
+64x64 ~ 50ms
+
+Bloom is independent on number of lights--depends on screen size/blur size
+
 
 ### Credits
 

@@ -61,9 +61,8 @@ void main() {
         float specAngle = max(dot(halfDir, nor), 0.0);
         
         specular = pow(specAngle, 16.0);
-
     }
     float attenuation = max(0.0, u_lightRad - dist);
     attenuation /= u_lightRad;  
-    gl_FragColor = lambertian * vec4(colmap, lambertian) * attenuation * vec4(u_lightCol, 1.0) + specular * attenuation * vec4(u_lightCol, 1.0);
+    gl_FragColor = lambertian * vec4(colmap, specular) * attenuation * vec4(u_lightCol, 1.0) + specular * attenuation * vec4(u_lightCol, 1.0);
 }

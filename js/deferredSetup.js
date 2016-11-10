@@ -6,7 +6,9 @@
     R.pass_debug = {};
     R.pass_deferred = {};
     R.pass_post1 = {};
+    R.pass_post2 = {};
     R.lights = [];
+    R.previousViewProjectionMatrix = null;
 
     R.NUM_GBUFFERS = 3;
 
@@ -25,7 +27,7 @@
     R.light_max = [14, 18, 6];
     R.light_dt = -0.03;
     R.LIGHT_RADIUS = 4.0;
-    R.NUM_LIGHTS = 100; // TODO: test with MORE lights!
+    R.NUM_LIGHTS = 120; // TODO: test with MORE lights!
     var setupLights = function() {
         Math.seedrandom(0);
 
@@ -157,11 +159,20 @@
 
         loadPostProgram('one', function(p) {
             p.u_color    = gl.getUniformLocation(p.prog, 'u_color');
-            p.u_invScreenSize = gl.getUniformLocation(p.prog, 'invScreenSize');
+            p.u_invScreenSize = gl.getUniformLocation(p.prog, 'u_invScreenSize');
             // Save the object into this variable for access later
             R.progPost1 = p;
         });
 
+        loadPostProgram('two', function(p) {
+            p.u_color    = gl.getUniformLocation(p.prog, 'u_color');
+            p.u_pos = gl.getUniformLocation(p.prog, 'u_pos');
+            //p.u_invScreenSize = gl.getUniformLocation(p.prog, 'invScreenSize');
+            p.u_previousViewProjectionMatrix = gl.getUniformLocation(p.prog, 'u_previousViewProjectionMatrix');
+
+            // Save the object into this variable for access later
+            R.progPost2 = p;
+        });
         // TODO: If you add more passes, load and set up their shader programs.
     };
 
