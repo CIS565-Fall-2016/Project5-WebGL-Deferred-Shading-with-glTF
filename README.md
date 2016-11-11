@@ -27,6 +27,8 @@ For this project we used GLSL and WebGL to implement a deferred shading pipeline
 
 [![](img/scissor.gif) ] 
 
+[![](img/scissor2.gif) ] 
+
 
 
 Here is the comparison between toon shading and lambert light:
