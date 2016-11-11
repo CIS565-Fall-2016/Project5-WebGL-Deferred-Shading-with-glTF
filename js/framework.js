@@ -67,7 +67,7 @@ var width, height;
 
     var init = function() {
         // TODO: For performance measurements, disable debug mode!
-        var debugMode = true;
+        var debugMode = false;
 
         canvas = document.getElementById('canvas');
         renderer = new THREE.WebGLRenderer({
@@ -119,7 +119,7 @@ var width, height;
         scene.add(sph);
         renderer.render(scene, camera);
         uploadModel(sph, function(m) {
-            R.sphereModel = m;
+            R.sphereModel = m; 
         });
 
         // var glTFURL = 'models/glTF-duck/duck.gltf';

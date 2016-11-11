@@ -6,8 +6,11 @@ var cfg;
     var Cfg = function() {
         // TODO: Define config fields and defaults here
         this.debugView = -1;
-        this.debugScissor = false;
-        this.enableEffect0 = false;
+        this.debugScissorOrSphere = false; 
+        this.enableToon= false;
+        this.enableSphere=false;
+        this.enableBloom=false;
+        this.enableBloomBang=false;
     };
 
     var init = function() {
@@ -24,12 +27,15 @@ var cfg;
             '4 Normal map':      4,
             '5 Surface normal':  5
         });
-        gui.add(cfg, 'debugScissor');
+        gui.add(cfg, 'debugScissorOrSphere');
 
         var eff0 = gui.addFolder('EFFECT NAME HERE');
-        eff0.open();
-        eff0.add(cfg, 'enableEffect0');
+        eff0.open(); 
         // TODO: add more effects toggles and parameters here
+        eff0.add(cfg, 'enableToon');
+        eff0.add(cfg, 'enableSphere');
+        eff0.add(cfg, 'enableBloom');
+        eff0.add(cfg, 'enableBloomBang');
     };
 
     window.handle_load.push(init);
