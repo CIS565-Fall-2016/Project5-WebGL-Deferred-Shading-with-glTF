@@ -33,7 +33,7 @@ With Scissor Debug |  With Sphere Debug
 
 ### Live Online
 
-[![](img/thumb.png)](http://dengxianga.github.io/Project5B-WebGL-Deferred-Shading)
+[![](img/thumb.png)](http://dengxianga.github.io/Project5-WebGL-Deferred-Shading)
 
 ### Demo Video/GIF
 
