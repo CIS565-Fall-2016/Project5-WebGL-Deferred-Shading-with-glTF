@@ -26,7 +26,7 @@ With Scissor Debug |  With Sphere Debug
 :-------------------------:|:-------------------------:  
 ![](img/scissordebug.JPG) | ![](img/spheredebug.JPG) 
 
- 
+  
 
 ![](img/chart1.JPG) | ![](img/chart2.JPG) | ![](img/chart3.JPG)
 
