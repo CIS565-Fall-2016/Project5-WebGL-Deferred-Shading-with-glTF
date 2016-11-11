@@ -20,13 +20,13 @@ WebGL Deferred Shading
   * [x] Bloom using Gaussian blur, two-pass Gaussian blur separable convolution
   * [x] Toon shading 
   * [x] Screen-space motion blur
-* [x] Optimizations
+* [x] Optimization
   * [x] Scissor test debug view
   * [x] Reduce number of g-buffer
 
 ### GUIs and Control
 
-Features and optimizations can be toggled from GUIs as following:
+Features and optimization can be toggled from GUIs as following:
 
 * Debug
  * `debugView` select different g-buffers to render
@@ -59,7 +59,7 @@ Blinn-phong shading was implemented by ambient + specular + diffuse. Blinn-phong
 
 #### Bloom Effect 
 
-Two-pass Gaussian blur filter was applied to achieve bloom effect. First pass is along x-direction, and then second pass along y-direction. Ping-pong buffer is also applied for switching between x/y direction blurring. So two framebuffer objects are required during bloom pass. Two independent render textures are assigned to different framebuffer objects.
+Two-pass Gaussian blur filter was applied to achieve bloom effect. First pass is along x-direction, and then second pass along y-direction. Ping-pong buffer is also applied for switching between x/y direction blurring. So two frame-buffer objects are required during bloom pass. Two independent render textures are assigned to different frame-buffer objects.
 
 Screenshots for bloom effect:
 
@@ -74,7 +74,7 @@ with changing `bloomThreshold`.
 Toon shading consists of two steps: ramp color value and edge detection.
 
 Color ramping is achieved by stepping the color intensity with rampLevel parameters.
-Edge detection is implemented using gradient detection of depth texture. Same as computer vision's edge detection method. At last, results from two steps were composited together to achieve a toon shading.
+Edge detection is implemented using gradient detection of depth texture. Same as computer vision's edge detection method. At last, results from two steps were composited to achieve a toon shading.
 
 Screenshots for Toon Shading:
 
