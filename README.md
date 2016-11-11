@@ -6,9 +6,16 @@ WebGL Deferred Shading
 * Xiang Deng
 * Tested on:  Windows 10-Home, i7-6700U @ 2.6GHz 16GB, GTX 1060 6GB (Personal Computer)
 
+### Live Online
+
+[![](img/thumb.JPG)](https://dengxianga.github.io/Project5-WebGL-Deferred-Shading-with-glTF)
+
+### Demo Video/GIF
+
+[![](img/scissor.gif) ] 
 
 
-![](img/scissor.gif) 
+
 
 With toon |  No toon 
 :-------------------------:|:-------------------------:  
@@ -31,21 +38,6 @@ With Scissor Debug |  With Sphere Debug
 ![](img/chart1.JPG) | ![](img/chart2.JPG) | ![](img/chart3.JPG)
 
 
-### Live Online
-
-[![](img/thumb.JPG)](https://dengxianga.github.io/Project5-WebGL-Deferred-Shading-with-glTF)
-
-### Demo Video/GIF
-
-[![](img/video.png)](TODO)
-
-### (TODO: Your README)
-
-*DO NOT* leave the README to the last minute! It is a crucial part of the
-project, and we will not be able to grade you without a good README.
-
-This assignment has a considerable amount of performance analysis compared
-to implementation work. Complete the implementation early to leave time!
 
 
 ### Credits
