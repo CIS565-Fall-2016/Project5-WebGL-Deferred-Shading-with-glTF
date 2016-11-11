@@ -27,13 +27,13 @@ With Scissor Debug |  With Sphere Debug
 ![](img/scissordebug.JPG) | ![](img/spheredebug.JPG) 
 
  
-:-------------------------:|:-------------------------:  
-![](img/chart1.JPG) | ![](img/chart2.JPG) 
+
+![](img/chart1.JPG) | ![](img/chart2.JPG) | ![](img/chart3.JPG)
 
 
 ### Live Online
 
-[![](img/thumb.png)](http://TODO.github.io/Project5B-WebGL-Deferred-Shading)
+[![](img/thumb.png)](http://dengxianga.github.io/Project5B-WebGL-Deferred-Shading)
 
 ### Demo Video/GIF
 
