@@ -311,16 +311,6 @@
             var tileRow = Math.floor(t / R.TILE_DIM);
             var tileCol = Math.floor(t % R.TILE_DIM);
 
-            for (var i = 0; i < 100; ++i) {
-                if (i < lightCount) {
-                    var offset = lightOffset + i;
-                    var offsetY = Math.floor(offset / texTileLightIndicesWidth);
-                    var offsetX = offset - (offsetY * texTileLightIndicesWidth);
-                    var u = offsetX / texTileLightIndicesWidth;
-                    var v = offsetY / texTileLightIndicesWidth;
-                }
-            }
-
             // Scissor out the specific tile
             gl.scissor(tileCol * tileWidth, tileRow * tileHeight, tileWidth, tileHeight);
             renderFullScreenQuad(R.prog_Tiled_BlinnPhong_PointLight);
