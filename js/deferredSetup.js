@@ -5,9 +5,16 @@
     R.pass_copy = {};
     R.pass_debug = {};
     R.pass_deferred = {};
+    R.pass_tiled_deferred = {};
     R.pass_post1 = {};
+    R.pass_gaussian_blur = {};
+    R.pass_post_pixelated = {};
     R.lights = [];
+    R.tileLightCounts = [];
+    R.tileLightOffsets = [];
+    R.tileLightIndices = [];
 
+    R.TILE_DIM = 32; // This value can be changed for performance analysis
     R.NUM_GBUFFERS = 4;
 
     /**
@@ -15,9 +22,12 @@
      */
     R.deferredSetup = function() {
         setupLights();
+        setupTiles();
         loadAllShaderPrograms();
         R.pass_copy.setup();
         R.pass_deferred.setup();
+        R.pass_tiled_deferred.setup();
+        R.pass_gaussian_blur.setup();
     };
 
     // TODO: Edit if you want to change the light initial positions
@@ -25,7 +35,8 @@
     R.light_max = [14, 18, 6];
     R.light_dt = -0.03;
     R.LIGHT_RADIUS = 4.0;
-    R.NUM_LIGHTS = 20; // TODO: test with MORE lights!
+    R.NUM_LIGHTS = 100;
+    ; // TODO: test with MORE lights!
     var setupLights = function() {
         Math.seedrandom(0);
 
@@ -43,13 +54,20 @@
             R.lights.push({
                 pos: posfn(),
                 col: [
-                    1 + Math.random(),
-                    1 + Math.random(),
-                    1 + Math.random()],
+                    Math.random(),
+                    Math.random(),
+                    Math.random()],
                 rad: R.LIGHT_RADIUS
             });
         }
     };
+
+    var setupTiles = function() {
+        var tileCount = R.TILE_DIM * R.TILE_DIM;
+        for (var t = 0; t < tileCount; ++t) {
+            R.tileLightIndices.push([]);
+        }
+    }
 
     /**
      * Create/configure framebuffer between "copy" and "deferred" stages
@@ -85,18 +103,70 @@
     R.pass_deferred.setup = function() {
         // * Create the FBO
         R.pass_deferred.fbo = gl.createFramebuffer();
-        // * Create, bind, and store a single color target texture for the FBO
+        // * Create, bind, and store a single color target texture and a HDR texture for the FBO
         R.pass_deferred.colorTex = createAndBindColorTargetTexture(
             R.pass_deferred.fbo, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+        R.pass_deferred.hdrTex = createAndBindColorTargetTexture(
+            R.pass_deferred.fbo, gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL);
 
         // * Check for framebuffer errors
         abortIfFramebufferIncomplete(R.pass_deferred.fbo);
         // * Tell the WEBGL_draw_buffers extension which FBO attachments are
         //   being used. (This extension allows for multiple render targets.)
-        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+        gl_draw_buffers.drawBuffersWEBGL([
+            gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL,
+            gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL]
+            );
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     };
+
+    /**
+     * Create/configure framebuffer between "tiled deferred" and "post1" stages
+     */
+    R.pass_tiled_deferred.setup = function() {
+        // * Create the FBO
+        R.pass_tiled_deferred.fbo = gl.createFramebuffer();
+        // * Create, bind, and store a single color target texture and a HDR texture for the FBO
+        R.pass_tiled_deferred.colorTex = createAndBindColorTargetTexture(
+            R.pass_tiled_deferred.fbo, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+        R.pass_tiled_deferred.hdrTex = createAndBindColorTargetTexture(
+            R.pass_tiled_deferred.fbo, gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL);
+
+        // * Check for framebuffer errors
+        abortIfFramebufferIncomplete(R.pass_tiled_deferred.fbo);
+        // * Tell the WEBGL_draw_buffers extension which FBO attachments are
+        //   being used. (This extension allows for multiple render targets.)
+        gl_draw_buffers.drawBuffersWEBGL([
+            gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL,
+            gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL]
+            );
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    };
+
+    /**
+     * Create/configure framebuffer for bloom
+     */
+    R.pass_gaussian_blur.setup = function() {
+        // * Create the FBO
+        R.pass_gaussian_blur.ping_pong_buffers = [];
+        R.pass_gaussian_blur.blurTex = [];
+
+        for (var i = 0; i < 2; i++) {
+            R.pass_gaussian_blur.ping_pong_buffers.push(gl.createFramebuffer());
+            // * Create, bind, and store a single color target texture for the FBO
+            R.pass_gaussian_blur.blurTex.push(createAndBindColorTargetTexture(
+                R.pass_gaussian_blur.ping_pong_buffers[i], gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL));
+
+            // * Check for framebuffer errors
+            abortIfFramebufferIncomplete(R.pass_gaussian_blur.ping_pong_buffers[i]);
+            // * Tell the WEBGL_draw_buffers extension which FBO attachments are
+            //   being used. (This extension allows for multiple render targets.)
+            gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+        }
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    }
 
     /**
      * Loads all of the shader programs used in the pipeline.
@@ -138,10 +208,28 @@
 
         loadDeferredProgram('blinnphong-pointlight', function(p) {
             // Save the object into this variable for access later
+            p.u_cameraPos = gl.getUniformLocation(p.prog, 'u_cameraPos');
             p.u_lightPos = gl.getUniformLocation(p.prog, 'u_lightPos');
             p.u_lightCol = gl.getUniformLocation(p.prog, 'u_lightCol');
             p.u_lightRad = gl.getUniformLocation(p.prog, 'u_lightRad');
+            p.u_debugScissor = gl.getUniformLocation(p.prog, 'u_debugScissor');
             R.prog_BlinnPhong_PointLight = p;
+        });
+
+        loadDeferredProgram('tiled-blinnphong-pointlight', function(p) {
+            // Save the object into this variable for access later
+            p.u_colorLightCountOnly = gl.getUniformLocation(p.prog, 'u_colorLightCountOnly');
+            p.u_cameraPos = gl.getUniformLocation(p.prog, 'u_cameraPos');
+            p.u_lightPos = gl.getUniformLocation(p.prog, 'u_lightPos');
+            p.u_lightCol = gl.getUniformLocation(p.prog, 'u_lightCol');
+            p.u_lightRad = gl.getUniformLocation(p.prog, 'u_lightRad');
+            p.u_tileLightIndices = gl.getUniformLocation(p.prog, 'u_tileLightIndices');
+            p.u_lightCount = gl.getUniformLocation(p.prog, 'u_lightCount');
+            p.u_lightOffset = gl.getUniformLocation(p.prog, 'u_lightOffset');
+            p.u_lightTexWidth = gl.getUniformLocation(p.prog, 'u_lightTexWidth');
+            p.u_tileLightIndicesTexWidth = gl.getUniformLocation(p.prog, 'u_tileLightIndicesTexWidth');
+
+            R.prog_Tiled_BlinnPhong_PointLight = p;
         });
 
         loadDeferredProgram('debug', function(p) {
@@ -156,7 +244,22 @@
             R.progPost1 = p;
         });
 
-        // TODO: If you add more passes, load and set up their shader programs.
+        loadPostProgram('gaussian_blur', function(p) {
+            p.u_color      = gl.getUniformLocation(p.prog, 'u_color');
+            p.u_horizontal = gl.getUniformLocation(p.prog, 'u_horizontal');
+            p.u_texWidth = gl.getUniformLocation(p.prog, 'u_texWidth');
+            p.u_texHeight = gl.getUniformLocation(p.prog, 'u_texHeight');
+            // Save the object into this variable for access later
+            R.progGaussianBlur = p;
+        });
+
+        loadPostProgram('pixelated', function(p) {
+            p.u_color    = gl.getUniformLocation(p.prog, 'u_color');
+            p.u_textureSize    = gl.getUniformLocation(p.prog, 'u_textureSize');
+            p.u_time    = gl.getUniformLocation(p.prog, 'u_time');
+            // Save the object into this variable for access later
+            R.progPostPixelated = p;
+        });
     };
 
     var loadDeferredProgram = function(name, callback) {

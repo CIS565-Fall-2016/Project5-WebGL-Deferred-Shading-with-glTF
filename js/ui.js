@@ -6,8 +6,15 @@ var cfg;
     var Cfg = function() {
         // TODO: Define config fields and defaults here
         this.debugView = -1;
+        this.showAllLayers = false;
         this.debugScissor = false;
-        this.enableEffect0 = false;
+        this.debugTiledShading = false;
+
+        this.bloomEffect = false;
+        this.pixelateEffect = false;
+
+        this.scissorTest = false;
+        this.tiledShading = false;
     };
 
     var init = function() {
@@ -24,11 +31,20 @@ var cfg;
             '4 Normal map':      4,
             '5 Surface normal':  5
         });
-        gui.add(cfg, 'debugScissor');
+        gui.add(cfg, 'showAllLayers');
 
-        var eff0 = gui.addFolder('EFFECT NAME HERE');
+        var optimization = gui.addFolder("OPTIMIZATION");
+        optimization.open();
+        optimization.add(cfg, 'scissorTest');
+        optimization.add(cfg, 'debugScissor');
+        optimization.add(cfg, 'tiledShading');
+        optimization.add(cfg, 'debugTiledShading');
+
+        var eff0 = gui.addFolder('EFFECTS');
         eff0.open();
-        eff0.add(cfg, 'enableEffect0');
+        eff0.add(cfg, 'bloomEffect');
+        eff0.add(cfg, 'pixelateEffect');
+
         // TODO: add more effects toggles and parameters here
     };
 

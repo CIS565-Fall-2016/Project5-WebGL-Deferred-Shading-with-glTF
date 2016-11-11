@@ -23,5 +23,6 @@ void main() {
         return;
     }
 
-    gl_FragColor = vec4(0.1, 0.1, 0.1, 1);  // TODO: replace this
+    vec3 colmap = gb2.rgb;  // The color map - unlit "albedo" (surface color)
+    gl_FragColor = vec4(colmap, 1) * 0.2;
 }

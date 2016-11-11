@@ -94,7 +94,7 @@ window.readyModelForDraw = function(prog, m) {
 
     if (m.interleaved) {
         gl.bindBuffer(gl.ARRAY_BUFFER, m.attributes);
-    
+
         gl.enableVertexAttribArray(prog.a_position);
         gl.vertexAttribPointer(prog.a_position, m.posInfo.size, m.posInfo.type, false, m.posInfo.stride, m.posInfo.offset);
 
@@ -120,7 +120,7 @@ window.readyModelForDraw = function(prog, m) {
             gl.vertexAttribPointer(prog.a_uv, 2, gl.FLOAT, false, 0, 0);
         }
     }
-    
+
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, m.idx);
 };
@@ -194,6 +194,42 @@ window.getScissorForLight = (function() {
         return ret;
     };
 })();
+
+window.insertLightExtentToGrid = function(tiles, extent, screenWidth, screenHeight, tileDim, lightId) {
+
+    var tileSize = [screenWidth / tileDim, screenHeight / tileDim];
+    var xMin = extent[0];
+    var yMin = extent[1];
+    var xMax = Math.min(extent[2] + xMin, screenWidth);
+    var yMax = Math.min(extent[3] + yMin, screenHeight);
+
+    // console.log("tile size: " + tileSize[0] + ", " + tileSize[1]);
+    // console.log("xMin: " + xMin + ", xMax: " + xMax + ", yMin: " + yMin + ", yMax: " + yMax);
+    for (var x = xMin; x < xMax; x += tileSize[0]) {
+        for (var y = yMin; y < yMax; y += tileSize[1]) {
+            var indexX = Math.floor(x / tileSize[0]);
+            var indexY = Math.floor(y / tileSize[1]);
+
+            var index = indexX + indexY * tileDim;
+            // console.log("x: " + x + ", y: " + y + ", y / ts: " + y / tileSize[1] + ", width: " + width + ", height: " + height);
+            // console.log("ix: " + indexX + ", iy: " + indexY + ", index: " + index);
+            tiles[index].push(lightId);
+        }
+    }
+};
+
+
+window.clearGrid = function(tiles, tileDim) {
+    var tileCount = tileDim * tileDim;
+    for (var i = 0; i < tileCount; ++i) {
+        tiles[i] = [];
+    }
+}
+
+// Taken from https://bocoup.com/weblog/find-the-closest-power-of-2-with-javascript
+window.nearestPow2 = function( aSize ){
+  return Math.pow( 2, Math.round( Math.log( aSize ) / Math.log( 2 ) ) );
+}
 
 window.abortIfFramebufferIncomplete = function(fbo) {
     gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
