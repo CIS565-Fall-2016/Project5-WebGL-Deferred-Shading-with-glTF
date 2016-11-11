@@ -8,7 +8,7 @@ WebGL Deferred Shading
 
 ### Demo Video/GIF
 
-[![](img/video.png)](TODO)
+![video_demo](screenshots/overview.gif)
 
 ### Live Online
 
@@ -24,8 +24,9 @@ WebGL Deferred Shading
   * [x] Scissor test debug view
   * [x] Reduce number of g-buffer
 
-### GUI for Features
-Features and optimizations can be toggled from GUI as following:
+### GUIs and Control
+
+Features and optimizations can be toggled from GUIs as following:
 
 * Debug
  * `debugView` select different g-buffers to render
@@ -77,7 +78,7 @@ Edge detection is implemented using gradient detection of depth texture. Same as
 
 Screenshots for Toon Shading:
 
-| low light number| hight light number|
+| small light number| big light number|
 |------|------|
 |![toon_bloom_effect1](screenshots/toon_bloom_effect1.gif)|![toon_bloom_effect2](screenshots/toon_bloom_effect2.gif)|
 
@@ -112,7 +113,7 @@ Performance of scissor testing vs light numbers:
 
 Performance of g-buffer numbers vs light numbers:
 
-![g-buffers](pa/buffers.png)
+![g-buffers](pa/g-buffers.png)
 
 * reduction of usage of g-buffer can improve performance. The memory access in GPU is a very important aspect of performance.
 
