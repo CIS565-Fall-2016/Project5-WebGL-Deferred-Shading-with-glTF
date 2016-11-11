@@ -6,9 +6,16 @@
     R.pass_debug = {};
     R.pass_deferred = {};
     R.pass_post1 = {};
+    R.pass_post_bloom_brightness = {};
+    R.pass_post_bloom_blur = {};
+    R.pass_output = {}; // gather bloom and toon
+    R.pass_post_toon_edge_detector = {};
+    R.pass_post_motion_blur = {};
+
     R.lights = [];
 
-    R.NUM_GBUFFERS = 4;
+    //R.NUM_GBUFFERS = 4;
+    R.NUM_GBUFFERS = 3;
 
     /**
      * Set up the deferred pipeline framebuffer objects and textures.
@@ -18,14 +25,23 @@
         loadAllShaderPrograms();
         R.pass_copy.setup();
         R.pass_deferred.setup();
+        
+        // bloom related
+        R.pass_post_bloom_blur.setup();
+
+        // toon shader related
+        R.pass_post_toon_edge_detector.setup();
+
+        // output setup
+        R.pass_output.setup();
     };
 
     // TODO: Edit if you want to change the light initial positions
     R.light_min = [-14, 0, -6];
     R.light_max = [14, 18, 6];
     R.light_dt = -0.03;
-    R.LIGHT_RADIUS = 4.0;
-    R.NUM_LIGHTS = 20; // TODO: test with MORE lights!
+    R.LIGHT_RADIUS = 4.0;  
+    R.NUM_LIGHTS = 80; // TODO: test with MORE lights!
     var setupLights = function() {
         Math.seedrandom(0);
 
@@ -98,6 +114,51 @@
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     };
 
+
+    R.pass_post_bloom_blur.setup = function() {
+        
+        // pingpong buffer1 setup
+        R.pass_post_bloom_blur.fbo1 = gl.createFramebuffer();
+        R.pass_post_bloom_blur.bufferTex1 = createAndBindColorTargetTexture(
+            R.pass_post_bloom_blur.fbo1, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+
+        abortIfFramebufferIncomplete(R.pass_post_bloom_blur.fbo1);
+        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+
+        // buffer2
+        R.pass_post_bloom_blur.fbo2 = gl.createFramebuffer();
+        R.pass_post_bloom_blur.bufferTex2 = createAndBindColorTargetTexture(
+        R.pass_post_bloom_blur.fbo2, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+
+        abortIfFramebufferIncomplete(R.pass_post_bloom_blur.fbo2);
+        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    };
+
+
+    R.pass_post_toon_edge_detector.setup = function() {
+
+        R.pass_post_toon_edge_detector.fbo = gl.createFramebuffer();
+        R.pass_post_toon_edge_detector.edgeTex = createAndBindColorTargetTexture(
+            R.pass_post_toon_edge_detector.fbo, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+
+        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    };
+
+    R.pass_output.setup = function() {
+
+        R.pass_output.fbo = gl.createFramebuffer();
+        R.pass_output.colorTex = createAndBindColorTargetTexture(
+            R.pass_output.fbo, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+
+        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    };
+
     /**
      * Loads all of the shader programs used in the pipeline.
      */
@@ -141,6 +202,8 @@
             p.u_lightPos = gl.getUniformLocation(p.prog, 'u_lightPos');
             p.u_lightCol = gl.getUniformLocation(p.prog, 'u_lightCol');
             p.u_lightRad = gl.getUniformLocation(p.prog, 'u_lightRad');
+            p.u_cameraPos = gl.getUniformLocation(p.prog, 'u_cameraPos');
+            
             R.prog_BlinnPhong_PointLight = p;
         });
 
@@ -157,6 +220,60 @@
         });
 
         // TODO: If you add more passes, load and set up their shader programs.
+        loadPostProgram('bloom_brightness', function(p){
+
+            p.u_color   = gl.getUniformLocation(p.prog, 'u_color');
+            p.u_bloomThreshold = gl.getUniformLocation(p.prog, 'u_bloomThreshold');
+
+            R.prog_Bloom_Brightness = p;
+        });
+
+        loadPostProgram('bloom_blur', function(p){
+
+            p.u_bufferTex   = gl.getUniformLocation(p.prog, 'u_bufferTex');
+            p.u_horizontal   = gl.getUniformLocation(p.prog, 'u_horizontal');
+            p.u_texSize   = gl.getUniformLocation(p.prog, 'u_texSize');
+
+            R.prog_Bloom_Blur = p;
+        });
+
+        loadPostProgram('output', function(p){
+            
+            p.u_deferTex   = gl.getUniformLocation(p.prog, 'u_deferTex');
+            
+            p.u_useBloom   = gl.getUniformLocation(p.prog, 'u_useBloom');
+            p.u_bloomTex   = gl.getUniformLocation(p.prog, 'u_bloomTex');
+           
+            p.u_useToon    = gl.getUniformLocation(p.prog, 'u_useToon');
+            p.u_rampLevel  = gl.getUniformLocation(p.prog, 'u_rampLevel');
+            p.u_edgeTex    = gl.getUniformLocation(p.prog, 'u_edgeTex');
+            
+            R.prog_output = p;
+        });
+
+        loadPostProgram('toon_edge_detector', function(p) {
+
+            p.u_depthTex   = gl.getUniformLocation(p.prog, 'u_depthTex');
+            p.u_texSize    = gl.getUniformLocation(p.prog, 'u_texSize');
+            p.u_edgeThreshold = gl.getUniformLocation(p.prog, 'u_edgeThreshold');
+
+            R.prog_toon_edge_detector = p;
+        });
+
+        loadPostProgram('motion_blur', function(p) {
+
+            p.u_colorTex = gl.getUniformLocation(p.prog, 'u_colorTex');
+            p.u_enableMotionBlur = gl.getUniformLocation(p.prog, 'u_enableMotionBlur');
+            p.u_previousCameraMat = gl.getUniformLocation(p.prog, 'u_previousCameraMat');
+            p.u_inverseCameraMat = gl.getUniformLocation(p.prog, 'u_inverseCameraMat');
+            p.u_depth = gl.getUniformLocation(p.prog, 'u_depth');
+            p.u_motionBlurScale = gl.getUniformLocation(p.prog, 'u_motionBlurScale');
+
+            p.previousCameraMat = null;
+            p.inverseCameraMat = new THREE.Matrix4();
+
+            R.prog_motion_blur = p;
+        });
     };
 
     var loadDeferredProgram = function(name, callback) {

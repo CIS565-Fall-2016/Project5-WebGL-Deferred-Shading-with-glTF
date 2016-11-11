@@ -8,7 +8,6 @@ var width, height;
     var models = [];
 
     var cameraMat = new THREE.Matrix4();
-
     var render = function() {
         camera.updateMatrixWorld();
         camera.matrixWorldInverse.getInverse(camera.matrixWorld);
@@ -67,7 +66,7 @@ var width, height;
 
     var init = function() {
         // TODO: For performance measurements, disable debug mode!
-        var debugMode = true;
+        var debugMode = false;
 
         canvas = document.getElementById('canvas');
         renderer = new THREE.WebGLRenderer({
