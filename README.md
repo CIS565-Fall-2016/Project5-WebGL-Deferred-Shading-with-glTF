@@ -47,12 +47,18 @@ With Bloom |  With Bloom&lava
 :-------------------------:|:-------------------------:  
 ![](img/bloomnolava.JPG) | ![](img/bloomlava.JPG) 
 
+This is everything..
+
+[![](img/boom.JPG) ] 
+
+
 Two models were used for light rendering, scissor and sphere, here is the visualization of the Two
 in debug model
 
 With Scissor Debug |  With Sphere Debug
 :-------------------------:|:-------------------------:  
 ![](img/scissordebug.JPG) | ![](img/spheredebug.JPG) 
+
 
  
 #debug images
