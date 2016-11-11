@@ -119,7 +119,7 @@ var width, height;
         scene.add(sph);
         renderer.render(scene, camera);
         uploadModel(sph, function(m) {
-            R.sphereModel = m;
+            R.sphereModel = m; 
         });
 
         // var glTFURL = 'models/glTF-duck/duck.gltf';
