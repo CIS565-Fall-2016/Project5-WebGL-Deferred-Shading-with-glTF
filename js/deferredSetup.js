@@ -14,7 +14,7 @@
     R.tileLightOffsets = [];
     R.tileLightIndices = [];
 
-    R.TILE_DIM = 1; // This value can be changed for performance analysis
+    R.TILE_DIM = 32; // This value can be changed for performance analysis
     R.NUM_GBUFFERS = 4;
 
     /**
@@ -35,7 +35,7 @@
     R.light_max = [14, 18, 6];
     R.light_dt = -0.03;
     R.LIGHT_RADIUS = 4.0;
-    R.NUM_LIGHTS = 2;
+    R.NUM_LIGHTS = 100;
     ; // TODO: test with MORE lights!
     var setupLights = function() {
         Math.seedrandom(0);

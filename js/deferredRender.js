@@ -246,11 +246,16 @@
             }
         }
         var texTileLightIndicesWidth = nearestPow2(Math.ceil(Math.sqrt(tileLightIndices.length)));
+        texTileLightIndicesWidth = texTileLightIndicesWidth < 4 ? 4 : texTileLightIndicesWidth;
         var texTileLightIndicesArea = texTileLightIndicesWidth * texTileLightIndicesWidth
-        var tileLightIndicesData = new Uint8Array(texTileLightIndicesArea);
+        var tileLightIndicesData = new Float32Array(texTileLightIndicesArea);
         // Copy over the grid array
         for (var i = 0; i < tileLightIndices.length; ++i) {
             tileLightIndicesData[i] = tileLightIndices[i];
+        }
+        // Fill the rest with -1
+        for (var i = tileLightIndices.length; i < texTileLightIndicesArea; ++i) {
+            tileLightIndicesData[i] = -1;
         }
         var tileLightIndicesTex = texture2DFromUint8(texTileLightIndicesWidth, tileLightIndicesData);
 
@@ -305,6 +310,16 @@
             // Only render per tile
             var tileRow = Math.floor(t / R.TILE_DIM);
             var tileCol = Math.floor(t % R.TILE_DIM);
+
+            for (var i = 0; i < 100; ++i) {
+                if (i < lightCount) {
+                    var offset = lightOffset + i;
+                    var offsetY = Math.floor(offset / texTileLightIndicesWidth);
+                    var offsetX = offset - (offsetY * texTileLightIndicesWidth);
+                    var u = offsetX / texTileLightIndicesWidth;
+                    var v = offsetY / texTileLightIndicesWidth;
+                }
+            }
 
             // Scissor out the specific tile
             gl.scissor(tileCol * tileWidth, tileRow * tileHeight, tileWidth, tileHeight);
@@ -415,7 +430,7 @@
             width,
             0,              // border
             gl.ALPHA,         // format
-            gl.UNSIGNED_BYTE,       // type
+            gl.FLOAT,       // type
             ints
             );
 
