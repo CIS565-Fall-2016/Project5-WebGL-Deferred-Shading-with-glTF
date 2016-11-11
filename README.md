@@ -9,9 +9,7 @@ WebGL Deferred Shading
 
 # Live Online
 
-[![](img/100_lights.png)](https://trungtle.github.io/Project5-WebGL-Deferred-Shading-with-glTF/)
-
-# Demo Video/GIF
+[![](img/100_lights.gif)](https://trungtle.github.io/Project5-WebGL-Deferred-Shading-with-glTF/)
 
 # Features
 
@@ -125,7 +123,7 @@ The texture data transfer to the fragment shader is quite expensive, especially 
 
 ### Display all deferred layers
 
-![](img/all_deferred_layers.png)
+![](img/deferred_layers.gif)
 
 All deferred layers can be viewed by enabling 'showAllLayers' options under the control panel.
 
