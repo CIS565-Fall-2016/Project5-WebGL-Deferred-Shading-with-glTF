@@ -54,12 +54,16 @@ With Scissor Debug |  With Sphere Debug
 :-------------------------:|:-------------------------:  
 ![](img/scissordebug.JPG) | ![](img/spheredebug.JPG) 
 
-<<<<<<< HEAD
-  
+ 
+#debug images
 
-![](img/chart1.JPG) | ![](img/chart2.JPG) | ![](img/chart3.JPG)
-=======
->>>>>>> master
+Depth |  Position | Geometric normal
+:-------------------------:|:-------------------------: |:-------------------------:  
+![](img/debug1.JPG) | ![](img/debug2.JPG) | ![](img/debug3.JPG) 
+
+Colormap |  Normalmap | Surface normal
+:-------------------------:|:-------------------------: |:-------------------------:  
+![](img/debug4.JPG) | ![](img/debug5.JPG) | ![](img/debug6.JPG) 
 
 # Performance Analysis 
 
