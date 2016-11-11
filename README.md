@@ -67,7 +67,7 @@ The spherical proxy renders the natural range of lights and saved wasted frageme
 As number of lights increases, the GPU becomes more saturated and more dominant in the overll computation time percentage, this also suggests that optimization techniques
 such as compaction might help improve the efficiency. 
 
-
+ 
 ![](img/chart2.JPG) 
 
 ![](img/chart3.JPG)
