@@ -67,7 +67,7 @@ With Scissor Debug |  With Sphere Debug
 
 For differnt rendering effect, I am analyzing the change of performance based on the render time / total time ratio, which is 
 extracted from Chrome profiling.  Here it shows 1. the sphere model consumes improves the costs by scissor test; 2. as number of 
-lights increases, the the percentage of the time consumed by GPU rendering increases for all effects; for non-debug mode, adding shadhing effects
+lights increases, the the percentage of the time consumed by GPU rendering increases for all effects; for non-debug mode, adding shading effects
 does not significantly increases the time; and apprarently rendering significantly increases the time than pure debugging visualization.
 The spherical proxy renders the natural range of lights and saved wasted fragements by scissor squares, this helps with the improvement.
 As number of lights increases, the GPU becomes more saturated and more dominant in the overll computation time percentage, this also suggests that optimization techniques
@@ -78,7 +78,7 @@ such as compaction might help improve the efficiency.
 
 ![](img/chart3.JPG)
 
-For G-buffer optimization, since the normal, geometric normal and position buffers all have one free sloe,
+For G-buffer optimization, since the normal, geometric normal and position buffers all have one free slot,
 the three components was squeezed into the free slots and saves one buffer. Even though we only reduced the number of 
 G-buffer from 4 to 3, we are still able to see the signifant improvments. (Here I am using FPS as measurements because the ms measure appears to be inacurrate.)
 improvement by reducing G-buffer size by one also suggests we look at memory optimization, if time permits, will try Tiling for better improvments.
