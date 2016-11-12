@@ -6,9 +6,12 @@
     R.pass_debug = {};
     R.pass_deferred = {};
     R.pass_post1 = {};
+    R.pass_motionblur = {};
+    R.pass_bloomThreshold = {};
+    R.pass_bloomBlur = {};
     R.lights = [];
 
-    R.NUM_GBUFFERS = 4;
+    R.NUM_GBUFFERS = 2;
 
     /**
      * Set up the deferred pipeline framebuffer objects and textures.
@@ -18,8 +21,17 @@
         loadAllShaderPrograms();
         R.pass_copy.setup();
         R.pass_deferred.setup();
+        R.pass_motionblur.setup();
+        R.pass_bloomThreshold.setup();
+        R.pass_bloomBlur.setup();
+        R.preCameraMat = new THREE.Matrix4();
+
+        //loadSponzaTexture();
     };
 
+    // var loadSponzaTexture() = function() {
+
+    // }
     // TODO: Edit if you want to change the light initial positions
     R.light_min = [-14, 0, -6];
     R.light_max = [14, 18, 6];
@@ -98,6 +110,60 @@
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     };
 
+    R.pass_motionblur.setup = function() {
+        // * Create the FBO
+        R.pass_motionblur.fbo = gl.createFramebuffer();
+        // * Create, bind, and store a single color target texture for the FBO
+        R.pass_motionblur.colorTex = createAndBindColorTargetTexture(
+            R.pass_motionblur.fbo, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+
+        // * Check for framebuffer errors
+        abortIfFramebufferIncomplete(R.pass_deferred.fbo);
+        // * Tell the WEBGL_draw_buffers extension which FBO attachments are
+        //   being used. (This extension allows for multiple render targets.)
+        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    };
+
+    R.pass_bloomThreshold.setup = function() {
+        R.pass_bloomThreshold.fbo = gl.createFramebuffer();
+        // * Create, bind, and store a single color target texture for the FBO
+        R.pass_bloomThreshold.colorTex = createAndBindColorTargetTexture(
+            R.pass_bloomThreshold.fbo, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+
+        // * Check for framebuffer errors
+        abortIfFramebufferIncomplete(R.pass_bloomThreshold.fbo);
+        // * Tell the WEBGL_draw_buffers extension which FBO attachments are
+        //   being used. (This extension allows for multiple render targets.)
+        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    };
+
+    R.pass_bloomBlur.setup = function() {
+        R.pass_bloomBlur.fbo = [];
+        R.pass_bloomBlur.colorTex = [];
+        var fbo;
+        var colorTex;
+
+        fbo = gl.createFramebuffer();
+        colorTex = createAndBindColorTargetTexture(fbo, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+        abortIfFramebufferIncomplete(fbo);
+        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+        R.pass_bloomBlur.fbo.push(fbo);
+        R.pass_bloomBlur.colorTex.push(colorTex);
+
+        //gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        fbo = gl.createFramebuffer();
+        colorTex = createAndBindColorTargetTexture(fbo, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL);
+        abortIfFramebufferIncomplete(fbo);
+        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+        R.pass_bloomBlur.fbo.push(fbo);
+        R.pass_bloomBlur.colorTex.push(colorTex);
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    };
     /**
      * Loads all of the shader programs used in the pipeline.
      */
@@ -141,6 +207,11 @@
             p.u_lightPos = gl.getUniformLocation(p.prog, 'u_lightPos');
             p.u_lightCol = gl.getUniformLocation(p.prog, 'u_lightCol');
             p.u_lightRad = gl.getUniformLocation(p.prog, 'u_lightRad');
+            p.u_cameraPos = gl.getUniformLocation(p.prog, 'u_cameraPos');
+            p.u_isToon = gl.getUniformLocation(p.prog, 'u_isToon');
+
+            p.u_invCrtCameraMat = gl.getUniformLocation(p.prog, 'u_invCrtCameraMat');
+
             R.prog_BlinnPhong_PointLight = p;
         });
 
@@ -156,6 +227,32 @@
             R.progPost1 = p;
         });
 
+        loadPostProgram('motionblur', function(p) {
+            p.u_color    = gl.getUniformLocation(p.prog, 'u_color');
+            p.u_depth    = gl.getUniformLocation(p.prog, 'u_depth');
+
+            p.u_crtCameraMat = gl.getUniformLocation(p.prog, 'u_crtCameraMat');
+            p.u_preCameraMat = gl.getUniformLocation(p.prog, 'u_preCameraMat');
+            p.u_invCrtCameraMat = gl.getUniformLocation(p.prog, 'u_invCrtCameraMat');
+
+            //console.log(p.u_invCrtCameraMat);
+            R.progMotionBlur = p;
+        });
+
+        loadPostProgram('bloomthreshold', function(p) {
+            p.u_color    = gl.getUniformLocation(p.prog, 'u_color');
+
+            //console.log(p.u_invCrtCameraMat);
+            R.progBloomThreshold = p;
+        });
+
+        loadPostProgram('bloomblur', function(p) {
+            p.u_color    = gl.getUniformLocation(p.prog, 'u_color');
+            p.u_horizontal = gl.getUniformLocation(p.prog, 'u_horizontal');
+            p.u_textureSize = gl.getUniformLocation(p.prog, 'u_textureSize');
+            //console.log(p.u_invCrtCameraMat);
+            R.progBloomBlur = p;
+        });
         // TODO: If you add more passes, load and set up their shader programs.
     };
 
@@ -174,6 +271,7 @@
                 p.u_depth    = gl.getUniformLocation(prog, 'u_depth');
                 p.a_position = gl.getAttribLocation(prog, 'a_position');
 
+                // call custom callback function
                 callback(p);
             });
     };

@@ -13,6 +13,12 @@ var width, height;
         camera.updateMatrixWorld();
         camera.matrixWorldInverse.getInverse(camera.matrixWorld);
         cameraMat.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+        //R.preCameraMat = cameraMat;
+        //var mat = new THREE.Matrix4();
+        //var crtMat = mat.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+        //console.log('cameraMat');
+        //console.log(cameraMat);
+        //console.log(crtMat);
         R.deferredRender({
             cameraMat: cameraMat,
             projMat: camera.projectionMatrix,
@@ -67,7 +73,7 @@ var width, height;
 
     var init = function() {
         // TODO: For performance measurements, disable debug mode!
-        var debugMode = true;
+        var debugMode = false;
 
         canvas = document.getElementById('canvas');
         renderer = new THREE.WebGLRenderer({
@@ -88,7 +94,8 @@ var width, height;
         initExtensions();
 
         stats = new Stats();
-        stats.setMode(1); // 0: fps, 1: ms, 2: mb
+        stats.setMode(0); // 0: fps, 1: ms, 2: mb
+        //console.log(stats.fps);
         stats.domElement.style.position = 'absolute';
         stats.domElement.style.left = '0px';
         stats.domElement.style.top = '0px';
@@ -106,6 +113,7 @@ var width, height;
         );
         camera.position.set(-15.5, 1, -1);
 
+        //R.preCameraMat = cameraMat;
         controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.enableZoom = true;
@@ -123,7 +131,7 @@ var width, height;
         });
 
         // var glTFURL = 'models/glTF-duck/duck.gltf';
-        var glTFURL = 'models/gltf-sponza-kai-fix/sponza.gltf';
+        var glTFURL = 'models/glTF-sponza-kai-fix/sponza.gltf';
         var glTFLoader = new MinimalGLTFLoader.glTFLoader(gl);
         glTFLoader.loadGLTF(glTFURL, function (glTF) {
             var curScene = glTF.scenes[glTF.defaultScene];
@@ -151,11 +159,7 @@ var width, height;
 
 
             // temp for sponza
-            var colorTextureName = 'texture_color'; // for sponza
-            if (!glTF.json.textures[colorTextureName]) {
-                colorTextureName = (Object.keys(glTF.json.textures))[0];
-                console.log(colorTextureName);
-            }
+            var colorTextureName = 'texture_color';
             var normalTextureName = 'texture_normal';
 
             // textures
@@ -206,8 +210,9 @@ var width, height;
                     target: target,
                     id: textureID
                 };
-
+                //console.log(glTFURL + ' textureID:' + textureID);
                 textureID++;
+
             }
 
 
@@ -236,29 +241,23 @@ var width, height;
 
                     var posInfo = primitive.attributes[primitive.technique.parameters['position'].semantic];
                     var norInfo = primitive.attributes[primitive.technique.parameters['normal'].semantic];
-                    var uvInfo;
-                    if (primitive.technique.parameters['texcoord_0']) {
-                        uvInfo = primitive.attributes[primitive.technique.parameters['texcoord_0'].semantic];
-                    } else if (primitive.technique.parameters['texcoord0']) {
-                        uvInfo = primitive.attributes[primitive.technique.parameters['texcoord0'].semantic];
-                    }
-                    
+                    var uvInfo = primitive.attributes[primitive.technique.parameters['texcoord_0'].semantic];
 
                     models.push({
                         gltf: primitive,
 
                         idx: indicesBuffer,
 
-                        interleaved: true,
-
                         attributes: vertexBuffer,
                         posInfo: {size: posInfo.size, type: posInfo.type, stride: posInfo.stride, offset: posInfo.offset},
                         norInfo: {size: norInfo.size, type: norInfo.type, stride: norInfo.stride, offset: norInfo.offset},
                         uvInfo: {size: uvInfo.size, type: uvInfo.type, stride: uvInfo.stride, offset: uvInfo.offset},
 
+                        //texture: 
+
                         // specific textures temp test
                         colmap: webGLTextures[colorTextureName].texture, 
-                        normap: webGLTextures[normalTextureName] ? webGLTextures[normalTextureName].texture : null
+                        normap: webGLTextures[normalTextureName].texture
                     });
 
                 }
@@ -327,21 +326,9 @@ var width, height;
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gidx);
             gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, idx, gl.STATIC_DRAW);
 
-            // var m = {
-            //     idx: gidx,
-            //     elemCount: idx.length,
-            //     position: gposition,
-            //     normal: gnormal,
-            //     uv: guv
-            // };
-
-            // adapt to new readyModelForDraw and drawReadyModel (glTF version)
             var m = {
                 idx: gidx,
                 elemCount: idx.length,
-
-                interleaved: false,
-
                 position: gposition,
                 normal: gnormal,
                 uv: guv

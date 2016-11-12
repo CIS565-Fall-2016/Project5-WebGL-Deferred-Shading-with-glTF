@@ -1,0 +1,15 @@
+use 2 gbuffer, calculate world position in shader:
+33
+
+compute normal in copy:
+29
+
+Scissor Test gl.scissor:
+24
+
+Scissor Test NULL:
+16
+
+Without Scissor Test:
+13
+
