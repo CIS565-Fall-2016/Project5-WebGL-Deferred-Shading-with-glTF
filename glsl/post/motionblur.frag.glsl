@@ -20,7 +20,7 @@ void main() {
 	vec4 worldPos = DD / DD.w;
 	vec4 prePos = u_preCameraMat * worldPos;
 	prePos /= prePos.w;
-	vec2 velocity = ((HH - prePos) * 0.5).xy;
+	vec2 velocity = ((HH - prePos) * 0.1).xy;
 
     vec4 color = texture2D(u_color, v_uv);
     vec4 tempResult = color;
@@ -32,7 +32,7 @@ void main() {
     vec2 texCoord = v_uv + velocity;
     //int g_numSamples = 4;
 
-    for (int i = 1; i < 4; i++)
+    for (int i = 1; i < 16; i++)
     {
     	vec4 currentColor = texture2D(u_color, texCoord);
     	color += currentColor;
@@ -40,7 +40,7 @@ void main() {
     }
 
     //gl_FragColor = vec4(velocity.x, 0.0, 0.0, 1.0);
-    gl_FragColor = color / 4.0;
+    gl_FragColor = color / 16.0;
     //gl_FragColor = tempResult;
     //gl_FragColor = texture2D(u_color, v_uv);
     //gl_FragColor = vec4(worldPos.y, 0.0, 0.0, 1.0);

@@ -52,7 +52,7 @@
             //R.pass_motionblur.render(state);
             //R.pass_post1.render(state);
             
-        } else if (cfg && cfg.toonshading) {
+        } else if (cfg && cfg.Toonshading) {
             R.pass_deferred.render(state, false, 1);
             //R.pass_motionblur.render(state);
             
@@ -68,7 +68,10 @@
 
         R.pass_bloomThreshold.render(state);
         R.pass_bloomBlur.render(state);
-        R.pass_motionblur.render(state);
+        if (cfg && cfg.Bloom)
+            R.pass_motionblur.render(state, R.pass_bloomBlur.colorTex[0]);
+        else
+            R.pass_motionblur.render(state, R.pass_deferred.colorTex);
         R.pass_post1.render(state);
     };
 
@@ -278,7 +281,7 @@
         renderFullScreenQuad(R.progPost1);
     };
 
-    R.pass_motionblur.render = function(state) {
+    R.pass_motionblur.render = function(state, colortex) {
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, R.pass_motionblur.fbo);
 
@@ -295,7 +298,7 @@
         gl.uniformMatrix4fv(R.progMotionBlur.u_invCrtCameraMat, false, mat.getInverse(crtMat).elements);
 
         gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, R.pass_bloomBlur.colorTex[0]);
+        gl.bindTexture(gl.TEXTURE_2D, colortex);
         //console.log(R.progMotionBlur.u_color);
         gl.uniform1i(R.progMotionBlur.u_color, 0);
 
