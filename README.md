@@ -8,11 +8,11 @@ WebGL Deferred Shading
 
 ### Live Online
 
-[![](img/inde3x.jpg)](https://immiao.github.io/Project5-WebGL-Deferred-Shading-with-glTF/)
+[![](img/index.jpg)](https://immiao.github.io/Project5-WebGL-Deferred-Shading-with-glTF/)
 
 ### Demo Video/GIF
 
-![](img/732.gif)
+![](img/72.gif)
 
 ### Features
 
